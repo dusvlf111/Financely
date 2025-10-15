@@ -1,6 +1,25 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-primary-50: #f7fee7;
+  --color-primary-100: #ecfccb;
+  --color-primary-500: #10b981;
+
+  --color-secondary-500: #3b82f6;
+
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-500: #6b7280;
+  --color-neutral-800: #1f2937;
+
+  --color-status-success: #10b981;
+  --color-status-warning: #f59e0b;
+  --color-status-danger: #ef4444;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+}
 
 /* 기본 글로벌 스타일 */
 html, body, #__next {
