@@ -21,31 +21,27 @@ export default function LevelProgress() {
         </div>
       </div>
 
-      <div className="mt-3">
-        <div className="flex items-center justify-between">
-          <div className="text-sm">예상 보상: +50 +60 +0</div>
-          <div className="flex items-center gap-3">
-              <div className="text-sm">
-                에너지: <span className="font-medium">{energy}</span>
-                {energy < maxEnergy && typeof remainingSeconds === 'number' && remainingSeconds > 0 && (
-                  <span className="text-xs text-neutral-500 ml-2">(다음 에너지: {formatTime(remainingSeconds)})</span>
-                )}
-              </div>
-              <button
-                className="px-3 py-2 bg-primary-600 text-black rounded-md"
-                onClick={() => {
-                  if (energy < 1) {
-                    setShowModal(true)
-                  } else {
-                    // 첫 번째 문제로 이동
-                    router.push('/problems/p1')
-                  }
-                }}
-              >
-                다음 문제 풀기
-              </button>
-                <EnergyModal open={showModal} onClose={() => setShowModal(false)} />
-          </div>
+      <div className="mt-4 flex justify-between items-center">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="font-medium">에너지: {energy}</span>
+          {energy < maxEnergy && typeof remainingSeconds === 'number' && remainingSeconds > 0 && (
+            <span className="text-xs text-neutral-500">({formatTime(remainingSeconds)})</span>
+          )}
+        </div>
+        <div>
+          <button
+            className="btn-primary py-2 px-4 text-sm"
+            onClick={() => {
+              if (energy < 1) {
+                setShowModal(true)
+              } else {
+                router.push('/problems/p1') // TODO: 다음 문제 로직 구현
+              }
+            }}
+          >
+            다음 문제 풀기
+          </button>
+          <EnergyModal open={showModal} onClose={() => setShowModal(false)} />
         </div>
       </div>
     </div>

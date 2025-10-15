@@ -3,7 +3,7 @@ import React from 'react'
 import Header from '../components/layout/Header'
 import Navigation from '../components/layout/Navigation'
 import AuthProvider from '@/lib/context/AuthProvider'
-import EnergyProvider from '@/lib/store/energyStore'
+import { EnergyProvider } from '@/lib/store/energyStore'
 
 export const metadata = {
   title: 'Financely',

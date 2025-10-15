@@ -2,13 +2,14 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
 export type GoldHistoryEntry = {
-  date: string
+  timestamp: number
   gold: number
 }
 
 interface GoldState {
   history: GoldHistoryEntry[]
   todayStartGold: number | null
+  setTodayStartGold: (gold: number) => void
   initializeHistory: (initialGold: number) => void
   updateGold: (currentGold: number) => void
 }
@@ -18,41 +19,30 @@ export const useGoldStore = create<GoldState>()(
     (set, get) => ({
       history: [],
       todayStartGold: null,
+      setTodayStartGold: (gold: number) => set({ todayStartGold: gold }),
 
       initializeHistory: (initialGold: number) => {
-        if (get().history.length > 0) return
-
-        const newHistory: GoldHistoryEntry[] = []
-        const baseGold = Math.max(0, initialGold - 500)
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date()
-          date.setDate(date.getDate() - i)
-          const dateStr = date.toISOString().split('T')[0]
-          newHistory.push({
-            date: dateStr,
-            gold: baseGold + Math.floor((500 / 7) * (7 - i)),
-          })
-        }
-        set({ history: newHistory, todayStartGold: newHistory[newHistory.length - 2]?.gold ?? initialGold })
+        if (get().history.length > 0) return // 이미 히스토리가 있으면 초기화하지 않음
+        const now = Date.now()
+        const initialHistory: GoldHistoryEntry[] = [{ timestamp: now, gold: initialGold }]
+        set({ history: initialHistory, todayStartGold: initialGold })
       },
 
       updateGold: (currentGold: number) => {
-        const today = new Date().toISOString().split('T')[0]
-        const currentHistory = [...get().history]
-
-        let todayEntry = currentHistory.find(h => h.date === today)
-
-        if (!todayEntry) {
-          const yesterdayGold = currentHistory.length > 0 ? currentHistory[currentHistory.length - 1].gold : currentGold
-          todayEntry = { date: today, gold: currentGold }
-          currentHistory.push(todayEntry)
-          set({ todayStartGold: yesterdayGold })
-        } else {
-          todayEntry.gold = currentGold
+        const now = Date.now()
+        const newHistoryEntry = { timestamp: now, gold: currentGold }
+        
+        const currentHistory = get().history
+        // 마지막 기록과 동일한 골드 값이면 추가하지 않음 (불필요한 데이터 방지)
+        if (currentHistory.length > 0 && currentHistory[currentHistory.length - 1].gold === currentGold) {
+          return
         }
 
-        // 7일 데이터만 유지
-        const finalHistory = currentHistory.length > 7 ? currentHistory.slice(-7) : currentHistory
+        const newHistory = [...currentHistory, newHistoryEntry]
+
+        // 성능을 위해 최근 7일 데이터만 유지
+        const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000
+        const finalHistory = newHistory.filter(entry => entry.timestamp >= sevenDaysAgo)
 
         set({ history: finalHistory })
       },

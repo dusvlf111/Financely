@@ -41,14 +41,6 @@ export default function Header() {
           <span className="text-sm font-semibold">{user.gold.toLocaleString()}</span>
         </div>
 
-        {/* 프로필 */}
-        <Link href="/mypage">
-          <div className="h-9 w-9 bg-neutral-200 rounded-full flex items-center justify-center border-2 border-white hover:border-primary-500 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-neutral-600" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
-          </div>
-        </Link>
       </div>
     </header>
   )

@@ -1,104 +1,86 @@
 "use client"
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import React, { createContext, useContext, useEffect } from 'react'
 
-type EnergyContextType = {
+const ENERGY_RECOVERY_SECONDS = 60 // 1분으로 수정 (기존: 4 * 60 * 60)
+const MAX_ENERGY = 5
+
+interface EnergyState {
   energy: number
   maxEnergy: number
+  lastUpdated: number
+  remainingSeconds: number | null
   consume: (amount?: number) => boolean
-  add: (amount?: number) => void
-  startRecovery: () => void
-  stopRecovery: () => void
-  remainingSeconds?: number
+  add: (amount: number) => void
+  _updateEnergy: () => void
 }
 
-const EnergyContext = createContext<EnergyContextType | undefined>(undefined)
+const useEnergyStore = create<EnergyState>()(
+  persist(
+    (set, get) => ({
+      energy: MAX_ENERGY,
+      maxEnergy: MAX_ENERGY,
+      lastUpdated: Date.now(),
+      remainingSeconds: null,
 
-export function EnergyProvider({ children }: { children: React.ReactNode }) {
-  const [energy, setEnergy] = useState<number>(3)
-  const maxEnergy = 5
-  const intervalRef = useRef<number | null>(null)
-  const [remainingSeconds, setRemainingSeconds] = useState<number>(60)
+      consume: (amount = 1) => {
+        if (get().energy >= amount) {
+          set(state => ({
+            energy: state.energy - amount,
+            lastUpdated: state.energy === MAX_ENERGY ? Date.now() : state.lastUpdated,
+          }))
+          return true
+        }
+        return false
+      },
 
-  function consume(amount = 1) {
-    let ok = false
-    setEnergy(e => {
-      if (e >= amount) {
-        ok = true
-        return e - amount
-      }
-      return e
-    })
-    return ok
-  }
+      add: (amount: number) => {
+        set(state => ({
+          energy: Math.min(MAX_ENERGY, state.energy + amount),
+        }))
+      },
 
-  function add(amount = 1) {
-    setEnergy(e => Math.min(maxEnergy, e + amount))
-  }
-
-  function startRecovery() {
-    if (intervalRef.current) return
-    const tickSec = 1 // update UI every second
-    const recoverySec = 60 // recover 1 energy every 60 seconds
-
-    // ensure remainingSeconds is set
-    setRemainingSeconds(r => (r > 0 ? r : recoverySec))
-
-    intervalRef.current = window.setInterval(() => {
-      setRemainingSeconds(prev => {
-        // if energy is full, stop timer
-        let stopNow = false
-        setEnergy(curr => {
-          if (curr >= maxEnergy) {
-            stopNow = true
-            return curr
+      _updateEnergy: () => {
+        set(state => {
+          if (state.energy >= MAX_ENERGY) {
+            return { remainingSeconds: null }
           }
-          return curr
+
+          const now = Date.now()
+          const elapsed = Math.floor((now - state.lastUpdated) / 1000)
+          const recoveredEnergy = Math.floor(elapsed / ENERGY_RECOVERY_SECONDS)
+
+          if (recoveredEnergy > 0) {
+            const newEnergy = Math.min(MAX_ENERGY, state.energy + recoveredEnergy)
+            const newLastUpdated = state.lastUpdated + recoveredEnergy * ENERGY_RECOVERY_SECONDS * 1000
+            return { energy: newEnergy, lastUpdated: newLastUpdated }
+          }
+
+          const nextRecoveryTime = state.lastUpdated + ENERGY_RECOVERY_SECONDS * 1000
+          const remaining = Math.max(0, Math.ceil((nextRecoveryTime - now) / 1000))
+          return { remainingSeconds: remaining }
         })
-        if (stopNow) {
-          // clear interval in next tick
-          return 0
-        }
-
-        if (prev <= 1) {
-          // time to recover one energy
-          setEnergy(curr => Math.min(maxEnergy, curr + 1))
-          // if after adding energy we still need more, reset countdown
-          return recoverySec
-        }
-        return prev - tickSec
-      })
-    }, tickSec * 1000)
-  }
-
-  function stopRecovery() {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
+      },
+    }),
+    {
+      name: 'financely-energy-storage',
+      storage: createJSONStorage(() => localStorage),
     }
-    setRemainingSeconds(0)
-  }
-
-  useEffect(() => {
-    // start recovery automatically if energy is not full
-    if (energy < maxEnergy) startRecovery()
-    if (energy >= maxEnergy) stopRecovery()
-    return () => stopRecovery()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [energy])
-
-  return (
-    <EnergyContext.Provider
-      value={{ energy, maxEnergy, consume, add, startRecovery, stopRecovery, remainingSeconds }}
-    >
-      {children}
-    </EnergyContext.Provider>
   )
+)
+
+const EnergyContext = createContext(useEnergyStore.getState())
+
+export const EnergyProvider = ({ children }: { children: React.ReactNode }) => {
+  const store = useEnergyStore()
+  const _updateEnergy = useEnergyStore(state => state._updateEnergy)
+  useEffect(() => {
+    _updateEnergy()
+    const interval = setInterval(() => _updateEnergy(), 1000)
+    return () => clearInterval(interval)
+  }, [_updateEnergy])
+  return <EnergyContext.Provider value={store}>{children}</EnergyContext.Provider>
 }
 
-export function useEnergy() {
-  const ctx = useContext(EnergyContext)
-  if (!ctx) throw new Error('useEnergy must be used within EnergyProvider')
-  return ctx
-}
-
-export default EnergyProvider
+export const useEnergy = () => useContext(EnergyContext)

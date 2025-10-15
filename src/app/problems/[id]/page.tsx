@@ -106,10 +106,10 @@ export default function ProblemPage() {
         {/* 시작 전 */}
         {status === 'idle' && (
           <button
-            className="w-full btn-primary"
+            className="w-full btn-primary text-base"
             onClick={handleStart}
           >
-            문제 풀기 시작 (에너지 {problem.energyCost} 소비)
+            문제 풀기 (⚡{problem.energyCost} 소모)
           </button>
         )}
 

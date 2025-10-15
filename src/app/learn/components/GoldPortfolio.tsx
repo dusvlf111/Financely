@@ -5,7 +5,7 @@ import { useGoldStore, type GoldHistoryEntry } from '@/lib/store/goldStore'
 
 export default function GoldPortfolio() {
   const { user } = useAuth()
-  const { history: goldHistory, todayStartGold, initializeHistory, updateGold } = useGoldStore()
+  const { history: goldHistory, todayStartGold, initializeHistory, setTodayStartGold } = useGoldStore()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -13,11 +13,22 @@ export default function GoldPortfolio() {
   }, [])
 
   useEffect(() => {
-    if (user) {
-      // 스토어가 비어있을 경우 초기화
+    if (user && mounted && goldHistory.length > 0) {
       initializeHistory(user.gold)
+
+      // 오늘 자정의 타임스탬프
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const todayTimestamp = today.getTime()
+      
+      // 오늘 첫 기록을 찾거나, 없으면 어제의 마지막 기록을 사용
+      const firstEntryToday = goldHistory.find(h => h.timestamp >= todayTimestamp)
+      const lastEntryYesterday = goldHistory.slice().reverse().find(h => h.timestamp < todayTimestamp)
+
+      const startGold = firstEntryToday?.gold ?? lastEntryYesterday?.gold ?? user.gold
+      setTodayStartGold(startGold)
     }
-  }, [user, initializeHistory])
+  }, [user, mounted, initializeHistory, setTodayStartGold, goldHistory, goldHistory.length])
 
   if (!mounted) {
     return (
@@ -34,8 +45,8 @@ export default function GoldPortfolio() {
   return (
     <div className="bg-white border rounded-md p-4 shadow-sm">
       <h4 className="text-sm font-medium text-gray-600 mb-2">나의 골드 포트폴리오</h4>
-      <div className="flex items-baseline gap-3 mb-1">
-        <div className="text-3xl font-bold text-gray-900">
+      <div className="flex items-end gap-3 mb-1">
+        <div className="text-2xl sm:text-3xl font-bold text-gray-900">
           {user ? `${user.gold.toLocaleString()}G` : '—'}
         </div>
         {goldChangeToday !== 0 && (
@@ -57,11 +68,11 @@ export default function GoldPortfolio() {
       {goldHistory.length > 0 && (
         <div className="mt-3">
           <div className="h-36 bg-gray-50 rounded-md p-3 border border-gray-100">
-            <Sparkline data={goldHistory} currentGold={user?.gold ?? 0} />
+            <Sparkline data={goldHistory} />
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-2">
-            <span>7일 전</span>
-            <span>오늘</span>
+            <span>첫 활동</span>
+            <span>총 {goldHistory.length}개 활동</span>
           </div>
         </div>
       )}
@@ -69,12 +80,12 @@ export default function GoldPortfolio() {
   )
 }
 
-function Sparkline({ data, currentGold }: { data: { date: string; gold: number }[], currentGold: number }) {
+function Sparkline({ data }: { data: GoldHistoryEntry[]}) {
   const width = 320
   const height = 120
   const padding = 8
 
-  if (data.length === 0) return null
+  if (data.length < 2) return <div className="flex items-center justify-center h-full text-sm text-gray-400">데이터가 부족합니다.</div>
 
   const values = data.map(d => d.gold)
   const min = Math.min(...values)
