@@ -1,18 +1,30 @@
 "use client"
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase/client'
 import { useGoldStore } from '@/lib/store/goldStore'
-import mockUser from '@/lib/mock/user'
+import type { User } from '@supabase/supabase-js'
 
-type MockUser = typeof mockUser & {
+export type Profile = {
+  id: string
+  username: string | null
+  full_name: string | null
+  avatar_url: string | null
+  gold: number
+  energy: number
   tutorialCompleted?: boolean
 }
 
 type AuthContextType = {
-  user: MockUser | null
+  user: User | null
+  profile: Profile | null
   login: (provider: string) => void
   logout: () => void
   addGold?: (amount: number) => void
   updateProfile?: (changes: Partial<Pick<MockUser, 'name'>>) => void
+  streak: number
+  incrementStreak: () => void
+  resetStreak: () => void
+  trackQuestProgress?: (questType: string) => void
   spendGold?: (amount: number) => boolean
   completeTutorial?: () => void
 }
@@ -20,99 +32,171 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [streak, setStreak] = useState(0)
   const { updateGold: updateGoldHistory } = useGoldStore()
 
-  // initialize from localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('financely_user')
-      if (raw) {
-        setUser(JSON.parse(raw) as MockUser)
-      }
-    } catch (e) {
-      // ignore
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
     }
+    getSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = session?.user
+      setUser(currentUser ?? null)
+      if (currentUser) {
+        // Fetch profile when user session changes
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              // DB (snake_case) -> JS (camelCase)
+              const formattedProfile: Profile = {
+                ...data,
+                username: data.username,
+                full_name: data.full_name,
+                avatar_url: data.avatar_url,
+                gold: data.gold,
+                energy: data.energy,
+                tutorialCompleted: data.tutorial_completed,
+              }
+              setProfile(formattedProfile)
+            }
+          })
+      } else {
+        setProfile(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   // Sync user.gold changes to the goldStore
   useEffect(() => {
-    if (user) {
-      updateGoldHistory(user.gold)
+    if (profile) {
+      updateGoldHistory(profile.gold)
     }
-  }, [user?.gold, updateGoldHistory])
+  }, [profile?.gold, updateGoldHistory])
 
-  function login(provider: string) {
-    // Simple mock: attach provider to name and set mock user
-    const u = { ...mockUser, name: `${mockUser.name} (${provider})`, tutorialCompleted: false }
-    setUser(u)
-    try {
-      localStorage.setItem('financely_user', JSON.stringify(u))
-    } catch (e) {
-      // ignore
-    }
+  async function login(provider: 'google' | 'kakao' | 'naver') {
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    })
   }
 
-  function logout() {
+  async function logout() {
+    await supabase.auth.signOut()
     setUser(null)
-    try {
-      localStorage.removeItem('financely_user')
-    } catch (e) {
-      // ignore
+  }
+
+  async function addGold(amount: number) {
+    if (!user || !profile) return
+    const newGold = profile.gold + amount
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ gold: newGold })
+      .eq('id', user.id)
+      .select()
+      .single()
+    if (data) {
+      const formattedProfile: Profile = {
+        ...data,
+        full_name: data.full_name,
+        username: data.username,
+        gold: data.gold,
+        avatar_url: data.avatar_url,
+        tutorialCompleted: data.tutorial_completed,
+      }
+      setProfile(formattedProfile)
     }
   }
 
-  function addGold(amount: number) {
-    setUser(u => {
-      if (!u) return u
-      const nu = { ...u, gold: u.gold + amount }
-      try {
-        localStorage.setItem('financely_user', JSON.stringify(nu))
-      } catch (e) {}
-      return nu
-    })
-  }
-
-  function spendGold(amount: number) {
-    let ok = false
-    setUser(u => {
-      if (!u) return u
-      if (u.gold >= amount) {
-        ok = true
-        const nu = { ...u, gold: u.gold - amount }
-        try {
-          localStorage.setItem('financely_user', JSON.stringify(nu))
-        } catch (e) {}
-        return nu
+  async function spendGold(amount: number) {
+    if (!user || !profile || profile.gold < amount) return false
+    const newGold = profile.gold - amount
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ gold: newGold })
+      .eq('id', user.id)
+      .select()
+      .single()
+    if (data) {
+      const formattedProfile: Profile = {
+        ...data,
+        full_name: data.full_name,
+        username: data.username,
+        gold: data.gold,
+        avatar_url: data.avatar_url,
+        tutorialCompleted: data.tutorial_completed,
       }
-      return u
-    })
-    return ok
+      setProfile(formattedProfile)
+      return true
+    }
+    return false
   }
 
-  function updateProfile(changes: Partial<Pick<MockUser, 'name'>>) {
-    setUser(u => {
-      if (!u) return u
-      const nu = { ...u, ...changes }
-      try {
-        localStorage.setItem('financely_user', JSON.stringify(nu))
-      } catch (e) {}
-      return nu
-    })
+  async function updateProfile(changes: Partial<Profile>) {
+    if (!user) return
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(changes)
+      .eq('id', user.id)
+      .select()
+      .single()
+    if (data) {
+      const formattedProfile: Profile = {
+        ...data,
+        full_name: data.full_name,
+        username: data.username,
+        gold: data.gold,
+        avatar_url: data.avatar_url,
+        tutorialCompleted: data.tutorial_completed,
+      }
+      setProfile(formattedProfile)
+    }
   }
 
-  function completeTutorial() {
-    setUser(u => {
-      if (!u) return u
-      const nu = { ...u, tutorialCompleted: true }
-      try {
-        localStorage.setItem('financely_user', JSON.stringify(nu))
-      } catch (e) {}
-      return nu
-    })
+  async function completeTutorial() {
+    if (!user) return
+    await updateProfile({ tutorial_completed: true })
   }
 
-  return <AuthContext.Provider value={{ user, login, logout, addGold, updateProfile, spendGold, completeTutorial }}>{children}</AuthContext.Provider>
+  async function trackQuestProgress(questType: string) {
+    if (!user) return
+    const { error } = await supabase.rpc('update_quest_progress', { quest_type_param: questType })
+    if (error) {
+      console.error('Error tracking quest progress:', error)
+    }
+  }
+
+  const incrementStreak = () => setStreak(s => s + 1)
+  const resetStreak = () => setStreak(0)
+
+  const value = {
+    user,
+    profile,
+    login,
+    logout,
+    addGold,
+    updateProfile,
+    spendGold,
+    completeTutorial,
+    trackQuestProgress,
+    streak,
+    incrementStreak,
+    resetStreak,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

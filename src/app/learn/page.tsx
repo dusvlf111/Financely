@@ -2,15 +2,17 @@
 import React, { useEffect, useState } from 'react'
 import GoldPortfolio from './components/GoldPortfolio'
 import LevelProgress from './components/LevelProgress'
-import problems, { categories, type Category } from '@/lib/mock/problems'
 import ProblemItem from '../problems/ProblemItem'
+import { categories, type Category, type Problem } from '@/lib/mock/problems' // Type만 가져옵니다.
 import { useAuth } from '@/lib/context/AuthProvider'
+import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 export default function LearnPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all')
+  const [problems, setProblems] = useState<Problem[]>([])
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -21,6 +23,24 @@ export default function LearnPage() {
     if (mounted && !user) {
       router.push('/login')
     }
+
+    // Supabase에서 문제 데이터 가져오기
+    async function fetchProblems() {
+      // TODO: 서버 컴포넌트로 변경하여 초기 로딩 성능 개선 고려
+      const { data, error } = await supabase.from('problems').select('*')
+      if (data) {
+        // DB (snake_case) -> JS (camelCase)
+        const formattedProblems: Problem[] = data.map(p => ({
+          ...p,
+          correctAnswer: p.correct_answer,
+          energyCost: p.energy_cost,
+          rewardGold: p.reward_gold,
+        }))
+        setProblems(formattedProblems)
+      }
+    }
+
+    fetchProblems()
   }, [mounted, user, router])
 
   if (!mounted) {

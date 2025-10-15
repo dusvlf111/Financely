@@ -4,11 +4,11 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import Link from 'next/link'
 import { useEnergy } from '@/lib/store/energyStore'
 export default function Header() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { energy, maxEnergy } = useEnergy()
   const { remainingSeconds } = useEnergy()
 
-  if (!user) return null
+  if (!user || !profile) return null
 
   return (
     <header className="flex items-center justify-between py-3 px-4">
@@ -38,7 +38,7 @@ export default function Header() {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.766 1.324 2.246.484.308.994.546 1.676.662v1.941c-.391-.127-.755-.3-1.074-.514a1 1 0 10-1.226 1.616c.64.486 1.391.81 2.25 1.007V16a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 14.766 14 13.991 14 13c0-.99-.602-1.766-1.324-2.246A4.535 4.535 0 0011 10.092V8.151c.391.127.755.3 1.074.514a1 1 0 101.226-1.616c-.64-.486-1.391-.81-2.25-1.007V4a1 1 0 10-2 0v.092z" clipRule="evenodd" />
           </svg>
-          <span className="text-sm font-semibold">{user.gold.toLocaleString()}</span>
+          <span className="text-sm font-semibold">{profile.gold.toLocaleString()}</span>
         </div>
 
       </div>

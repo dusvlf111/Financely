@@ -14,9 +14,7 @@ export default function LoginPage() {
   }, [user])
 
   function handleSocialLogin(provider: string) {
-    login(provider)
-    // 로그인 후 튜토리얼로 리다이렉트 (첫 방문자)
-    router.push('/tutorial')
+    login(provider as 'google' | 'kakao' | 'naver')
   }
 
   return (

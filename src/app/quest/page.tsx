@@ -1,34 +1,80 @@
 "use client"
-import React, { useState } from 'react'
-import mockQuests from '@/lib/mock/quests'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/context/AuthProvider'
 import type { Quest } from '@/lib/mock/quests'
+import { supabase } from '@/lib/supabase/client'
 
 export default function QuestPage() {
-  const { addGold, user } = useAuth()
-  const [quests, setQuests] = useState<Quest[]>(mockQuests)
+  const { addGold, user, profile } = useAuth()
+  const [quests, setQuests] = useState<Quest[]>([])
+  const [userQuests, setUserQuests] = useState<Record<string, { progress: number; completed_at: string | null }>>({})
+
+  useEffect(() => {
+    async function fetchQuests() {
+      if (!user) return
+
+      // 1. 모든 퀘스트 목록 가져오기
+      const { data: questsData } = await supabase.from('quests').select('*')
+      if (questsData) {
+        const formattedQuests: Quest[] = questsData.map(q => ({
+          ...q,
+          rewardGold: q.reward_gold,
+          rewardEnergy: q.reward_energy,
+          progress: 0, // 기본값 설정
+        }))
+        setQuests(formattedQuests)
+      }
+
+      // 2. 현재 사용자의 퀘스트 진행도 가져오기
+      const { data: userQuestsData } = await supabase
+        .from('user_quests')
+        .select('quest_id, progress, completed_at')
+        .eq('user_id', user.id)
+
+      if (userQuestsData) {
+        const userQuestsMap = userQuestsData.reduce((acc, q) => {
+          acc[q.quest_id] = { progress: q.progress, completed_at: q.completed_at }
+          return acc
+        }, {} as Record<string, { progress: number; completed_at: string | null }>)
+        setUserQuests(userQuestsMap)
+      }
+    }
+
+    fetchQuests()
+  }, [user])
 
   const weeklyQuests = quests.filter(q => q.type === 'weekly')
   const dailyQuests = quests.filter(q => q.type === 'daily')
 
-  const handleClaimReward = (questId: string) => {
+  const handleClaimReward = async (questId: string) => {
     const quest = quests.find(q => q.id === questId)
-    if (!quest || quest.progress < quest.target || quest.completed) return
+    const userQuest = userQuests[questId]
+    
+    // 이미 완료했거나, 진행도가 부족하면 반환
+    if (!quest || !user || (userQuest && userQuest.completed_at)) return
+    if (!userQuest || userQuest.progress < quest.target) return
 
     if (addGold) {
       addGold(quest.rewardGold)
     }
 
-    setQuests(prev =>
-      prev.map(q =>
-        q.id === questId ? { ...q, completed: true } : q
-      )
-    )
+    // DB에 완료 상태 저장
+    const { data, error } = await supabase
+      .from('user_quests')
+      .upsert({ user_id: user.id, quest_id: questId, progress: userQuest.progress, completed_at: new Date().toISOString() }, { onConflict: 'user_id, quest_id' })
+      .select()
+      .single()
+
+    if (data) {
+      setUserQuests(prev => ({ ...prev, [questId]: { progress: data.progress, completed_at: data.completed_at } }))
+    }
   }
 
   const renderQuestCard = (quest: Quest) => {
-    const isClaimable = quest.progress >= quest.target && !quest.completed
-    const progressPercent = Math.min((quest.progress / quest.target) * 100, 100)
+    const userQuest = userQuests[quest.id] || { progress: 0, completed_at: null }
+    const isCompleted = !!userQuest.completed_at
+    const isClaimable = userQuest.progress >= quest.target && !isCompleted
+    const progressPercent = Math.min((userQuest.progress / quest.target) * 100, 100)
 
     return (
       <div key={quest.id} className="bg-white border rounded-md p-4">
@@ -37,7 +83,7 @@ export default function QuestPage() {
             <h3 className="font-semibold text-lg">{quest.title}</h3>
             <p className="text-sm text-neutral-600">{quest.description}</p>
           </div>
-          {quest.completed && (
+          {isCompleted && (
             <span className="text-green-600 font-medium">✓ 완료</span>
           )}
         </div>
@@ -45,7 +91,7 @@ export default function QuestPage() {
         <div className="mb-3">
           <div className="flex justify-between text-sm text-neutral-600 mb-1">
             <span>진행도</span>
-            <span>{quest.progress}/{quest.target}</span>
+            <span>{userQuest.progress}/{quest.target}</span>
           </div>
           <div className="w-full bg-neutral-200 rounded-full h-2">
             <div
@@ -70,7 +116,7 @@ export default function QuestPage() {
               보상 받기
             </button>
           )}
-          {quest.completed && (
+          {isCompleted && (
             <span className="text-sm text-neutral-500">보상 수령 완료</span>
           )}
         </div>
@@ -78,7 +124,7 @@ export default function QuestPage() {
     )
   }
 
-  if (!user) {
+  if (!profile) {
     return (
       <div className="max-w-[768px] mx-auto px-4 py-6">
         <div className="bg-white border rounded-md p-6 text-center">

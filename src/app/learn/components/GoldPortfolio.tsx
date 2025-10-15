@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import { useGoldStore, type GoldHistoryEntry } from '@/lib/store/goldStore'
 
 export default function GoldPortfolio() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { history: goldHistory, todayStartGold, initializeHistory, setTodayStartGold } = useGoldStore()
   const [mounted, setMounted] = useState(false)
 
@@ -13,8 +13,8 @@ export default function GoldPortfolio() {
   }, [])
 
   useEffect(() => {
-    if (user && mounted && goldHistory.length > 0) {
-      initializeHistory(user.gold)
+    if (profile && mounted && goldHistory.length > 0) {
+      initializeHistory(profile.gold)
 
       // 오늘 자정의 타임스탬프
       const today = new Date()
@@ -25,10 +25,10 @@ export default function GoldPortfolio() {
       const firstEntryToday = goldHistory.find(h => h.timestamp >= todayTimestamp)
       const lastEntryYesterday = goldHistory.slice().reverse().find(h => h.timestamp < todayTimestamp)
 
-      const startGold = firstEntryToday?.gold ?? lastEntryYesterday?.gold ?? user.gold
+      const startGold = firstEntryToday?.gold ?? lastEntryYesterday?.gold ?? profile.gold
       setTodayStartGold(startGold)
     }
-  }, [user, mounted, initializeHistory, setTodayStartGold, goldHistory, goldHistory.length])
+  }, [profile, mounted, initializeHistory, setTodayStartGold, goldHistory, goldHistory.length])
 
   if (!mounted) {
     return (
@@ -40,14 +40,14 @@ export default function GoldPortfolio() {
     )
   }
 
-  const goldChangeToday = user && todayStartGold !== null ? user.gold - todayStartGold : 0
+  const goldChangeToday = profile && todayStartGold !== null ? profile.gold - todayStartGold : 0
 
   return (
     <div className="bg-white border rounded-md p-4 shadow-sm">
       <h4 className="text-sm font-medium text-gray-600 mb-2">나의 골드 포트폴리오</h4>
       <div className="flex items-end gap-3 mb-1">
         <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-          {user ? `${user.gold.toLocaleString()}G` : '—'}
+          {profile ? `${profile.gold.toLocaleString()}G` : '—'}
         </div>
         {goldChangeToday !== 0 && (
           goldChangeToday > 0 ? (

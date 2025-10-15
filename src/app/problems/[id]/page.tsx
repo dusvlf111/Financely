@@ -1,31 +1,50 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import problems from '@/lib/mock/problems'
 import { useEnergy } from '@/lib/store/energyStore'
 import { useAuth } from '@/lib/context/AuthProvider'
 import EnergyModal from '@/components/modals/EnergyModal'
+import type { Problem } from '@/lib/mock/problems'
+import { supabase } from '@/lib/supabase/client'
 
 export default function ProblemPage() {
   const params = useParams() as { id?: string }
   const router = useRouter()
   const id = params.id
-  const problem = problems.find(p => p.id === id)
-  const { energy, consume } = useEnergy()
-  const { addGold, user } = useAuth()
+  const [problem, setProblem] = useState<Problem | null>(null)
+  const { energy, consume, add: addEnergy } = useEnergy()
+  const { addGold, user, trackQuestProgress, streak, incrementStreak, resetStreak } = useAuth()
   const [status, setStatus] = useState<'idle' | 'started' | 'submitted' | 'success' | 'fail'>('idle')
   const [answer, setAnswer] = useState('')
+  const [earnedBonus, setEarnedBonus] = useState({ gold: 0, energy: 0 })
   const [showModal, setShowModal] = useState(false)
   const [mounted, setMounted] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true)
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (mounted && !user) {
       router.push('/login')
     }
+
+    async function fetchProblem() {
+      if (!id) return
+      const { data, error } = await supabase.from('problems').select('*').eq('id', id).single()
+      if (data) {
+        // DB (snake_case) -> JS (camelCase)
+        const formattedProblem: Problem = {
+          ...data,
+          correctAnswer: data.correct_answer,
+          energyCost: data.energy_cost,
+          rewardGold: data.reward_gold,
+        }
+        setProblem(formattedProblem)
+      }
+    }
+
+    fetchProblem()
   }, [mounted, user, router])
 
   if (!mounted) {
@@ -69,10 +88,33 @@ export default function ProblemPage() {
     const correct = (prob.correctAnswer ?? '').toUpperCase().trim()
     const userAnswer = answer.toUpperCase().trim()
     if (userAnswer === correct && correct !== '') {
+      incrementStreak()
+      const currentStreak = streak + 1
+      let bonusGold = 0
+      let bonusEnergy = 0
+
+      // 연속 정답 보너스 계산
+      if (currentStreak === 2) bonusGold = Math.round(prob.rewardGold * 0.2)
+      else if (currentStreak === 3) {
+        bonusGold = Math.round(prob.rewardGold * 0.5)
+        bonusEnergy = 1
+      } else if (currentStreak >= 5) {
+        bonusGold = Math.round(prob.rewardGold * 1.5)
+        bonusEnergy = 2
+      }
+
+      setEarnedBonus({ gold: bonusGold, energy: bonusEnergy })
+
       setStatus('success')
-      if (addGold) addGold(prob.rewardGold)
+      if (addGold) addGold(prob.rewardGold + bonusGold)
+      if (bonusEnergy > 0 && addEnergy) addEnergy(bonusEnergy)
+
+      if (trackQuestProgress) {
+        trackQuestProgress('solve_problem') // '문제 풀기' 타입의 퀘스트 진행도 업데이트
+      }
     } else {
       setStatus('fail')
+      resetStreak()
     }
   }
 
@@ -81,8 +123,27 @@ export default function ProblemPage() {
     setStatus('idle')
   }
 
-  function handleNextProblem() {
-    router.push('/learn')
+  async function handleNextProblem() {
+    if (!problem) {
+      router.push('/learn')
+      return
+    }
+
+    // 현재 카테고리의 다른 문제 ID 목록을 가져옵니다. (현재 문제 제외)
+    const { data, error } = await supabase
+      .from('problems')
+      .select('id')
+      .eq('category', problem.category)
+      .neq('id', problem.id)
+
+    if (error || !data || data.length === 0) {
+      // 다른 문제가 없으면 학습 페이지로 이동
+      router.push('/learn')
+    } else {
+      // 다른 문제 중 무작위로 하나를 선택하여 이동
+      const randomIndex = Math.floor(Math.random() * data.length)
+      router.push(`/problems/${data[randomIndex].id}`)
+    }
   }
 
   return (
@@ -173,9 +234,15 @@ export default function ProblemPage() {
                 <span className="text-2xl">✅</span>
                 <span className="text-lg font-bold text-green-700">정답입니다!</span>
               </div>
-              <p className="text-green-700">
-                보상으로 <strong>{prob.rewardGold}G</strong>가 지급되었습니다.
-              </p>
+              <div className="text-green-700">
+                <p>기본 보상 <strong>{prob.rewardGold}G</strong>가 지급되었습니다.</p>
+                {earnedBonus.gold > 0 && (
+                  <p className="font-bold">🔥 {streak}연속 정답! 보너스 <strong>+{earnedBonus.gold}G</strong> 획득!</p>
+                )}
+                {earnedBonus.energy > 0 && (
+                  <p className="font-bold">⚡ 보너스 에너지 <strong>+{earnedBonus.energy}</strong>개 환급!</p>
+                )}
+              </div>
             </div>
 
             {prob.explanation && (
@@ -203,7 +270,7 @@ export default function ProblemPage() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-2xl">❌</span>
                 <span className="text-lg font-bold text-red-700">아쉽지만 오답입니다</span>
-              </div>
+              </div><p className="text-sm text-red-700">🔥 연속 정답 기록이 초기화되었습니다.</p>
               <p className="text-red-700 mb-2">정답: <strong>{prob.correctAnswer}</strong></p>
               <p className="text-sm text-red-600">골드 손실은 없습니다. 다시 도전해보세요!</p>
             </div>
