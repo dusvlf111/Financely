@@ -2,7 +2,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import mockUser from '@/lib/mock/user'
 
-type MockUser = typeof mockUser
+type MockUser = typeof mockUser & {
+  tutorialCompleted?: boolean
+}
 
 type AuthContextType = {
   user: MockUser | null
@@ -10,6 +12,8 @@ type AuthContextType = {
   logout: () => void
   addGold?: (amount: number) => void
   updateProfile?: (changes: Partial<Pick<MockUser, 'name'>>) => void
+  spendGold?: (amount: number) => boolean
+  completeTutorial?: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -31,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   function login(provider: string) {
     // Simple mock: attach provider to name and set mock user
-    const u = { ...mockUser, name: `${mockUser.name} (${provider})` }
+    const u = { ...mockUser, name: `${mockUser.name} (${provider})`, tutorialCompleted: false }
     setUser(u)
     try {
       localStorage.setItem('financely_user', JSON.stringify(u))
@@ -60,6 +64,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
+  function spendGold(amount: number) {
+    let ok = false
+    setUser(u => {
+      if (!u) return u
+      if (u.gold >= amount) {
+        ok = true
+        const nu = { ...u, gold: u.gold - amount }
+        try {
+          localStorage.setItem('financely_user', JSON.stringify(nu))
+        } catch (e) {}
+        return nu
+      }
+      return u
+    })
+    return ok
+  }
+
   function updateProfile(changes: Partial<Pick<MockUser, 'name'>>) {
     setUser(u => {
       if (!u) return u
@@ -71,7 +92,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
-  return <AuthContext.Provider value={{ user, login, logout, addGold, updateProfile }}>{children}</AuthContext.Provider>
+  function completeTutorial() {
+    setUser(u => {
+      if (!u) return u
+      const nu = { ...u, tutorialCompleted: true }
+      try {
+        localStorage.setItem('financely_user', JSON.stringify(nu))
+      } catch (e) {}
+      return nu
+    })
+  }
+
+  return <AuthContext.Provider value={{ user, login, logout, addGold, updateProfile, spendGold, completeTutorial }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

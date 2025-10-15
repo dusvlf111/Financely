@@ -15,7 +15,8 @@ export default function LoginPage() {
 
   function handleSocialLogin(provider: string) {
     login(provider)
-    router.push('/learn')
+    // 로그인 후 튜토리얼로 리다이렉트 (첫 방문자)
+    router.push('/tutorial')
   }
 
   return (

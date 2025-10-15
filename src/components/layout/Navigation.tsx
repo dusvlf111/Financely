@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { key: 'learn', label: '학습', href: '/' },
+  { key: 'learn', label: '학습', href: '/learn' },
   { key: 'league', label: '리그', href: '/league' },
-  { key: 'quest', label: '퀘스트', href: '/problems' },
+  { key: 'quest', label: '퀘스트', href: '/quest' },
   { key: 'asset', label: '자산', href: '/asset' },
   { key: 'mypage', label: '마이', href: '/mypage' },
 ]

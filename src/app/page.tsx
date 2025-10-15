@@ -1,12 +1,25 @@
-import Link from 'next/link'
-import React from 'react'
+"use client"
+import React, { useEffect } from 'react'
+import { useAuth } from '@/lib/context/AuthProvider'
+import { useRouter } from 'next/navigation'
 
 export default function Page() {
+  const { user } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (user) {
+      // 로그인된 사용자는 학습 페이지로
+      router.replace('/learn')
+    } else {
+      // 로그인하지 않은 사용자는 로그인 페이지로
+      router.replace('/login')
+    }
+  }, [user, router])
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">환영합니다 — Financely</h1>
-      <p>학습을 시작하려면 로그인하세요.</p>
-      <Link href="/login" className="inline-block bg-primary-500 text-white px-4 py-2 rounded-md">로그인</Link>
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <p className="text-neutral-600">로딩 중...</p>
     </div>
   )
 }

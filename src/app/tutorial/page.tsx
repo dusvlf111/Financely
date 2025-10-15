@@ -8,7 +8,7 @@ export default function TutorialPage() {
   const [stepIndex, setStepIndex] = useState(0)
   const [totalGold, setTotalGold] = useState(0)
   const [choices, setChoices] = useState<Record<string, string>>({})
-  const { addGold } = useAuth()
+  const { addGold, completeTutorial } = useAuth()
   const [claimed, setClaimed] = useState(false)
 
   const step = tutorialSteps[stepIndex]
@@ -26,6 +26,9 @@ export default function TutorialPage() {
   useEffect(() => {
     if (finished && addGold && !claimed) {
       addGold(totalGold)
+      if (completeTutorial) {
+        completeTutorial()
+      }
       setClaimed(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
