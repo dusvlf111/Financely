@@ -11,6 +11,7 @@ export type Profile = {
   avatar_url: string | null
   gold: number
   energy: number
+  streak: number
   tutorialCompleted?: boolean
 }
 
@@ -34,7 +35,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [streak, setStreak] = useState(0)
   const { updateGold: updateGoldHistory } = useGoldStore()
 
   useEffect(() => {
@@ -96,6 +96,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function logout() {
     await supabase.auth.signOut()
     setUser(null)
+    // 사용자 데이터 초기화를 위해 localStorage 클리어
+    localStorage.removeItem('financely-gold-storage')
+    localStorage.removeItem('financely-energy-storage')
   }
 
   async function addGold(amount: number) {
@@ -178,8 +181,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const incrementStreak = () => setStreak(s => s + 1)
-  const resetStreak = () => setStreak(0)
+  const incrementStreak = async () => {
+    if (!user || !profile) return
+    const newStreak = profile.streak + 1
+    setProfile(p => (p ? { ...p, streak: newStreak } : null)) // Optimistic update
+    await supabase
+      .from('profiles')
+      .update({ streak: newStreak })
+      .eq('id', user.id)
+  }
+
+  const resetStreak = async () => {
+    if (!user || !profile || profile.streak === 0) return
+    setProfile(p => (p ? { ...p, streak: 0 } : null)) // Optimistic update
+    await supabase
+      .from('profiles')
+      .update({ streak: 0 })
+      .eq('id', user.id)
+  }
 
   const value = {
     user,
@@ -191,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     spendGold,
     completeTutorial,
     trackQuestProgress,
-    streak,
+    streak: profile?.streak ?? 0,
     incrementStreak,
     resetStreak,
   }

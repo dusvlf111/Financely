@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import GoldPortfolio from './components/GoldPortfolio'
 import LevelProgress from './components/LevelProgress'
 import ProblemItem from '../problems/ProblemItem'
-import { categories, type Category, type Problem } from '@/lib/mock/problems' // Type만 가져옵니다.
+import { type Category, type Problem } from '@/lib/mock/problems' // Type만 가져옵니다.
 import { useAuth } from '@/lib/context/AuthProvider'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -12,7 +12,10 @@ export default function LearnPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all')
+  const [problemStatusFilter, setProblemStatusFilter] = useState<'all' | 'solved' | 'unsolved'>('all')
+  const [categories, setCategories] = useState<Category[]>([])
   const [problems, setProblems] = useState<Problem[]>([])
+  const [solvedProblemIds, setSolvedProblemIds] = useState<Set<string>>(new Set())
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -22,6 +25,14 @@ export default function LearnPage() {
   useEffect(() => {
     if (mounted && !user) {
       router.push('/login')
+    }
+
+    async function fetchSolvedProblems() {
+      if (!user) return
+      const { data } = await supabase.from('user_solved_problems').select('problem_id').eq('user_id', user.id)
+      if (data) {
+        setSolvedProblemIds(new Set(data.map(item => item.problem_id)))
+      }
     }
 
     // Supabase에서 문제 데이터 가져오기
@@ -37,10 +48,15 @@ export default function LearnPage() {
           rewardGold: p.reward_gold,
         }))
         setProblems(formattedProblems)
+
+        // 문제 데이터에서 고유한 카테고리 목록을 추출합니다.
+        const uniqueCategories = Array.from(new Set(formattedProblems.map(p => p.category)))
+        setCategories(uniqueCategories)
       }
     }
 
-    fetchProblems()
+    fetchProblems().then(fetchSolvedProblems)
+
   }, [mounted, user, router])
 
   if (!mounted) {
@@ -57,15 +73,19 @@ export default function LearnPage() {
     return null
   }
 
-  const filteredProblems = selectedCategory === 'all'
-    ? problems
-    : problems.filter(p => p.category === selectedCategory)
+  const filteredProblems = problems
+    .filter(p => selectedCategory === 'all' || p.category === selectedCategory)
+    .filter(p => {
+      if (problemStatusFilter === 'solved') return solvedProblemIds.has(p.id)
+      if (problemStatusFilter === 'unsolved') return !solvedProblemIds.has(p.id)
+      return true
+    })
 
   // 카테고리별 진행도 계산
   const getCategoryProgress = (cat: Category) => {
     const categoryProblems = problems.filter(p => p.category === cat)
-    // TODO: 실제 완료된 문제 추적 시스템 필요
-    const completed = 0
+    if (categoryProblems.length === 0) return { total: 0, completed: 0 }
+    const completed = categoryProblems.filter(p => solvedProblemIds.has(p.id)).length
     return { total: categoryProblems.length, completed }
   }
 
@@ -103,6 +123,26 @@ export default function LearnPage() {
                   </button>
                 )
               })}
+            </div>
+            <div className="border-t pt-3 mt-3 flex items-center gap-2 text-sm">
+              <button
+                onClick={() => setProblemStatusFilter('all')}
+                className={`px-3 py-1 rounded-full ${problemStatusFilter === 'all' ? 'bg-primary-500 text-white' : 'bg-neutral-100'}`}
+              >
+                전체
+              </button>
+              <button
+                onClick={() => setProblemStatusFilter('unsolved')}
+                className={`px-3 py-1 rounded-full ${problemStatusFilter === 'unsolved' ? 'bg-primary-500 text-white' : 'bg-neutral-100'}`}
+              >
+                안 푼 문제
+              </button>
+              <button
+                onClick={() => setProblemStatusFilter('solved')}
+                className={`px-3 py-1 rounded-full ${problemStatusFilter === 'solved' ? 'bg-primary-500 text-white' : 'bg-neutral-100'}`}
+              >
+                푼 문제
+              </button>
             </div>
           </div>
         </section>

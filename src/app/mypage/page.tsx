@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '@/lib/context/AuthProvider'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 
 export default function MyPage() {
   const { user, profile, updateProfile, logout } = useAuth()
@@ -17,6 +18,18 @@ export default function MyPage() {
   async function save() {
     if (updateProfile) await updateProfile({ username })
     setEditing(false)
+  }
+
+  async function handleDeleteAccount() {
+    if (window.confirm('정말로 계정을 삭제하시겠습니까? 모든 데이터는 영구적으로 삭제되며 복구할 수 없습니다.')) {
+      const { error } = await supabase.rpc('delete_user')
+      if (error) {
+        alert(`계정 삭제 중 오류가 발생했습니다: ${error.message}`)
+      } else {
+        alert('계정이 성공적으로 삭제되었습니다.')
+        handleLogout()
+      }
+    }
   }
 
   return (
@@ -43,6 +56,7 @@ export default function MyPage() {
         </div>
         <div className="mt-6 border-t pt-6">
           <button className="btn-danger" onClick={handleLogout}>로그아웃</button>
+          <button className="mt-2 text-sm text-neutral-500 underline" onClick={handleDeleteAccount}>회원 탈퇴</button>
         </div>
       </section>
     </div>

@@ -1,10 +1,38 @@
 "use client"
-import React, { useState } from 'react'
-import leagueData from '@/lib/mock/league'
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '@/lib/context/AuthProvider'
+import { supabase } from '@/lib/supabase/client'
+
+type Ranker = {
+  rank: number
+  id: string
+  username: string | null
+  full_name: string | null
+  gold: number
+}
 
 export default function LeaguePage() {
+  const { user, profile } = useAuth()
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly')
-  const list = period === 'weekly' ? leagueData.weekly : leagueData.monthly
+  const [leaderboard, setLeaderboard] = useState<Ranker[]>([])
+
+  useEffect(() => {
+    async function fetchLeaderboard() {
+      // Call the database function we created
+      const { data, error } = await supabase.rpc('get_leaderboard', { limit_count: 100 })
+
+      if (error) {
+        console.error('Error fetching leaderboard:', error)
+      } else if (data) {
+        setLeaderboard(data as Ranker[])
+      }
+    }
+
+    fetchLeaderboard()
+    // TODO: Add logic to refetch data based on the 'period' filter
+  }, [period])
+
+  const myRank = leaderboard.find(r => r.id === user?.id)
 
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6">
@@ -27,13 +55,19 @@ export default function LeaguePage() {
             </tr>
           </thead>
           <tbody>
-            {list.map(row => (
-              <tr key={row.rank} className="border-t">
+            {leaderboard.map(row => {
+              const isMe = row.id === user?.id
+              return (
+              <tr
+                key={row.rank}
+                className={`border-t ${isMe ? 'bg-primary-50 font-semibold' : ''}`}
+              >
                 <td className="py-2">{row.rank}</td>
-                <td className="py-2">{row.name}</td>
-                <td className="py-2">{row.gold}G</td>
+                <td className="py-2">{row.username || row.full_name || '익명'}</td>
+                <td className="py-2">{row.gold.toLocaleString()}G</td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </section>

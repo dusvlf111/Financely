@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import EnergyModal from '@/components/modals/EnergyModal'
 import type { Problem } from '@/lib/mock/problems'
 import { supabase } from '@/lib/supabase/client'
+import { LEVEL_CATEGORIES } from '@/lib/game/levels'
 
 export default function ProblemPage() {
   const params = useParams() as { id?: string }
@@ -13,7 +14,7 @@ export default function ProblemPage() {
   const id = params.id
   const [problem, setProblem] = useState<Problem | null>(null)
   const { energy, consume, add: addEnergy } = useEnergy()
-  const { addGold, user, trackQuestProgress, streak, incrementStreak, resetStreak } = useAuth()
+  const { addGold, user, profile, trackQuestProgress, streak, incrementStreak, resetStreak, updateProfile } = useAuth()
   const [status, setStatus] = useState<'idle' | 'started' | 'submitted' | 'success' | 'fail'>('idle')
   const [answer, setAnswer] = useState('')
   const [earnedBonus, setEarnedBonus] = useState({ gold: 0, energy: 0 })
@@ -37,6 +38,7 @@ export default function ProblemPage() {
         const formattedProblem: Problem = {
           ...data,
           correctAnswer: data.correct_answer,
+          level: data.level,
           energyCost: data.energy_cost,
           rewardGold: data.reward_gold,
         }
@@ -45,7 +47,7 @@ export default function ProblemPage() {
     }
 
     fetchProblem()
-  }, [mounted, user, router])
+  }, [mounted, user, router, id])
 
   if (!mounted) {
     return (
@@ -83,9 +85,9 @@ export default function ProblemPage() {
     setAnswer(selectedAnswer)
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     setStatus('submitted')
-    const correct = (prob.correctAnswer ?? '').toUpperCase().trim()
+    const correct = (prob.correctAnswer ?? '').toString().toUpperCase().trim()
     const userAnswer = answer.toUpperCase().trim()
     if (userAnswer === correct && correct !== '') {
       incrementStreak()
@@ -94,24 +96,58 @@ export default function ProblemPage() {
       let bonusEnergy = 0
 
       // 연속 정답 보너스 계산
-      if (currentStreak === 2) bonusGold = Math.round(prob.rewardGold * 0.2)
-      else if (currentStreak === 3) {
+      if (currentStreak >= 10) {
+        bonusGold = Math.round(prob.rewardGold * 5.0) // 500% 보너스
+        bonusEnergy = 3
+      } else if (currentStreak >= 5) {
+        bonusGold = Math.round(prob.rewardGold * 1.5) // 150% 보너스
+        bonusEnergy = 2
+      } else if (currentStreak >= 3) {
         bonusGold = Math.round(prob.rewardGold * 0.5)
         bonusEnergy = 1
-      } else if (currentStreak >= 5) {
-        bonusGold = Math.round(prob.rewardGold * 1.5)
-        bonusEnergy = 2
+      } else if (currentStreak >= 2) {
+        bonusGold = Math.round(prob.rewardGold * 0.2) // 20% 보너스
       }
 
       setEarnedBonus({ gold: bonusGold, energy: bonusEnergy })
 
       setStatus('success')
       if (addGold) addGold(prob.rewardGold + bonusGold)
-      if (bonusEnergy > 0 && addEnergy) addEnergy(bonusEnergy)
-
       if (trackQuestProgress) {
         trackQuestProgress('solve_problem') // '문제 풀기' 타입의 퀘스트 진행도 업데이트
       }
+
+      // 푼 문제 기록
+      if (user) {
+        await supabase.from('user_solved_problems').insert({ user_id: user.id, problem_id: prob.id })
+        
+        // Level-up check logic
+        if (profile && updateProfile) {
+          const currentCategory = LEVEL_CATEGORIES[profile.level]
+          if (!currentCategory) return // Max level reached or invalid level
+
+          // 1. Count total problems in the current level's category
+          const { count: totalProblemsInCategory } = await supabase.from('problems').select('id', { count: 'exact' }).eq('category', currentCategory)
+
+          // 2. Count solved problems in that category
+          const { count: solvedProblemsInLevel } = await supabase
+            .from('user_solved_problems')
+            .select('problem_id', { count: 'exact' })
+            .in('problem_id', (await supabase.from('problems').select('id').eq('category', currentCategory)).data?.map(p => p.id) || [])
+            .eq('user_id', user.id)
+
+          // 3. If all are solved, level up
+          if (totalProblemsInCategory !== null && solvedProblemsInLevel !== null && solvedProblemsInLevel >= totalProblemsInCategory) {
+            const newLevel = profile.level + 1
+            updateProfile({ level: newLevel })
+            // TODO: Implement a level-up celebration modal or animation
+            console.log(`Leveled up to ${newLevel}!`)
+            // Give level-up bonus
+            if (bonusEnergy > 0 && addEnergy) addEnergy(bonusEnergy)
+          }
+        }
+      }
+
     } else {
       setStatus('fail')
       resetStreak()
@@ -129,21 +165,34 @@ export default function ProblemPage() {
       return
     }
 
-    // 현재 카테고리의 다른 문제 ID 목록을 가져옵니다. (현재 문제 제외)
-    const { data, error } = await supabase
-      .from('problems')
-      .select('id')
-      .eq('category', problem.category)
-      .neq('id', problem.id)
+    // 1. 현재 카테고리에서 아직 풀지 않은 다른 문제 찾기
+    const { data: solvedProblems } = await supabase.from('user_solved_problems').select('problem_id').eq('user_id', user.id)
+    const solvedIds = new Set(solvedProblems?.map(p => p.problem_id) || [])
 
-    if (error || !data || data.length === 0) {
-      // 다른 문제가 없으면 학습 페이지로 이동
-      router.push('/learn')
-    } else {
-      // 다른 문제 중 무작위로 하나를 선택하여 이동
-      const randomIndex = Math.floor(Math.random() * data.length)
-      router.push(`/problems/${data[randomIndex].id}`)
+    // .not() 쿼리가 복잡한 IN 절과 함께 불안정하게 동작할 수 있어, JS에서 필터링하는 방식으로 변경합니다.
+    const { data: allProblemsInCategory } = await supabase.from('problems').select('id').eq('category', problem.category)
+    const unsolvedProblems = allProblemsInCategory?.filter(p => !solvedIds.has(p.id))
+
+    if (unsolvedProblems && unsolvedProblems.length > 0) {
+      const nextProblemId = unsolvedProblems[Math.floor(Math.random() * unsolvedProblems.length)].id
+      router.push(`/problems/${nextProblemId}`)
+      return
     }
+
+    // 2. 현재 카테고리 문제를 다 풀었다면, 다음 레벨의 문제 찾기
+    const nextLevel = (profile?.level ?? 0) + 1
+    const nextCategory = LEVEL_CATEGORIES[nextLevel]
+    if (nextCategory) {
+      const { data: nextLevelProblems } = await supabase.from('problems').select('id').eq('category', nextCategory).limit(1)
+      if (nextLevelProblems && nextLevelProblems.length > 0) {
+        router.push(`/problems/${nextLevelProblems[0].id}`)
+        return
+      }
+    }
+
+    // 모든 문제를 다 풀었으면 학습 페이지로 이동
+    alert('모든 카테고리의 문제를 완료했습니다! 대단해요!')
+    router.push('/learn')
   }
 
   return (
