@@ -1,12 +1,10 @@
 import React from 'react'
-import Header from '../../components/layout/Header'
 import GoldPortfolio from './components/GoldPortfolio'
 import LevelProgress from './components/LevelProgress'
 
 export default function LearnPage() {
   return (
     <div>
-      <Header />
       <main className="max-w-[768px] mx-auto px-4 pt-4 pb-28">
         <section className="mb-6">
           <GoldPortfolio />
