@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import { useGoldStore, type GoldHistoryEntry } from '@/lib/store/goldStore'
 
 export default function GoldPortfolio() {
-  const { user, profile } = useAuth()
+  const { profile } = useAuth()
   const { history: goldHistory, todayStartGold, initializeHistory, setTodayStartGold } = useGoldStore()
   const [mounted, setMounted] = useState(false)
 

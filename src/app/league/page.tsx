@@ -12,7 +12,7 @@ type Ranker = {
 }
 
 export default function LeaguePage() {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly')
   const [leaderboard, setLeaderboard] = useState<Ranker[]>([])
 
@@ -32,6 +32,7 @@ export default function LeaguePage() {
     // TODO: Add logic to refetch data based on the 'period' filter
   }, [period])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const myRank = leaderboard.find(r => r.id === user?.id)
 
   return (

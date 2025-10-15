@@ -4,8 +4,8 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import { useEnergy } from '@/lib/store/energyStore'
 
 export default function EnergyModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { user, spendGold } = useAuth()
-  const { add, maxEnergy } = useEnergy()
+  const { spendGold } = useAuth()
+  const { add } = useEnergy()
 
   if (!open) return null
 

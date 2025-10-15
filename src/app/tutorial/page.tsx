@@ -12,15 +12,6 @@ export default function TutorialPage() {
   const [claimed, setClaimed] = useState(false)
 
   const step = tutorialSteps[stepIndex]
-
-  function selectChoice(choiceId: string, gold: number) {
-    setChoices(prev => ({ ...prev, [step.id]: choiceId }))
-    setTotalGold(g => g + gold)
-    if (stepIndex < tutorialSteps.length - 1) setStepIndex(stepIndex + 1)
-  }
-
-  if (!step) return <div className="p-6">튜토리얼을 불러오는 중입니다...</div>
-
   const finished = stepIndex >= tutorialSteps.length - 1 && !!choices[step.id]
 
   useEffect(() => {
@@ -31,8 +22,17 @@ export default function TutorialPage() {
       }
       setClaimed(true)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finished])
+  }, [addGold, claimed, completeTutorial, finished, totalGold])
+
+  function selectChoice(choiceId: string, gold: number) {
+    setChoices(prev => ({ ...prev, [step.id]: choiceId }))
+    setTotalGold(g => g + gold)
+    if (stepIndex < tutorialSteps.length - 1) setStepIndex(stepIndex + 1)
+  }
+
+  if (!step) return <div className="p-6">튜토리얼을 불러오는 중입니다...</div>
+
+
 
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6">

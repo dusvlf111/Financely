@@ -21,7 +21,7 @@ export default function LevelProgress() {
       if (!currentCategory) return
 
       const { count: totalProblemsInCategory } = await supabase.from('problems').select('id', { count: 'exact' }).eq('category', currentCategory)
-      const { data: solvedProblems, error } = await supabase
+      const { data: solvedProblems } = await supabase
         .from('user_solved_problems')
         .select('problem_id')
         .in('problem_id', (await supabase.from('problems').select('id').eq('category', currentCategory)).data?.map(p => p.id) || [])

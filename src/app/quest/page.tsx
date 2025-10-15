@@ -59,7 +59,7 @@ export default function QuestPage() {
     }
 
     // DB에 완료 상태 저장
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('user_quests')
       .upsert({ user_id: user.id, quest_id: questId, progress: userQuest.progress, completed_at: new Date().toISOString() }, { onConflict: 'user_id, quest_id' })
       .select()

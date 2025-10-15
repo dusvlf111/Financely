@@ -12,8 +12,8 @@ export default function ProblemPage() {
   const router = useRouter()
   const id = params.id
   const [problem, setProblem] = useState<Problem | null>(null)
-  const { energy, consume, add: addEnergy } = useEnergy()
-  const { addGold, user, profile, trackQuestProgress, streak, incrementStreak, resetStreak, updateProfile } = useAuth()
+  const { energy, consume } = useEnergy()
+  const { addGold, user, trackQuestProgress, streak, incrementStreak, resetStreak } = useAuth()
   const [status, setStatus] = useState<'idle' | 'started' | 'submitted' | 'success' | 'fail'>('idle')
   const [answer, setAnswer] = useState('')
   const [earnedBonus, setEarnedBonus] = useState({ gold: 0, energy: 0 })
@@ -31,7 +31,7 @@ export default function ProblemPage() {
 
     async function fetchProblem() {
       if (!id) return
-      const { data, error } = await supabase.from('problems').select('*').eq('id', id).single()
+      const { data } = await supabase.from('problems').select('*').eq('id', id).single()
       if (data) {
         // DB (snake_case) -> JS (camelCase)
         const formattedProblem: Problem = {
@@ -45,7 +45,7 @@ export default function ProblemPage() {
     }
 
     fetchProblem()
-  }, [mounted, user, router])
+  }, [mounted, user, router, id])
 
   if (!mounted) {
     return (

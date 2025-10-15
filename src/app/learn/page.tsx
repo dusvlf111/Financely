@@ -38,7 +38,7 @@ export default function LearnPage() {
     // Supabase에서 문제 데이터 가져오기
     async function fetchProblems() {
       // TODO: 서버 컴포넌트로 변경하여 초기 로딩 성능 개선 고려
-      const { data, error } = await supabase.from('problems').select('*')
+      const { data } = await supabase.from('problems').select('*')
       if (data) {
         // DB (snake_case) -> JS (camelCase)
         const formattedProblems: Problem[] = data.map(p => ({

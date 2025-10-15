@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (profile) {
       updateGoldHistory(profile.gold)
     }
-  }, [profile?.gold, updateGoldHistory])
+  }, [profile, profile?.gold, updateGoldHistory])
 
   async function login(provider: 'google' | 'kakao' | 'naver') {
     await supabase.auth.signInWithOAuth({
@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function addGold(amount: number) {
     if (!user || !profile) return
     const newGold = profile.gold + amount
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .update({ gold: newGold })
       .eq('id', user.id)
@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function spendGold(amount: number) {
     if (!user || !profile || profile.gold < amount) return false
     const newGold = profile.gold - amount
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .update({ gold: newGold })
       .eq('id', user.id)
@@ -158,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function updateProfile(changes: Partial<Profile>) {
     if (!user) return
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .update(changes)
       .eq('id', user.id)
@@ -224,6 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (newXp >= xpForNextLevel) {
       newLevel += 1
       finalXp = newXp - xpForNextLevel
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       leveledUp = true
       // TODO: 레벨업 축하 모달 또는 애니메이션 표시
     }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
 export default function MyPage() {
-  const { user, profile, updateProfile, logout } = useAuth()
+  const { profile, updateProfile, logout } = useAuth()
   const [username, setUsername] = useState(profile?.username ?? '')
   const [editing, setEditing] = useState(false)
   const router = useRouter()
