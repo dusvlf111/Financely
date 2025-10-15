@@ -11,24 +11,30 @@ export default function LearnPage() {
   const { user } = useAuth()
   const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (!user) {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (mounted && !user) {
       router.push('/login')
     }
-  }, [user, router])
+  }, [mounted, user, router])
 
-  if (!user) {
+  if (!mounted) {
     return (
       <div className="max-w-[768px] mx-auto px-4 py-6">
         <div className="bg-white border rounded-md p-6 text-center">
-          <p className="mb-4">로그인이 필요합니다.</p>
-          <Link href="/login" className="inline-block bg-primary-600 text-black px-4 py-2 rounded-md">
-            로그인하기
-          </Link>
+          <p className="mb-4">로딩 중...</p>
         </div>
       </div>
     )
+  }
+
+  if (!user) {
+    return null
   }
 
   const filteredProblems = selectedCategory === 'all'
@@ -61,11 +67,7 @@ export default function LearnPage() {
             <div className="grid grid-cols-2 gap-2 mb-3">
               <button
                 onClick={() => setSelectedCategory('all')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition ${
-                  selectedCategory === 'all'
-                    ? 'bg-primary-600 text-black'
-                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-                }`}
+                className={selectedCategory === 'all' ? 'btn-category-active' : 'btn-category'}
               >
                 전체 ({problems.length})
               </button>
@@ -75,11 +77,7 @@ export default function LearnPage() {
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition ${
-                      selectedCategory === cat
-                        ? 'bg-primary-600 text-black'
-                        : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-                    }`}
+                    className={selectedCategory === cat ? 'btn-category-active' : 'btn-category'}
                   >
                     {cat} ({progress.completed}/{progress.total})
                   </button>
@@ -125,7 +123,7 @@ export default function LearnPage() {
                         <span className="text-gray-700">⚡ {p.energyCost}</span>
                         <span className="text-green-600 font-semibold">+{p.rewardGold}G</span>
                       </div>
-                      <div className="px-4 py-2 bg-primary-600 text-black rounded-md text-sm font-semibold hover:bg-primary-700 transition">
+                      <div className="btn-primary">
                         풀기 →
                       </div>
                     </div>

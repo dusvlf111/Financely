@@ -11,10 +11,10 @@ export default function Header() {
   const { remainingSeconds } = useEnergy()
   const router = useRouter()
 
-  function handleLogout() {
-    logout()
-    router.push('/login')
-  }
+//   function handleLogout() {
+//     logout()
+//     router.push('/login')
+//   }
 
   if (!user) return null
 
@@ -39,9 +39,9 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           <div className="text-sm">{user.name}</div>
-          <button onClick={handleLogout} className="text-sm text-primary-600 underline">
+          {/* <button onClick={handleLogout} className="text-sm text-primary-600 underline">
             로그아웃
-          </button>
+          </button> */}
         </div>
       </div>
     </header>

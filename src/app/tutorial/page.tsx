@@ -73,7 +73,7 @@ export default function TutorialPage() {
                   }
                 }}
                 disabled={claimed}
-                className="bg-green-600 text-white px-3 py-2 rounded-md disabled:opacity-50"
+                className="btn-success disabled:opacity-50"
               >
                 {claimed ? '수령 완료' : '골드 수령하기'}
               </button>
@@ -93,7 +93,7 @@ export default function TutorialPage() {
             </ul>
           </div>
 
-          <Link href="/learn" className="inline-block bg-primary-600 text-black px-4 py-2 rounded-md">
+          <Link href="/learn" className="inline-block btn-primary">
             학습 시작하기
           </Link>
         </section>

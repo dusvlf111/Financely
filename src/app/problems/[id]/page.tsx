@@ -16,21 +16,30 @@ export default function ProblemPage() {
   const [status, setStatus] = useState<'idle' | 'started' | 'submitted' | 'success' | 'fail'>('idle')
   const [answer, setAnswer] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   React.useEffect(() => {
-    if (!user) {
+    setMounted(true)
+  }, [])
+
+  React.useEffect(() => {
+    if (mounted && !user) {
       router.push('/login')
     }
-  }, [user, router])
+  }, [mounted, user, router])
 
-  if (!user) {
+  if (!mounted) {
     return (
       <div className="max-w-[768px] mx-auto px-4 py-6">
         <div className="bg-white border rounded-md p-6 text-center">
-          <p className="mb-4">로그인이 필요합니다.</p>
+          <p className="mb-4">로딩 중...</p>
         </div>
       </div>
     )
+  }
+
+  if (!user) {
+    return null
   }
 
   if (!problem) return <div className="p-6">문제를 찾을 수 없습니다.</div>
@@ -38,15 +47,16 @@ export default function ProblemPage() {
   const prob = problem
 
   function handleStart() {
+    // 에너지 체크
     if (energy < prob.energyCost) {
       setShowModal(true)
       return
     }
-    const ok = consume(prob.energyCost)
-    if (!ok) {
-      setShowModal(true)
-      return
-    }
+
+    // 에너지 소비
+    consume(prob.energyCost)
+
+    // 문제 시작
     setStatus('started')
   }
 
@@ -96,7 +106,7 @@ export default function ProblemPage() {
         {/* 시작 전 */}
         {status === 'idle' && (
           <button
-            className="w-full px-4 py-3 bg-primary-600 text-black rounded-md font-medium hover:bg-primary-700"
+            className="w-full btn-primary"
             onClick={handleStart}
           >
             문제 풀기 시작 (에너지 {problem.energyCost} 소비)
@@ -136,14 +146,14 @@ export default function ProblemPage() {
             )}
             <div className="flex items-center gap-3 pt-2">
               <button
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 btn-success disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleSubmit}
                 disabled={!answer}
               >
                 제출하기
               </button>
               <button
-                className="px-4 py-3 bg-neutral-100 rounded-md hover:bg-neutral-200"
+                className="btn-secondary"
                 onClick={() => {
                   setAnswer('')
                   setStatus('idle')
@@ -178,7 +188,7 @@ export default function ProblemPage() {
             <div className="flex gap-3">
               <button
                 onClick={handleNextProblem}
-                className="flex-1 px-4 py-3 bg-primary-600 text-black rounded-md font-medium hover:bg-primary-700"
+                className="flex-1 btn-primary"
               >
                 다음 문제로 →
               </button>
@@ -208,13 +218,13 @@ export default function ProblemPage() {
             <div className="flex gap-3">
               <button
                 onClick={handleRetry}
-                className="flex-1 px-4 py-3 bg-primary-600 text-black rounded-md font-medium hover:bg-primary-700"
+                className="flex-1 btn-primary"
               >
                 다시 풀기
               </button>
               <button
                 onClick={handleNextProblem}
-                className="flex-1 px-4 py-3 bg-neutral-200 text-neutral-700 rounded-md font-medium hover:bg-neutral-300"
+                className="flex-1 btn-secondary"
               >
                 다른 문제 풀기
               </button>
