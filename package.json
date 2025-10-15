@@ -19,21 +19,26 @@
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
     "@tailwindcss/postcss": "^4.1.14",
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@testing-library/user-event": "latest",
+    "@types/jest": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
     "autoprefixer": "^10.4.21",
+    "babel-jest": "^30.2.0",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "jest": "latest",
+    "jest-environment-jsdom": "latest",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.14",
-    "typescript": "latest",
-    "@types/jest": "latest",
-    "jest": "latest",
     "ts-jest": "latest",
-    "jest-environment-jsdom": "latest",
-    "@testing-library/react": "latest",
-    "@testing-library/jest-dom": "latest",
-    "@testing-library/user-event": "latest"
+    "typescript": "latest"
   }
 }
