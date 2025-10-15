@@ -3,6 +3,7 @@ import React from 'react'
 import Header from '../components/layout/Header'
 import Navigation from '../components/layout/Navigation'
 import AuthProvider from '@/lib/context/AuthProvider'
+import EnergyProvider from '@/lib/store/energyStore'
 
 export const metadata = {
   title: 'Financely',
@@ -14,11 +15,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body className="min-h-screen bg-neutral-100 text-neutral-800">
         <AuthProvider>
-          <div className="max-w-[768px] mx-auto px-4">
-            <Header />
-            <main className="pt-4 pb-28">{children}</main>
-            <Navigation />
-          </div>
+          <EnergyProvider>
+            <div className="max-w-[768px] mx-auto px-4">
+              <Header />
+              <main className="pt-4 pb-28">{children}</main>
+              <Navigation />
+            </div>
+          </EnergyProvider>
         </AuthProvider>
       </body>
     </html>

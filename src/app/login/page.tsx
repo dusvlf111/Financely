@@ -1,12 +1,17 @@
 "use client"
-import React from 'react'
+import React, { useEffect } from 'react'
 import SocialButton from '../../components/Auth/SocialButton'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/context/AuthProvider'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, user } = useAuth()
+
+  useEffect(() => {
+    if (user) router.replace('/learn')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
   function handleSocialLogin(provider: string) {
     login(provider)

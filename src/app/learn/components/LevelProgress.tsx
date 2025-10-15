@@ -1,10 +1,9 @@
 "use client"
 import React from 'react'
-import useMockUser from '@/lib/hooks/useMockData'
+import { useEnergy } from '@/lib/store/energyStore'
 
 export default function LevelProgress() {
-  const { user, consumeEnergy } = useMockUser()
-
+  const { energy, consume } = useEnergy()
   return (
     <div className="bg-white border rounded-md p-4">
       <h4 className="text-sm text-neutral-500">이번 레벨 진행도</h4>
@@ -22,13 +21,13 @@ export default function LevelProgress() {
         <div className="flex items-center justify-between">
           <div className="text-sm">예상 보상: +50 +60 +0</div>
           <div className="flex items-center gap-3">
-            <div className="text-sm">에너지: <span className="font-medium">{user.energy}</span></div>
-            <button
-              className="px-3 py-2 bg-primary-600 text-white rounded-md"
-              onClick={() => consumeEnergy(1)}
-            >
-              다음 문제 풀기
-            </button>
+            <div className="text-sm">에너지: <span className="font-medium">{energy}</span></div>
+              <button
+                className="px-3 py-2 bg-primary-600 text-white rounded-md"
+                onClick={() => consume(1)}
+              >
+                다음 문제 풀기
+              </button>
           </div>
         </div>
       </div>
