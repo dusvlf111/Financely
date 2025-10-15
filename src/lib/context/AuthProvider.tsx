@@ -11,6 +11,8 @@ export type Profile = {
   avatar_url: string | null
   gold: number
   energy: number
+  level: number
+  xp: number
   streak: number
   tutorialCompleted?: boolean
 }
@@ -22,6 +24,7 @@ type AuthContextType = {
   logout: () => void
   addGold?: (amount: number) => void
   updateProfile?: (changes: Partial<Pick<MockUser, 'name'>>) => void
+  addXp?: (amount: number) => void
   streak: number
   incrementStreak: () => void
   resetStreak: () => void
@@ -64,6 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 avatar_url: data.avatar_url,
                 gold: data.gold,
                 energy: data.energy,
+                level: data.level,
+                xp: data.xp,
                 tutorialCompleted: data.tutorial_completed,
               }
               setProfile(formattedProfile)
@@ -116,6 +121,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         full_name: data.full_name,
         username: data.username,
         gold: data.gold,
+        level: data.level,
+        xp: data.xp,
         avatar_url: data.avatar_url,
         tutorialCompleted: data.tutorial_completed,
       }
@@ -138,6 +145,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         full_name: data.full_name,
         username: data.username,
         gold: data.gold,
+        level: data.level,
+        xp: data.xp,
         avatar_url: data.avatar_url,
         tutorialCompleted: data.tutorial_completed,
       }
@@ -161,6 +170,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         full_name: data.full_name,
         username: data.username,
         gold: data.gold,
+        level: data.level,
+        xp: data.xp,
         avatar_url: data.avatar_url,
         tutorialCompleted: data.tutorial_completed,
       }
@@ -200,12 +211,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .eq('id', user.id)
   }
 
+  const addXp = async (amount: number) => {
+    if (!user || !profile) return
+
+    const xpForNextLevel = profile.level * 100 // 다음 레벨업에 필요한 경험치 (예: 레벨 1 -> 100XP, 레벨 2 -> 200XP)
+    const newXp = profile.xp + amount
+
+    let newLevel = profile.level
+    let finalXp = newXp
+    let leveledUp = false
+
+    if (newXp >= xpForNextLevel) {
+      newLevel += 1
+      finalXp = newXp - xpForNextLevel
+      leveledUp = true
+      // TODO: 레벨업 축하 모달 또는 애니메이션 표시
+    }
+
+    // Optimistic UI update
+    setProfile(p => (p ? { ...p, level: newLevel, xp: finalXp } : null))
+
+    // DB update
+    await supabase
+      .from('profiles')
+      .update({ level: newLevel, xp: finalXp })
+      .eq('id', user.id)
+  }
+
   const value = {
     user,
     profile,
     login,
     logout,
     addGold,
+    addXp,
     updateProfile,
     spendGold,
     completeTutorial,

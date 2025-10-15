@@ -14,11 +14,6 @@ export default function LevelProgress() {
   const [showModal, setShowModal] = useState(false)
   const [levelProgress, setLevelProgress] = useState({ completed: 0, total: 0 })
 
-  if (!profile) return null
-
-  const currentLevel = profile.level
-  const currentLevelInfo = levelInfo[currentLevel] || { tier: `Level ${currentLevel}`, title: '새로운 도전' }
-
   useEffect(() => {
     async function fetchLevelProgress() {
       if (!profile) return
@@ -40,6 +35,11 @@ export default function LevelProgress() {
 
     fetchLevelProgress()
   }, [profile])
+  if (!profile) return null
+
+  const currentLevel = profile.level
+  const currentLevelInfo = levelInfo[currentLevel] || { tier: `Level ${currentLevel}`, title: '새로운 도전' }
+
 
   const progressPercent = levelProgress.total > 0 ? (levelProgress.completed / levelProgress.total) * 100 : 0
 
