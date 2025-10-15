@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import GoldPortfolio from './components/GoldPortfolio'
 import LevelProgress from './components/LevelProgress'
 import problems, { categories, type Category } from '@/lib/mock/problems'
-import Link from 'next/link'
+import ProblemItem from '../problems/ProblemItem'
 import { useAuth } from '@/lib/context/AuthProvider'
 import { useRouter } from 'next/navigation'
 
@@ -25,7 +25,7 @@ export default function LearnPage() {
 
   if (!mounted) {
     return (
-      <div className="max-w-[768px] mx-auto px-4 py-6">
+      <div className="max-w-[768px] mx-auto py-6">
         <div className="bg-white border rounded-md p-6 text-center">
           <p className="mb-4">로딩 중...</p>
         </div>
@@ -51,7 +51,7 @@ export default function LearnPage() {
 
   return (
     <div>
-      <main className="max-w-[768px] mx-auto px-4 pt-4 pb-28">
+      <main className="max-w-[768px] mx-auto">
         <section className="mb-6">
           <GoldPortfolio />
         </section>
@@ -63,7 +63,7 @@ export default function LearnPage() {
         {/* 카테고리 필터 */}
         <section className="mb-6">
           <h3 className="text-lg font-semibold mb-3">카테고리별 학습</h3>
-          <div className="bg-white border rounded-md p-4">
+          <div className="bg-white border rounded-lg p-4">
             <div className="grid grid-cols-2 gap-2 mb-3">
               <button
                 onClick={() => setSelectedCategory('all')}
@@ -92,44 +92,12 @@ export default function LearnPage() {
             {selectedCategory === 'all' ? '전체 문제' : `${selectedCategory} 문제`}
           </h3>
           {filteredProblems.length === 0 ? (
-            <div className="bg-white border rounded-md p-6 text-center text-neutral-500">
+            <div className="bg-white border rounded-lg p-6 text-center text-neutral-500">
               해당 카테고리에 문제가 없습니다.
             </div>
           ) : (
             <div className="grid gap-3">
-              {filteredProblems.map(p => (
-                <div key={p.id} className="bg-white border rounded-md p-4 hover:shadow-lg transition">
-                  <Link href={`/problems/${p.id}`} className="block no-underline">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs rounded font-medium">
-                            {p.category}
-                          </span>
-                          <span className={`px-2 py-0.5 text-xs rounded font-medium ${
-                            p.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
-                            p.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {p.difficulty === 'easy' ? '초급' : p.difficulty === 'medium' ? '중급' : '고급'}
-                          </span>
-                        </div>
-                        <div className="font-semibold text-lg text-gray-900">{p.title}</div>
-                        <div className="text-sm text-gray-600 mt-1">{p.description}</div>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className="text-gray-700">⚡ {p.energyCost}</span>
-                        <span className="text-green-600 font-semibold">+{p.rewardGold}G</span>
-                      </div>
-                      <div className="btn-primary">
-                        풀기 →
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              ))}
+              {filteredProblems.map(p => <ProblemItem key={p.id} problem={p} />)}
             </div>
           )}
         </section>

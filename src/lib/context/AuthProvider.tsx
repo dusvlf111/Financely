@@ -1,5 +1,6 @@
 "use client"
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { useGoldStore } from '@/lib/store/goldStore'
 import mockUser from '@/lib/mock/user'
 
 type MockUser = typeof mockUser & {
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<MockUser | null>(null)
+  const { updateGold: updateGoldHistory } = useGoldStore()
 
   // initialize from localStorage
   useEffect(() => {
@@ -32,6 +34,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
   }, [])
+
+  // Sync user.gold changes to the goldStore
+  useEffect(() => {
+    if (user) {
+      updateGoldHistory(user.gold)
+    }
+  }, [user?.gold, updateGoldHistory])
 
   function login(provider: string) {
     // Simple mock: attach provider to name and set mock user

@@ -1,24 +1,44 @@
 @import "tailwindcss";
 
-@theme {
-  /* Colors */
-  --color-primary-50: #f7fee7;
-  --color-primary-100: #ecfccb;
-  --color-primary-500: #10b981;
+@layer components {
+  /* === 버튼 스타일 === */
+  .btn-primary {
+    @apply bg-[#10b981] text-white font-bold py-3 px-5 rounded-md transition-colors;
+    @apply hover:bg-emerald-600;
+    @apply focus:outline-none focus:ring-2 focus:ring-[#10b981]/50;
+    @apply disabled:bg-neutral-400 disabled:cursor-not-allowed;
+  }
 
-  --color-secondary-500: #3b82f6;
+  .btn-secondary {
+    @apply bg-neutral-200 text-neutral-800 font-bold py-3 px-5 rounded-md;
+    @apply hover:bg-neutral-300;
+    @apply focus:outline-none focus:ring-2 focus:ring-neutral-400;
+    @apply disabled:bg-neutral-100 disabled:cursor-not-allowed;
+  }
 
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-500: #6b7280;
-  --color-neutral-800: #1f2937; 
+  .btn-success {
+    @apply bg-[#10b981] text-white font-bold py-3 px-5 rounded-md transition-colors;
+    @apply hover:bg-emerald-600; /* Darker shade of success */
+    @apply focus:outline-none focus:ring-2 focus:ring-[#10b981];
+    @apply disabled:bg-neutral-400 disabled:cursor-not-allowed;
+  }
 
-  --color-status-success: #10b981;
-  --color-status-warning: #f59e0b;
-  --color-status-danger: #ef4444;
+  .btn-danger {
+    @apply bg-[#ef4444] text-white font-bold py-3 px-5 rounded-md;
+    @apply hover:bg-red-600; /* Darker shade of danger */
+    @apply focus:outline-none focus:ring-2 focus:ring-[#ef4444];
+    @apply disabled:bg-neutral-400 disabled:cursor-not-allowed;
+  }
 
-  /* Border Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
+  /* === 카테고리 필터 버튼 === */
+  .btn-category {
+    @apply w-full text-left p-3 border bg-white rounded-lg transition text-neutral-700;
+    @apply hover:border-emerald-300 hover:bg-[#f7fee7]; /* TODO: Define primary-300 */
+  }
+
+  .btn-category-active {
+    @apply w-full text-left p-3 border-2 border-[#10b981] bg-[#f7fee7] rounded-lg font-semibold text-emerald-700; /* TODO: Define primary-700 */
+  }
 }
 
 /* 기본 글로벌 스타일 */

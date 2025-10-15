@@ -29,7 +29,7 @@ export default function MyPage() {
         <div className="mt-1 text-sm text-neutral-700">골드: {user ? `${user.gold}G` : '—'}</div>
 
         <div className="mt-4">
-          <h3 className="font-medium">프로필 편집</h3>
+          {/* <h3 className="font-medium">프로필 편집</h3> */}
           {editing ? (
             <div className="mt-2 space-y-2">
               <input className="w-full border px-3 py-2 rounded-md" value={name} onChange={e => setName(e.target.value)} />

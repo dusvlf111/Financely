@@ -13,12 +13,12 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body className="min-h-screen bg-neutral-100 text-neutral-800">
+      <body className="min-h-screen bg-neutral-100 text-neutral-800 text-base">
         <AuthProvider>
           <EnergyProvider>
-            <div className="max-w-[768px] mx-auto px-4">
+            <div className="max-w-[768px] mx-auto">
               <Header />
-              <main className="pt-4 pb-28">{children}</main>
+              <main className="px-4 pt-4 pb-28">{children}</main>
               <Navigation />
             </div>
           </EnergyProvider>
