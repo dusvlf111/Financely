@@ -93,7 +93,7 @@ export default function TutorialPage() {
             </ul>
           </div>
 
-          <Link href="/learn" className="inline-block bg-primary-600 text-white px-4 py-2 rounded-md">
+          <Link href="/learn" className="inline-block bg-primary-600 text-black px-4 py-2 rounded-md">
             학습 시작하기
           </Link>
         </section>

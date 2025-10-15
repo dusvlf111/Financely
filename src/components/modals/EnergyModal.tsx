@@ -29,7 +29,7 @@ export default function EnergyModal({ open, onClose }: { open: boolean; onClose:
         <div className="text-sm text-neutral-600 mb-4">골드로 에너지를 구매할 수 있습니다. 1에너지 = 100G</div>
         <div className="flex justify-end gap-2">
           <button className="px-3 py-2 bg-neutral-100 rounded" onClick={onClose}>취소</button>
-          <button className="px-3 py-2 bg-primary-600 text-white rounded" onClick={handleBuy}>구매하기</button>
+          <button className="px-3 py-2 bg-primary-600 text-black rounded" onClick={handleBuy}>구매하기</button>
         </div>
       </div>
     </div>

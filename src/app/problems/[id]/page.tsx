@@ -96,7 +96,7 @@ export default function ProblemPage() {
         {/* 시작 전 */}
         {status === 'idle' && (
           <button
-            className="w-full px-4 py-3 bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700"
+            className="w-full px-4 py-3 bg-primary-600 text-black rounded-md font-medium hover:bg-primary-700"
             onClick={handleStart}
           >
             문제 풀기 시작 (에너지 {problem.energyCost} 소비)
@@ -178,7 +178,7 @@ export default function ProblemPage() {
             <div className="flex gap-3">
               <button
                 onClick={handleNextProblem}
-                className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700"
+                className="flex-1 px-4 py-3 bg-primary-600 text-black rounded-md font-medium hover:bg-primary-700"
               >
                 다음 문제로 →
               </button>
@@ -208,7 +208,7 @@ export default function ProblemPage() {
             <div className="flex gap-3">
               <button
                 onClick={handleRetry}
-                className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700"
+                className="flex-1 px-4 py-3 bg-primary-600 text-black rounded-md font-medium hover:bg-primary-700"
               >
                 다시 풀기
               </button>

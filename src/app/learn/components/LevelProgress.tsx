@@ -6,7 +6,7 @@ import EnergyModal from '@/components/modals/EnergyModal'
 
 export default function LevelProgress() {
   const router = useRouter()
-  const { energy, maxEnergy, consume, remainingSeconds } = useEnergy()
+  const { energy, maxEnergy, remainingSeconds } = useEnergy()
   const [showModal, setShowModal] = useState(false)
   return (
     <div className="bg-white border rounded-md p-4">
@@ -32,11 +32,14 @@ export default function LevelProgress() {
                 )}
               </div>
               <button
-                className="px-3 py-2 bg-primary-600 text-white rounded-md"
+                className="px-3 py-2 bg-primary-600 text-black rounded-md"
                 onClick={() => {
-                  const ok = consume(1)
-                  if (!ok) setShowModal(true)
-                  else router.push('/problems')
+                  if (energy < 1) {
+                    setShowModal(true)
+                  } else {
+                    // 첫 번째 문제로 이동
+                    router.push('/problems/p1')
+                  }
                 }}
               >
                 다음 문제 풀기

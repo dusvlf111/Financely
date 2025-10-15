@@ -34,7 +34,7 @@ export default function MyPage() {
             <div className="mt-2 space-y-2">
               <input className="w-full border px-3 py-2 rounded-md" value={name} onChange={e => setName(e.target.value)} />
               <div className="flex gap-2">
-                <button className="px-3 py-2 bg-primary-600 text-white rounded" onClick={save}>저장</button>
+                <button className="px-3 py-2 bg-primary-600 text-black rounded" onClick={save}>저장</button>
                 <button className="px-3 py-2 bg-neutral-100 rounded" onClick={() => setEditing(false)}>취소</button>
               </div>
             </div>

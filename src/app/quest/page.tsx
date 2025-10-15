@@ -65,7 +65,7 @@ export default function QuestPage() {
           {isClaimable && (
             <button
               onClick={() => handleClaimReward(quest.id)}
-              className="px-4 py-2 bg-primary-600 text-white rounded-md text-sm"
+              className="px-4 py-2 bg-primary-600 text-black rounded-md text-sm"
             >
               보상 받기
             </button>
