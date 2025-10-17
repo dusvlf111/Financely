@@ -13,6 +13,7 @@ export default function LevelProgress() {
   const { energy, maxEnergy, remainingSeconds } = useEnergy()
   const [showModal, setShowModal] = useState(false)
   const [levelProgress, setLevelProgress] = useState({ completed: 0, total: 0 })
+  const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     async function fetchLevelProgress() {
@@ -45,20 +46,92 @@ export default function LevelProgress() {
 
   return (
     <div className="bg-white border rounded-md p-4">
-      <h4 className="text-sm text-neutral-500">이번 레벨 진행도</h4>
-      <div className="mt-2">
-        <div className="text-base font-semibold">{currentLevelInfo.tier}</div>
-        <div className="text-sm text-neutral-600">
-          Level {currentLevel}: {currentLevelInfo.title} ({levelProgress.completed}/{levelProgress.total} 완료)
-        </div>
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm text-neutral-500">레벨별 학습 주제</h4>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
+        >
+          {isExpanded ? '접기 ▲' : '펼치기 ▼'}
+        </button>
       </div>
-      <div className="mt-3">
-        <div className="w-full bg-neutral-200 h-3 rounded-full overflow-hidden">
-          <div className="bg-primary-500 h-3" style={{ width: `${progressPercent}%` }} />
+
+      {/* 현재 레벨만 표시 (기본) */}
+      <div className={`flex items-center justify-between p-2 rounded-md bg-primary-50 border-2 border-primary-500 ${isExpanded ? 'mb-3' : 'mb-4'}`}>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-primary-500 text-white">
+            {currentLevel}
+          </div>
+          <div>
+            <div className="text-xs font-medium text-primary-700">
+              {currentLevelInfo.tier}
+            </div>
+            <div className="text-sm font-semibold text-primary-900">
+              {currentLevelInfo.title}
+            </div>
+          </div>
+        </div>
+        <div className="text-xs font-medium text-primary-600">
+          {levelProgress.completed}/{levelProgress.total} 완료
         </div>
       </div>
 
-      <div className="mt-4 flex justify-between items-center">
+      {/* 모든 레벨 표시 (펼쳤을 때만) */}
+      {isExpanded && (
+        <div className="space-y-2 mb-4">
+          {Object.entries(levelInfo).map(([level, info]) => {
+            const levelNum = parseInt(level)
+            const isCurrentLevel = levelNum === currentLevel
+            const isPastLevel = levelNum < currentLevel
+
+            // 현재 레벨은 위에 이미 표시했으므로 스킵
+            if (isCurrentLevel) return null
+
+            return (
+              <div
+                key={level}
+                className={`flex items-center justify-between p-2 rounded-md transition-colors ${
+                  isPastLevel
+                    ? 'bg-neutral-50'
+                    : 'bg-white border border-neutral-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${
+                    isPastLevel
+                      ? 'bg-neutral-300 text-neutral-600'
+                      : 'bg-neutral-100 text-neutral-400'
+                  }`}>
+                    {levelNum}
+                  </div>
+                  <div>
+                    <div className={`text-xs font-medium ${
+                      isPastLevel ? 'text-neutral-600' : 'text-neutral-400'
+                    }`}>
+                      {info.tier}
+                    </div>
+                    <div className={`text-sm ${
+                      isPastLevel ? 'text-neutral-700' : 'text-neutral-400'
+                    }`}>
+                      {info.title}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* 현재 레벨 진행바 */}
+      <div className="mb-4">
+        <div className="text-xs text-neutral-500 mb-1">현재 레벨 진행도</div>
+        <div className="w-full bg-neutral-200 h-3 rounded-full overflow-hidden">
+          <div className="bg-primary-500 h-3 transition-all" style={{ width: `${progressPercent}%` }} />
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center">
         <div className="flex items-center gap-2 text-sm">
           <span className="font-medium">에너지: {energy}</span>
           {energy < maxEnergy && typeof remainingSeconds === 'number' && remainingSeconds > 0 && (

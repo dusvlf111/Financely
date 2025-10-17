@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import GoldPortfolio from './components/GoldPortfolio'
 import LevelProgress from './components/LevelProgress'
 import ProblemItem from '../problems/ProblemItem'
-import { type Category, type Problem } from '@/lib/mock/problems' // Type만 가져옵니다.
+import { type Problem } from '@/lib/mock/problems' // Type만 가져옵니다.
 import { useAuth } from '@/lib/context/AuthProvider'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -11,12 +11,11 @@ import { useRouter } from 'next/navigation'
 export default function LearnPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all')
-  const [problemStatusFilter, setProblemStatusFilter] = useState<'all' | 'solved' | 'unsolved'>('all')
-  const [categories, setCategories] = useState<Category[]>([])
+  const [problemStatusFilter, setProblemStatusFilter] = useState<'solved' | 'unsolved'>('solved')
   const [problems, setProblems] = useState<Problem[]>([])
   const [solvedProblemIds, setSolvedProblemIds] = useState<Set<string>>(new Set())
   const [mounted, setMounted] = useState(false)
+  const [isProblemsExpanded, setIsProblemsExpanded] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -48,10 +47,6 @@ export default function LearnPage() {
           rewardGold: p.reward_gold,
         }))
         setProblems(formattedProblems)
-
-        // 문제 데이터에서 고유한 카테고리 목록을 추출합니다.
-        const uniqueCategories = Array.from(new Set(formattedProblems.map(p => p.category)))
-        setCategories(uniqueCategories)
       }
     }
 
@@ -73,21 +68,11 @@ export default function LearnPage() {
     return null
   }
 
-  const filteredProblems = problems
-    .filter(p => selectedCategory === 'all' || p.category === selectedCategory)
-    .filter(p => {
-      if (problemStatusFilter === 'solved') return solvedProblemIds.has(p.id)
-      if (problemStatusFilter === 'unsolved') return !solvedProblemIds.has(p.id)
-      return true
-    })
-
-  // 카테고리별 진행도 계산
-  const getCategoryProgress = (cat: Category) => {
-    const categoryProblems = problems.filter(p => p.category === cat)
-    if (categoryProblems.length === 0) return { total: 0, completed: 0 }
-    const completed = categoryProblems.filter(p => solvedProblemIds.has(p.id)).length
-    return { total: categoryProblems.length, completed }
-  }
+  const filteredProblems = problems.filter(p => {
+    if (problemStatusFilter === 'solved') return solvedProblemIds.has(p.id)
+    if (problemStatusFilter === 'unsolved') return !solvedProblemIds.has(p.id)
+    return false
+  })
 
   return (
     <div>
@@ -100,64 +85,55 @@ export default function LearnPage() {
           <LevelProgress />
         </section>
 
-        {/* 카테고리 필터 */}
+        {/* 푼 문제 / 안 푼 문제 필터 */}
         <section className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">카테고리별 학습</h3>
-          <div className="bg-white border rounded-lg p-4">
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <button
-                onClick={() => setSelectedCategory('all')}
-                className={selectedCategory === 'all' ? 'btn-category-active' : 'btn-category'}
-              >
-                전체 ({problems.length})
-              </button>
-              {categories.map(cat => {
-                const progress = getCategoryProgress(cat)
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={selectedCategory === cat ? 'btn-category-active' : 'btn-category'}
-                  >
-                    {cat} ({progress.completed}/{progress.total})
-                  </button>
-                )
-              })}
-            </div>
-            <div className="border-t pt-3 mt-3 flex items-center gap-2 text-sm">
-              <button
-                onClick={() => setProblemStatusFilter('all')}
-                className={`px-3 py-1 rounded-full ${problemStatusFilter === 'all' ? 'bg-primary-500 text-white' : 'bg-neutral-100'}`}
-              >
-                전체
-              </button>
-              <button
-                onClick={() => setProblemStatusFilter('unsolved')}
-                className={`px-3 py-1 rounded-full ${problemStatusFilter === 'unsolved' ? 'bg-primary-500 text-white' : 'bg-neutral-100'}`}
-              >
-                안 푼 문제
-              </button>
-              <button
-                onClick={() => setProblemStatusFilter('solved')}
-                className={`px-3 py-1 rounded-full ${problemStatusFilter === 'solved' ? 'bg-primary-500 text-white' : 'bg-neutral-100'}`}
-              >
-                푼 문제
-              </button>
-            </div>
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => setProblemStatusFilter('unsolved')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                problemStatusFilter === 'unsolved'
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+              }`}
+            >
+              안 푼 문제
+            </button>
+            <button
+              onClick={() => setProblemStatusFilter('solved')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                problemStatusFilter === 'solved'
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+              }`}
+            >
+              푼 문제
+            </button>
           </div>
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-lg font-semibold">
-            {selectedCategory === 'all' ? '전체 문제' : `${selectedCategory} 문제`}
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">
+              {problemStatusFilter === 'solved' ? '푼 문제' : '안 푼 문제'} ({filteredProblems.length}개)
+            </h3>
+            {filteredProblems.length > 5 && (
+              <button
+                onClick={() => setIsProblemsExpanded(!isProblemsExpanded)}
+                className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
+              >
+                {isProblemsExpanded ? '접기 ▲' : `더보기 (${filteredProblems.length - 5}개) ▼`}
+              </button>
+            )}
+          </div>
           {filteredProblems.length === 0 ? (
             <div className="bg-white border rounded-lg p-6 text-center text-neutral-500">
-              해당 카테고리에 문제가 없습니다.
+              {problemStatusFilter === 'solved' ? '아직 푼 문제가 없습니다.' : '모든 문제를 완료했습니다!'}
             </div>
           ) : (
             <div className="grid gap-3">
-              {filteredProblems.map(p => <ProblemItem key={p.id} problem={p} />)}
+              {(isProblemsExpanded ? filteredProblems : filteredProblems.slice(0, 5)).map(p => (
+                <ProblemItem key={p.id} problem={p} />
+              ))}
             </div>
           )}
         </section>
