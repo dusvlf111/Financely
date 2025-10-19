@@ -10,7 +10,7 @@ import { LEVEL_CATEGORIES, levelInfo } from '@/lib/game/levels'
 export default function LevelProgress() {
   const router = useRouter()
   const { profile } = useAuth()
-  const { energy, maxEnergy, remainingSeconds } = useEnergy()
+  const { energy, remainingSeconds } = useEnergy()
   const [showModal, setShowModal] = useState(false)
   const [levelProgress, setLevelProgress] = useState({ completed: 0, total: 0 })
   const [isExpanded, setIsExpanded] = useState(false)
@@ -134,7 +134,7 @@ export default function LevelProgress() {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2 text-sm">
           <span className="font-medium">에너지: {energy}</span>
-          {energy < maxEnergy && typeof remainingSeconds === 'number' && remainingSeconds > 0 && (
+          {energy < 5 && typeof remainingSeconds === 'number' && remainingSeconds > 0 && (
             <span className="text-xs text-neutral-500">({formatTime(remainingSeconds)})</span>
           )}
         </div>
