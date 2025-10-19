@@ -9,11 +9,11 @@ export default function EnergyModal({ open, onClose }: { open: boolean; onClose:
 
   if (!open) return null
 
-  function handleBuy() {
+  async function handleBuy() {
     // price: 100G per energy
     const price = 100
     if (!spendGold) return
-    const ok = spendGold(price)
+    const ok = await spendGold(price)
     if (ok) {
       add(1)
       onClose()

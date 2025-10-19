@@ -19,7 +19,7 @@ export type Profile = {
 type AuthContextType = {
   user: User | null
   profile: Profile | null
-  login: (provider: 'google' | 'kakao' | 'naver') => Promise<void>
+  login: (provider: string) => Promise<void>
   logout: () => Promise<void>
   addGold?: (amount: number) => Promise<void>
   updateProfile?: (changes: Partial<Profile>) => Promise<void>
@@ -83,9 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Gold history is now automatically tracked by database trigger
   // No need for manual sync here
 
-  async function login(provider: 'google' | 'kakao' | 'naver') {
+  async function login(provider: string) {
     await supabase.auth.signInWithOAuth({
-      provider,
+      provider: provider as 'google' | 'kakao',
       options: {
         redirectTo: `${location.origin}/auth/callback`,
       },
