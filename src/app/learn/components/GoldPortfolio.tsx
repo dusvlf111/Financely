@@ -4,23 +4,29 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import { useGoldStore, type GoldHistoryEntry } from '@/lib/store/goldStore'
 
 export default function GoldPortfolio() {
-  const { profile } = useAuth()
-  const { history: goldHistory, todayStartGold, initializeHistory, setTodayStartGold } = useGoldStore()
+  const { profile, user } = useAuth()
+  const { history: goldHistory, todayStartGold, fetchHistory, setTodayStartGold } = useGoldStore()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Fetch gold history from database when user is available
   useEffect(() => {
-    if (profile && mounted && goldHistory.length > 0) {
-      initializeHistory(profile.gold)
+    if (user && mounted) {
+      fetchHistory(user.id)
+    }
+  }, [user, mounted, fetchHistory])
 
+  // Calculate today's start gold
+  useEffect(() => {
+    if (profile && goldHistory.length > 0) {
       // 오늘 자정의 타임스탬프
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       const todayTimestamp = today.getTime()
-      
+
       // 오늘 첫 기록을 찾거나, 없으면 어제의 마지막 기록을 사용
       const firstEntryToday = goldHistory.find(h => h.timestamp >= todayTimestamp)
       const lastEntryYesterday = goldHistory.slice().reverse().find(h => h.timestamp < todayTimestamp)
@@ -28,7 +34,7 @@ export default function GoldPortfolio() {
       const startGold = firstEntryToday?.gold ?? lastEntryYesterday?.gold ?? profile.gold
       setTodayStartGold(startGold)
     }
-  }, [profile, mounted, initializeHistory, setTodayStartGold, goldHistory, goldHistory.length])
+  }, [profile, goldHistory, setTodayStartGold])
 
   if (!mounted) {
     return (
