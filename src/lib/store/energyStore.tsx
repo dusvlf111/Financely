@@ -4,11 +4,10 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import React, { createContext, useContext, useEffect } from 'react'
 
 const ENERGY_RECOVERY_SECONDS = 60 // 1분으로 수정 (기존: 4 * 60 * 60)
-const MAX_ENERGY = 5
+const AUTO_RECOVERY_THRESHOLD = 5 // 5개 이하일 때만 자동 충전
 
 interface EnergyState {
   energy: number
-  maxEnergy: number
   lastUpdated: number
   remainingSeconds: number | null
   consume: (amount?: number) => boolean
@@ -19,8 +18,7 @@ interface EnergyState {
 const useEnergyStore = create<EnergyState>()(
   persist(
     (set, get) => ({
-      energy: MAX_ENERGY,
-      maxEnergy: MAX_ENERGY,
+      energy: AUTO_RECOVERY_THRESHOLD,
       lastUpdated: Date.now(),
       remainingSeconds: null,
 
@@ -28,7 +26,7 @@ const useEnergyStore = create<EnergyState>()(
         if (get().energy >= amount) {
           set(state => ({
             energy: state.energy - amount,
-            lastUpdated: state.energy === MAX_ENERGY ? Date.now() : state.lastUpdated,
+            lastUpdated: state.energy > AUTO_RECOVERY_THRESHOLD ? state.lastUpdated : Date.now(),
           }))
           return true
         }
@@ -37,13 +35,14 @@ const useEnergyStore = create<EnergyState>()(
 
       add: (amount: number) => {
         set(state => ({
-          energy: Math.min(MAX_ENERGY, state.energy + amount),
+          energy: state.energy + amount, // 최대 제한 제거
         }))
       },
 
       _updateEnergy: () => {
         set(state => {
-          if (state.energy >= MAX_ENERGY) {
+          // 5개 이하일 때만 자동 충전
+          if (state.energy >= AUTO_RECOVERY_THRESHOLD) {
             return { remainingSeconds: null }
           }
 
@@ -52,7 +51,7 @@ const useEnergyStore = create<EnergyState>()(
           const recoveredEnergy = Math.floor(elapsed / ENERGY_RECOVERY_SECONDS)
 
           if (recoveredEnergy > 0) {
-            const newEnergy = Math.min(MAX_ENERGY, state.energy + recoveredEnergy)
+            const newEnergy = Math.min(AUTO_RECOVERY_THRESHOLD, state.energy + recoveredEnergy)
             const newLastUpdated = state.lastUpdated + recoveredEnergy * ENERGY_RECOVERY_SECONDS * 1000
             return { energy: newEnergy, lastUpdated: newLastUpdated }
           }
