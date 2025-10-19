@@ -5,7 +5,7 @@ import { useGoldStore, type GoldHistoryEntry } from '@/lib/store/goldStore'
 
 export default function GoldPortfolio() {
   const { profile, user } = useAuth()
-  const { history: goldHistory, todayStartGold, fetchHistory, setTodayStartGold } = useGoldStore()
+  const { history: goldHistory, todayStartGold, fetchHistory, setTodayStartGold, addGoldEntry } = useGoldStore()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -14,10 +14,19 @@ export default function GoldPortfolio() {
 
   // Fetch gold history from database when user is available
   useEffect(() => {
-    if (user && mounted) {
-      fetchHistory(user.id)
+    if (user && mounted && profile) {
+      fetchHistory(user.id).then(() => {
+        // 히스토리가 없다면 현재 골드로 초기 히스토리 생성
+        setTimeout(() => {
+          const store = useGoldStore.getState()
+          if (store.history.length === 0) {
+            console.log('Creating initial gold history entry with gold:', profile.gold)
+            addGoldEntry(user.id, profile.gold)
+          }
+        }, 500)
+      })
     }
-  }, [user, mounted, fetchHistory])
+  }, [user, mounted, profile, fetchHistory, addGoldEntry])
 
   // Calculate today's start gold
   useEffect(() => {
@@ -71,17 +80,23 @@ export default function GoldPortfolio() {
       </div>
       <div className="text-xs text-gray-500 mb-3">현재 보유</div>
 
-      {goldHistory.length > 0 && (
-        <div className="mt-3">
-          <div className="h-36 bg-gray-50 rounded-md p-3 border border-gray-100">
+      <div className="mt-3">
+        <div className="h-36 bg-gray-50 rounded-md p-3 border border-gray-100">
+          {goldHistory.length > 0 ? (
             <Sparkline data={goldHistory} />
-          </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-sm text-gray-400">
+              골드 활동 기록을 불러오는 중...
+            </div>
+          )}
+        </div>
+        {goldHistory.length > 0 && (
           <div className="flex justify-between text-xs text-gray-500 mt-2">
             <span>첫 활동</span>
             <span>총 {goldHistory.length}개 활동</span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
