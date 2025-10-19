@@ -1,7 +1,6 @@
 "use client"
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import { useGoldStore } from '@/lib/store/goldStore'
 import type { User } from '@supabase/supabase-js'
 
 export type Profile = {
@@ -20,17 +19,17 @@ export type Profile = {
 type AuthContextType = {
   user: User | null
   profile: Profile | null
-  login: (provider: string) => void
-  logout: () => void
-  addGold?: (amount: number) => void
-  updateProfile?: (changes: Partial<Pick<MockUser, 'name'>>) => void
-  addXp?: (amount: number) => void
+  login: (provider: string) => Promise<void>
+  logout: () => Promise<void>
+  addGold?: (amount: number) => Promise<void>
+  updateProfile?: (changes: Partial<Profile>) => Promise<void>
+  addXp?: (amount: number) => Promise<void>
   streak: number
-  incrementStreak: () => void
-  resetStreak: () => void
-  trackQuestProgress?: (questType: string) => void
-  spendGold?: (amount: number) => boolean
-  completeTutorial?: () => void
+  incrementStreak: () => Promise<void>
+  resetStreak: () => Promise<void>
+  trackQuestProgress?: (questType: string) => Promise<void>
+  spendGold?: (amount: number) => Promise<boolean>
+  completeTutorial?: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -38,7 +37,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const { updateGold: updateGoldHistory } = useGoldStore()
 
   useEffect(() => {
     const getSession = async () => {
@@ -82,16 +80,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Sync user.gold changes to the goldStore
-  useEffect(() => {
-    if (profile) {
-      updateGoldHistory(profile.gold)
-    }
-  }, [profile, profile?.gold, updateGoldHistory])
+  // Gold history is now automatically tracked by database trigger
+  // No need for manual sync here
 
-  async function login(provider: 'google' | 'kakao' | 'naver') {
+  async function login(provider: string) {
     await supabase.auth.signInWithOAuth({
-      provider,
+      provider: provider as 'google' | 'kakao',
       options: {
         redirectTo: `${location.origin}/auth/callback`,
       },
@@ -101,9 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function logout() {
     await supabase.auth.signOut()
     setUser(null)
-    // 사용자 데이터 초기화를 위해 localStorage 클리어
-    localStorage.removeItem('financely-gold-storage')
-    localStorage.removeItem('financely-energy-storage')
+    setProfile(null)
   }
 
   async function addGold(amount: number) {
@@ -181,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function completeTutorial() {
     if (!user) return
-    await updateProfile({ tutorial_completed: true })
+    await updateProfile({ tutorialCompleted: true })
   }
 
   async function trackQuestProgress(questType: string) {
@@ -219,13 +211,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let newLevel = profile.level
     let finalXp = newXp
-    let leveledUp = false
 
     if (newXp >= xpForNextLevel) {
       newLevel += 1
       finalXp = newXp - xpForNextLevel
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      leveledUp = true
       // TODO: 레벨업 축하 모달 또는 애니메이션 표시
     }
 
