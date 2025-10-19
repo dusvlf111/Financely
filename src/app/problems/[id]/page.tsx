@@ -83,7 +83,7 @@ export default function ProblemPage() {
     setAnswer(selectedAnswer)
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     setStatus('submitted')
     const correct = (prob.correctAnswer ?? '').toUpperCase().trim()
     const userAnswer = answer.toUpperCase().trim()
@@ -108,6 +108,26 @@ export default function ProblemPage() {
       setStatus('success')
       if (addGold) addGold(prob.rewardGold + bonusGold)
 
+      // 푼 문제를 user_solved_problems 테이블에 기록
+      if (user && prob.id) {
+        const { error } = await supabase
+          .from('user_solved_problems')
+          .upsert(
+            {
+              user_id: user.id,
+              problem_id: prob.id,
+              solved_at: new Date().toISOString(),
+            },
+            {
+              onConflict: 'user_id,problem_id',
+            }
+          )
+
+        if (error) {
+          console.error('Error saving solved problem:', error)
+        }
+      }
+
       if (trackQuestProgress) {
         trackQuestProgress('solve_problem') // '문제 풀기' 타입의 퀘스트 진행도 업데이트
       }
@@ -119,30 +139,56 @@ export default function ProblemPage() {
 
   function handleRetry() {
     setAnswer('')
-    setStatus('idle')
+    setStatus('started') // 'idle'이 아닌 'started'로 설정하여 바로 문제 풀이 시작
+    setEarnedBonus({ gold: 0, energy: 0 })
   }
 
   async function handleNextProblem() {
-    if (!problem) {
+    if (!problem || !user) {
       router.push('/learn')
       return
     }
 
-    // 현재 카테고리의 다른 문제 ID 목록을 가져옵니다. (현재 문제 제외)
-    const { data, error } = await supabase
+    // 1. 모든 문제를 level 순서대로 가져오기
+    const { data: allProblems, error: problemsError } = await supabase
       .from('problems')
-      .select('id')
-      .eq('category', problem.category)
-      .neq('id', problem.id)
+      .select('id, level')
+      .order('level', { ascending: true })
 
-    if (error || !data || data.length === 0) {
-      // 다른 문제가 없으면 학습 페이지로 이동
+    if (problemsError || !allProblems || allProblems.length === 0) {
       router.push('/learn')
-    } else {
-      // 다른 문제 중 무작위로 하나를 선택하여 이동
-      const randomIndex = Math.floor(Math.random() * data.length)
-      router.push(`/problems/${data[randomIndex].id}`)
+      return
     }
+
+    // 2. 사용자가 푼 문제 목록 가져오기
+    const { data: solvedProblems } = await supabase
+      .from('user_solved_problems')
+      .select('problem_id')
+      .eq('user_id', user.id)
+
+    const solvedIds = new Set(solvedProblems?.map(p => p.problem_id) || [])
+
+    // 3. 현재 문제의 인덱스 찾기
+    const currentIndex = allProblems.findIndex(p => p.id === problem.id)
+
+    // 4. 현재 문제 다음부터 순차적으로 안 푼 문제 찾기
+    for (let i = currentIndex + 1; i < allProblems.length; i++) {
+      if (!solvedIds.has(allProblems[i].id)) {
+        router.push(`/problems/${allProblems[i].id}`)
+        return
+      }
+    }
+
+    // 5. 다음에 안 푼 문제가 없으면 처음부터 다시 검색
+    for (let i = 0; i < currentIndex; i++) {
+      if (!solvedIds.has(allProblems[i].id)) {
+        router.push(`/problems/${allProblems[i].id}`)
+        return
+      }
+    }
+
+    // 6. 모든 문제를 다 풀었으면 학습 페이지로
+    router.push('/learn')
   }
 
   return (
@@ -286,13 +332,13 @@ export default function ProblemPage() {
                 onClick={handleRetry}
                 className="flex-1 btn-primary"
               >
-                다시 풀기
+                이 문제 다시 풀기
               </button>
               <button
                 onClick={handleNextProblem}
                 className="flex-1 btn-secondary"
               >
-                다른 문제 풀기
+                다음 문제로 →
               </button>
             </div>
           </div>
