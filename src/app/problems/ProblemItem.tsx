@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import type { Problem } from '@/lib/mock/problems'
 
@@ -30,8 +31,14 @@ export default function ProblemItem({ problem: p }: ProblemItemProps) {
         </div>
         <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-gray-700">⚡ {p.energyCost}</span>
-            <span className="text-green-600 font-semibold">+{p.rewardGold}G</span>
+            <div className="flex items-center gap-1 text-gray-700">
+              <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} className="w-4 h-4" />
+              <span>{p.energyCost}</span>
+            </div>
+            <div className="flex items-center gap-1 text-green-600 font-semibold">
+              <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
+              <span>+{p.rewardGold}</span>
+            </div>
           </div>
           <div className="text-primary-500 font-semibold">풀기 →</div>
         </div>
