@@ -1,0 +1,43 @@
+{
+  "name": "Financely - 금융 학습 플랫폼",
+  "short_name": "Financely",
+  "description": "재미있게 배우는 금융 게임화 학습 플랫폼",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10B981",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "학습 시작하기",
+      "short_name": "학습 시작",
+      "url": "/learn"
+    }
+  ],
+  "categories": ["education", "finance"],
+  "lang": "ko-KR",
+  "dir": "ltr"
+}
