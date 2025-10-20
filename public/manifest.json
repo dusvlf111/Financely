@@ -23,13 +23,6 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/screenshot-1.png",
-      "sizes": "1080x1920",
-      "type": "image/png"
-    }
-  ],
   "shortcuts": [
     {
       "name": "학습 시작하기",

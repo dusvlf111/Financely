@@ -8,6 +8,23 @@ import { EnergyProvider } from '@/lib/store/energyStore'
 export const metadata = {
   title: 'Financely',
   description: '게임형 금융 학습 플랫폼',
+  manifest: '/manifest.json',
+  themeColor: '#10B981',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Financely',
+  },
+  icons: {
+    apple: '/favicon/apple-touch-icon.png',
+  },
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
