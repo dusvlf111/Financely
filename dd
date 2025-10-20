@@ -1,0 +1,15 @@
+main: #FFFFFF
+sub: 
+    #4E4E4E
+    #F0F0F0
+point:
+    #3182F6
+Text:
+    #000000
+    #F0F0F0
+    #FFFFFF
+    #3182F6
+
+Font:
+    kr: 프리텐다드
+    en: Pretendard
