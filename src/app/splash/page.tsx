@@ -20,17 +20,10 @@ export default function SplashPage() {
   }, [user, router])
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 z-50">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-white mb-4">
-          Financely
-        </h1>
-        <div className="flex justify-center gap-2">
-          <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-        </div>
-      </div>
+    <div className="fixed inset-0 flex items-center justify-center bg-primary-500 z-50">
+      <h1 className="text-4xl font-bold text-white">
+        Financely
+      </h1>
     </div>
   )
 }
