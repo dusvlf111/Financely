@@ -42,8 +42,8 @@ export default function LeaguePage() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-medium">리그 순위</h2>
           <div className="flex gap-2">
-            <button onClick={() => setPeriod('weekly')} className={`px-3 py-1 rounded ${period === 'weekly' ? 'bg-primary-600 text-black' : 'bg-neutral-100'}`}>주간</button>
-            <button onClick={() => setPeriod('monthly')} className={`px-3 py-1 rounded ${period === 'monthly' ? 'bg-primary-600 text-black' : 'bg-neutral-100'}`}>월간</button>
+            <button onClick={() => setPeriod('weekly')} className={`px-3 py-1 rounded ${period === 'weekly' ? 'bg-primary-600 text-white' : 'bg-neutral-100'}`}>주간</button>
+            <button onClick={() => setPeriod('monthly')} className={`px-3 py-1 rounded ${period === 'monthly' ? 'bg-primary-600 text-white' : 'bg-neutral-100'}`}>월간</button>
           </div>
         </div>
 

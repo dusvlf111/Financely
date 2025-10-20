@@ -21,17 +21,40 @@ export default function LevelProgress() {
       const currentCategory = LEVEL_CATEGORIES[profile.level]
       if (!currentCategory) return
 
-      const { count: totalProblemsInCategory } = await supabase.from('problems').select('id', { count: 'exact' }).eq('category', currentCategory)
-      const { data: solvedProblems } = await supabase
-        .from('user_solved_problems')
-        .select('problem_id')
-        .in('problem_id', (await supabase.from('problems').select('id').eq('category', currentCategory)).data?.map(p => p.id) || [])
-        .eq('user_id', profile.id)
+      try {
+        // 현재 카테고리의 모든 문제 ID 가져오기
+        const { data: categoryProblems, error: problemsError } = await supabase
+          .from('problems')
+          .select('id')
+          .eq('category', currentCategory)
 
-      setLevelProgress({
-        completed: solvedProblems?.length ?? 0,
-        total: totalProblemsInCategory ?? 0,
-      })
+        if (problemsError) {
+          console.error('Error fetching problems:', problemsError)
+          return
+        }
+
+        const problemIds = categoryProblems?.map(p => p.id) || []
+        const totalProblems = problemIds.length
+
+        // 현재 카테고리 문제 중 사용자가 푼 문제 조회
+        const { data: solvedProblems, error: solvedError } = await supabase
+          .from('user_solved_problems')
+          .select('problem_id')
+          .eq('user_id', profile.id)
+          .in('problem_id', problemIds)
+
+        if (solvedError) {
+          console.error('Error fetching solved problems:', solvedError)
+          return
+        }
+
+        setLevelProgress({
+          completed: solvedProblems?.length ?? 0,
+          total: totalProblems,
+        })
+      } catch (error) {
+        console.error('Error in fetchLevelProgress:', error)
+      }
     }
 
     fetchLevelProgress()
@@ -151,19 +174,24 @@ export default function LevelProgress() {
               const currentCategory = LEVEL_CATEGORIES[profile.level]
               if (!currentCategory) return
 
-              // 현재 카테고리에서 아직 풀지 않은 문제 찾기
-              const { data: allProblems } = await supabase.from('problems').select('id').eq('category', currentCategory)
-              const { data: solvedProblems } = await supabase.from('user_solved_problems').select('problem_id').eq('user_id', profile.id)
+              try {
+                // 현재 카테고리에서 아직 풀지 않은 문제 찾기
+                const { data: allProblems } = await supabase.from('problems').select('id').eq('category', currentCategory)
+                const { data: solvedProblems } = await supabase.from('user_solved_problems').select('problem_id').eq('user_id', profile.id)
 
-              const solvedIds = new Set(solvedProblems?.map(p => p.problem_id) || [])
-              const unsolvedProblems = allProblems?.filter(p => !solvedIds.has(p.id))
+                const solvedIds = new Set(solvedProblems?.map(p => p.problem_id) || [])
+                const unsolvedProblems = allProblems?.filter(p => !solvedIds.has(p.id))
 
-              if (unsolvedProblems && unsolvedProblems.length > 0) {
-                const nextProblemId = unsolvedProblems[Math.floor(Math.random() * unsolvedProblems.length)].id
-                router.push(`/problems/${nextProblemId}`)
-              } else {
-                // 모두 풀었다면, 다음 레벨의 첫 문제로 (임시)
-                alert('현재 레벨의 모든 문제를 완료했습니다! 다음 레벨로 도전하세요.')
+                if (unsolvedProblems && unsolvedProblems.length > 0) {
+                  const nextProblemId = unsolvedProblems[Math.floor(Math.random() * unsolvedProblems.length)].id
+                  router.push(`/problems/${nextProblemId}`)
+                } else {
+                  // 모두 풀었다면, 다음 레벨의 첫 문제로 (임시)
+                  alert('현재 레벨의 모든 문제를 완료했습니다! 다음 레벨로 도전하세요.')
+                }
+              } catch (error) {
+                console.error('Error finding next problem:', error)
+                alert('문제를 불러오는 중 오류가 발생했습니다.')
               }
             }}
           >
