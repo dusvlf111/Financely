@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase/client'
 
 export type GoldHistoryEntry = {
@@ -15,10 +16,12 @@ interface GoldState {
   addGoldEntry: (userId: string, gold: number) => Promise<void>
 }
 
-export const useGoldStore = create<GoldState>()((set, get) => ({
-  history: [],
-  todayStartGold: null,
-  isLoading: false,
+export const useGoldStore = create<GoldState>()(
+  persist(
+    (set, get) => ({
+      history: [],
+      todayStartGold: null,
+      isLoading: false,
 
   setTodayStartGold: (gold: number) => set({ todayStartGold: gold }),
 
@@ -33,20 +36,26 @@ export const useGoldStore = create<GoldState>()((set, get) => ({
         .order('timestamp', { ascending: true })
 
       if (error) {
-        console.error('Error fetching gold history:', error)
+        console.warn('Gold history table not available or error:', error.message)
+        // 테이블이 없거나 권한 문제 - 빈 배열로 설정
+        set({ history: [], isLoading: false })
         return
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         // Convert database timestamps to milliseconds
         const history: GoldHistoryEntry[] = data.map((entry) => ({
           timestamp: new Date(entry.timestamp).getTime(),
           gold: entry.gold,
         }))
         set({ history })
+      } else {
+        // 데이터가 없으면 빈 배열
+        set({ history: [] })
       }
     } catch (error) {
-      console.error('Error fetching gold history:', error)
+      console.warn('Error fetching gold history:', error)
+      set({ history: [] })
     } finally {
       set({ isLoading: false })
     }
@@ -62,6 +71,14 @@ export const useGoldStore = create<GoldState>()((set, get) => ({
         return
       }
 
+      // Optimistically update local state first
+      const newEntry: GoldHistoryEntry = {
+        timestamp: Date.now(),
+        gold,
+      }
+      set({ history: [...currentHistory, newEntry] })
+
+      // Try to save to database (optional - won't fail if table doesn't exist)
       const { error } = await supabase
         .from('gold_history')
         .insert({
@@ -71,18 +88,18 @@ export const useGoldStore = create<GoldState>()((set, get) => ({
         })
 
       if (error) {
-        console.error('Error adding gold entry:', error)
-        return
+        console.warn('Could not save gold history to database:', error.message)
+        // Local state is already updated, so we can continue
       }
-
-      // Optimistically update local state
-      const newEntry: GoldHistoryEntry = {
-        timestamp: Date.now(),
-        gold,
-      }
-      set({ history: [...currentHistory, newEntry] })
     } catch (error) {
-      console.error('Error adding gold entry:', error)
+      console.warn('Error adding gold entry:', error)
+      // Continue with local state only
     }
   },
-}))
+    }),
+    {
+      name: 'financely-gold-storage',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+)
