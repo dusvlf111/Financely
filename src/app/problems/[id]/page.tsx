@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import EnergyModal from '@/components/modals/EnergyModal'
 import type { Problem } from '@/lib/mock/problems'
 import { supabase } from '@/lib/supabase/client'
+import { LEVEL_CATEGORIES } from '@/lib/game/levels'
 
 export default function ProblemPage() {
   const params = useParams() as { id?: string }
@@ -13,7 +14,7 @@ export default function ProblemPage() {
   const id = params.id
   const [problem, setProblem] = useState<Problem | null>(null)
   const { energy, consume } = useEnergy()
-  const { addGold, user, trackQuestProgress, streak, incrementStreak, resetStreak } = useAuth()
+  const { addGold, user, profile, trackQuestProgress, streak, incrementStreak, resetStreak, addXp } = useAuth()
   const [status, setStatus] = useState<'idle' | 'started' | 'submitted' | 'success' | 'fail'>('idle')
   const [answer, setAnswer] = useState('')
   const [earnedBonus, setEarnedBonus] = useState({ gold: 0, energy: 0 })
@@ -144,23 +145,15 @@ export default function ProblemPage() {
   }
 
   async function handleNextProblem() {
-    if (!problem || !user) {
+    if (!problem || !user || !profile) {
       router.push('/learn')
       return
     }
 
-    // 1. 모든 문제를 level 순서대로 가져오기
-    const { data: allProblems, error: problemsError } = await supabase
-      .from('problems')
-      .select('id, level')
-      .order('level', { ascending: true })
+    const currentLevel = profile.level
+    const currentCategory = LEVEL_CATEGORIES[currentLevel]
 
-    if (problemsError || !allProblems || allProblems.length === 0) {
-      router.push('/learn')
-      return
-    }
-
-    // 2. 사용자가 푼 문제 목록 가져오기
+    // 1. 사용자가 푼 문제 목록 가져오기
     const { data: solvedProblems } = await supabase
       .from('user_solved_problems')
       .select('problem_id')
@@ -168,21 +161,72 @@ export default function ProblemPage() {
 
     const solvedIds = new Set(solvedProblems?.map(p => p.problem_id) || [])
 
-    // 3. 현재 문제의 인덱스 찾기
-    const currentIndex = allProblems.findIndex(p => p.id === problem.id)
+    // 2. 현재 레벨(카테고리)의 모든 문제 가져오기
+    const { data: currentLevelProblems } = await supabase
+      .from('problems')
+      .select('id, category')
+      .eq('category', currentCategory)
+      .order('id', { ascending: true })
 
-    // 4. 현재 문제 다음부터 순차적으로 안 푼 문제 찾기
-    for (let i = currentIndex + 1; i < allProblems.length; i++) {
-      if (!solvedIds.has(allProblems[i].id)) {
-        router.push(`/problems/${allProblems[i].id}`)
+    if (currentLevelProblems) {
+      // 3. 현재 레벨에서 안 푼 문제 찾기
+      const unsolvedInCurrentLevel = currentLevelProblems.filter(p => !solvedIds.has(p.id))
+
+      if (unsolvedInCurrentLevel.length > 0) {
+        // 현재 레벨에 안 푼 문제가 있으면 그 문제로 이동
+        router.push(`/problems/${unsolvedInCurrentLevel[0].id}`)
         return
+      }
+
+      // 4. 현재 레벨의 모든 문제를 풀었으면 레벨업
+      const allCurrentLevelSolved = currentLevelProblems.every(p => solvedIds.has(p.id))
+
+      if (allCurrentLevelSolved && currentLevelProblems.length > 0) {
+        // 레벨업!
+        const nextLevel = currentLevel + 1
+        const nextCategory = LEVEL_CATEGORIES[nextLevel]
+
+        if (nextCategory) {
+          // 다음 레벨이 있으면 레벨업 처리
+          if (addXp) {
+            // 레벨업을 위한 충분한 XP 추가
+            await addXp(currentLevel * 100)
+          }
+
+          // 다음 레벨의 첫 문제 찾기
+          const { data: nextLevelProblems } = await supabase
+            .from('problems')
+            .select('id')
+            .eq('category', nextCategory)
+            .order('id', { ascending: true })
+            .limit(1)
+
+          if (nextLevelProblems && nextLevelProblems.length > 0) {
+            // 레벨업 메시지 표시 후 다음 레벨 문제로 이동
+            alert(`🎉 축하합니다! 레벨 ${nextLevel}로 승급했습니다!\n다음 주제: ${nextCategory}`)
+            router.push(`/problems/${nextLevelProblems[0].id}`)
+            return
+          }
+        } else {
+          // 마지막 레벨까지 완료
+          alert('🎊 축하합니다! 모든 레벨을 완료했습니다!')
+          router.push('/learn')
+          return
+        }
       }
     }
 
-    // 5. 다음에 안 푼 문제가 없으면 처음부터 다시 검색
-    for (let i = 0; i < currentIndex; i++) {
-      if (!solvedIds.has(allProblems[i].id)) {
-        router.push(`/problems/${allProblems[i].id}`)
+    // 5. 전체 문제 중 안 푼 문제 찾기 (폴백)
+    const { data: allProblems } = await supabase
+      .from('problems')
+      .select('id, level')
+      .order('level', { ascending: true })
+
+    if (allProblems) {
+      const unsolvedProblems = allProblems.filter(p => !solvedIds.has(p.id))
+
+      if (unsolvedProblems.length > 0) {
+        router.push(`/problems/${unsolvedProblems[0].id}`)
         return
       }
     }
