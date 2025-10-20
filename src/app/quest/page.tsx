@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/lib/context/AuthProvider'
 import type { Quest } from '@/lib/mock/quests'
 import { supabase } from '@/lib/supabase/client'
@@ -102,10 +103,16 @@ export default function QuestPage() {
         </div>
 
         <div className="flex justify-between items-center">
-          <div className="text-sm">
-            <span className="text-green-600 font-medium">+{quest.rewardGold}G</span>
+          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-1">
+              <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
+              <span className="text-green-600 font-medium">+{quest.rewardGold}</span>
+            </div>
             {quest.rewardEnergy > 0 && (
-              <span className="ml-2 text-blue-600">+{quest.rewardEnergy} 에너지</span>
+              <div className="flex items-center gap-1">
+                <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} className="w-4 h-4" />
+                <span className="text-blue-600">+{quest.rewardEnergy}</span>
+              </div>
             )}
           </div>
           {isClaimable && (

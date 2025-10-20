@@ -1,5 +1,6 @@
 "use client"
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/lib/context/AuthProvider'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
@@ -38,7 +39,13 @@ export default function MyPage() {
       <section className="bg-white border rounded-lg p-6">
         <h2 className="font-medium text-lg mb-4">프로필</h2>
         <div className="mt-2 text-sm text-neutral-700">이름: {profile ? (profile.username || profile.full_name) : '비회원'}</div>
-        <div className="mt-1 text-sm text-neutral-700">골드: {profile ? `${profile.gold}G` : '—'}</div>
+        <div className="mt-1 flex items-center gap-2 text-sm text-neutral-700">
+          <span>골드:</span>
+          <div className="flex items-center gap-1">
+            <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
+            <span>{profile ? `${profile.gold.toLocaleString()}` : '—'}</span>
+          </div>
+        </div>
 
         <div className="mt-4">
           {/* <h3 className="font-medium">프로필 편집</h3> */}

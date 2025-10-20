@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect, useMemo, memo } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/lib/context/AuthProvider'
 import { useGoldStore } from '@/lib/store/goldStore'
 import GoldChart from './GoldChart'
@@ -79,8 +80,11 @@ export default function GoldPortfolio() {
       <h4 className="text-sm font-medium text-gray-600 mb-2">나의 골드 포트폴리오</h4>
 
       <div className="flex items-end gap-3 mb-1">
-        <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-          {profile ? `${profile.gold.toLocaleString()}G` : '—'}
+        <div className="flex items-center gap-2">
+          <Image src="/icons/gold_icon.svg" alt="Gold" width={32} height={32} className="w-6 h-6 sm:w-8 sm:h-8" />
+          <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+            {profile ? `${profile.gold.toLocaleString()}` : '—'}
+          </div>
         </div>
         {goldChangeToday !== 0 && (
           goldChangeToday > 0 ? (

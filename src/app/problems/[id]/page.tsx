@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useEnergy } from '@/lib/store/energyStore'
 import { useAuth } from '@/lib/context/AuthProvider'
@@ -249,17 +250,30 @@ export default function ProblemPage() {
         <h2 className="text-xl font-semibold mb-2">{problem.title}</h2>
         <p className="text-neutral-600 mb-4">{problem.description}</p>
         <div className="flex items-center gap-4 mb-6">
-          <div className="text-sm">에너지: ⚡{problem.energyCost}</div>
-          <div className="text-sm text-green-600 font-medium">보상: +{problem.rewardGold}G</div>
+          <div className="flex items-center gap-1 text-sm">
+            <span>에너지:</span>
+            <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} className="w-4 h-4" />
+            <span>{problem.energyCost}</span>
+          </div>
+          <div className="flex items-center gap-1 text-sm text-green-600 font-medium">
+            <span>보상:</span>
+            <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
+            <span>+{problem.rewardGold}</span>
+          </div>
         </div>
 
         {/* 시작 전 */}
         {status === 'idle' && (
           <button
-            className="w-full btn-primary text-base"
+            className="w-full btn-primary text-base flex items-center justify-center gap-2"
             onClick={handleStart}
           >
-            문제 풀기 (⚡{problem.energyCost} 소모)
+            <span>문제 풀기</span>
+            <div className="flex items-center gap-1">
+              <span>(</span>
+              <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} className="w-4 h-4" />
+              <span>{problem.energyCost} 소모)</span>
+            </div>
           </button>
         )}
 
@@ -323,13 +337,28 @@ export default function ProblemPage() {
                 <span className="text-2xl">✅</span>
                 <span className="text-lg font-bold text-green-700">정답입니다!</span>
               </div>
-              <div className="text-green-700">
-                <p>기본 보상 <strong>{prob.rewardGold}G</strong>가 지급되었습니다.</p>
+              <div className="text-green-700 space-y-1">
+                <div className="flex items-center gap-1">
+                  <span>기본 보상</span>
+                  <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
+                  <strong>{prob.rewardGold}</strong>
+                  <span>가 지급되었습니다.</span>
+                </div>
                 {earnedBonus.gold > 0 && (
-                  <p className="font-bold">🔥 {streak}연속 정답! 보너스 <strong>+{earnedBonus.gold}G</strong> 획득!</p>
+                  <div className="flex items-center gap-1 font-bold">
+                    <span>🔥 {streak}연속 정답! 보너스</span>
+                    <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
+                    <strong>+{earnedBonus.gold}</strong>
+                    <span>획득!</span>
+                  </div>
                 )}
                 {earnedBonus.energy > 0 && (
-                  <p className="font-bold">⚡ 보너스 에너지 <strong>+{earnedBonus.energy}</strong>개 환급!</p>
+                  <div className="flex items-center gap-1 font-bold">
+                    <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} className="w-4 h-4" />
+                    <span>보너스 에너지</span>
+                    <strong>+{earnedBonus.energy}</strong>
+                    <span>개 환급!</span>
+                  </div>
                 )}
               </div>
             </div>
