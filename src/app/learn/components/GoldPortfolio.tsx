@@ -1,19 +1,17 @@
 "use client"
-import React, { useState, useEffect, useMemo, memo } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useAuth } from '@/lib/context/AuthProvider'
 import { useGoldStore } from '@/lib/store/goldStore'
 import GoldChart from './GoldChart'
 
 type TimeRange = 'TODAY' | '1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'
-type ChartType = 'line' | 'candle'
 
 export default function GoldPortfolio() {
   const { profile, user } = useAuth()
   const { history: goldHistory, todayStartGold, fetchHistory, setTodayStartGold, addGoldEntry } = useGoldStore()
   const [mounted, setMounted] = useState(false)
   const [timeRange, setTimeRange] = useState<TimeRange>('TODAY')
-  const [chartType, setChartType] = useState<ChartType>('line')
 
   useEffect(() => {
     setMounted(true)
@@ -102,32 +100,8 @@ export default function GoldPortfolio() {
       </div>
       <div className="text-xs text-gray-500 mb-3">현재 보유</div>
 
-      {/* Chart Type Toggle */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setChartType('line')}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-              chartType === 'line'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            라인
-          </button>
-          <button
-            onClick={() => setChartType('candle')}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-              chartType === 'candle'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            봉
-          </button>
-        </div>
-
-        {/* Time Range Selector */}
+      {/* Time Range Selector */}
+      <div className="flex items-center justify-end mb-3">
         <div className="flex gap-1">
           {timeRanges.map((range) => (
             <button
@@ -148,7 +122,7 @@ export default function GoldPortfolio() {
       <div className="mt-3">
         <div className="h-64 bg-gray-50 rounded-md border border-gray-100">
           {goldHistory.length > 0 ? (
-            <GoldChart data={goldHistory} timeRange={timeRange} chartType={chartType} />
+            <GoldChart data={goldHistory} timeRange={timeRange} />
           ) : (
             <div className="flex items-center justify-center h-full text-sm text-gray-400">
               골드 활동 기록을 불러오는 중...
