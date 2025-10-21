@@ -25,9 +25,6 @@ export default function LeaguePage() {
       if (error) {
         console.error('Error fetching leaderboard:', error)
       } else if (data) {
-        console.log('Leaderboard data:', data)
-        console.log('First user:', data[0])
-        console.log('Has solved_count?', 'solved_count' in (data[0] || {}))
         setLeaderboard(data as Ranker[])
       }
     }
