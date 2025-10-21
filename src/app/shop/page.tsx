@@ -48,9 +48,10 @@ export default function ShopPage() {
     open: false,
     item: null,
   })
-  const [successModal, setSuccessModal] = useState<{ open: boolean; message: string }>({
+  const [successModal, setSuccessModal] = useState<{ open: boolean; message: string; shouldReload?: boolean }>({
     open: false,
     message: '',
+    shouldReload: false,
   })
 
   function handlePurchaseClick(item: ShopItem) {
@@ -77,6 +78,7 @@ export default function ShopPage() {
 
     const item = confirmModal.item
     setPurchasing(item.id)
+    setConfirmModal({ open: false, item: null })
 
     try {
       if (item.id === 'reset_progress') {
@@ -89,25 +91,36 @@ export default function ShopPage() {
         }
 
         // user_solved_problems 테이블의 모든 데이터 삭제
-        const { error } = await supabase
+        const { error: deleteError } = await supabase
           .from('user_solved_problems')
           .delete()
           .eq('user_id', user.id)
 
-        if (error) {
+        if (deleteError) {
           setSuccessModal({
             open: true,
-            message: `진행도 리셋에 실패했습니다:\n${error.message}`
+            message: `진행도 리셋에 실패했습니다:\n${deleteError.message}`
+          })
+          return
+        }
+
+        // 프로필의 레벨을 0로 초기화
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ level: 0 })
+          .eq('id', user.id)
+
+        if (updateError) {
+          setSuccessModal({
+            open: true,
+            message: `레벨 초기화에 실패했습니다:\n${updateError.message}`
           })
         } else {
           setSuccessModal({
             open: true,
-            message: '진행도가 리셋되었습니다!\n골드는 유지되었습니다.'
+            message: '진행도가 리셋되었습니다!\n레벨 1부터 다시 시작합니다.\n골드는 유지되었습니다.',
+            shouldReload: true,
           })
-          // 성공 모달 닫힌 후 페이지 새로고침
-          setTimeout(() => {
-            window.location.reload()
-          }, 2000)
         }
       }
     } catch (error) {
@@ -115,6 +128,14 @@ export default function ShopPage() {
       setSuccessModal({ open: true, message: '구매 중 오류가 발생했습니다.' })
     } finally {
       setPurchasing(null)
+    }
+  }
+
+  function handleSuccessModalClose() {
+    if (successModal.shouldReload) {
+      window.location.reload()
+    } else {
+      setSuccessModal({ open: false, message: '', shouldReload: false })
     }
   }
 
@@ -198,7 +219,7 @@ export default function ShopPage() {
 
       <SuccessModal
         open={successModal.open}
-        onClose={() => setSuccessModal({ open: false, message: '' })}
+        onClose={handleSuccessModalClose}
         title="알림"
         description={successModal.message}
         buttonText="확인"

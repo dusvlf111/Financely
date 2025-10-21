@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEnergy } from '@/lib/store/energyStore'
 import { useAuth } from '@/lib/context/AuthProvider'
 import EnergyModal from '@/components/modals/EnergyModal'
+import SuccessModal from '@/components/modals/SuccessModal'
 import { supabase } from '@/lib/supabase/client'
 import { LEVEL_CATEGORIES, levelInfo } from '@/lib/game/levels'
 
@@ -12,6 +13,7 @@ export default function LevelProgress() {
   const { profile } = useAuth()
   const { energy, remainingSeconds } = useEnergy()
   const [showModal, setShowModal] = useState(false)
+  const [successModal, setSuccessModal] = useState({ open: false, message: '' })
   const [levelProgress, setLevelProgress] = useState({ completed: 0, total: 0 })
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -187,17 +189,30 @@ export default function LevelProgress() {
                   router.push(`/problems/${nextProblemId}`)
                 } else {
                   // 모두 풀었다면, 다음 레벨의 첫 문제로 (임시)
-                  alert('현재 레벨의 모든 문제를 완료했습니다! 다음 레벨로 도전하세요.')
+                  setSuccessModal({
+                    open: true,
+                    message: '현재 레벨의 모든 문제를 완료했습니다!\n다음 레벨로 도전하세요.'
+                  })
                 }
               } catch (error) {
                 console.error('Error finding next problem:', error)
-                alert('문제를 불러오는 중 오류가 발생했습니다.')
+                setSuccessModal({
+                  open: true,
+                  message: '문제를 불러오는 중 오류가 발생했습니다.'
+                })
               }
             }}
           >
             다음 문제 풀기
           </button>
           <EnergyModal open={showModal} onClose={() => setShowModal(false)} />
+          <SuccessModal
+            open={successModal.open}
+            onClose={() => setSuccessModal({ open: false, message: '' })}
+            title="알림"
+            description={successModal.message}
+            buttonText="확인"
+          />
         </div>
       </div>
     </div>
