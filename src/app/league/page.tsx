@@ -14,7 +14,6 @@ type Ranker = {
 
 export default function LeaguePage() {
   const { user } = useAuth()
-  const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly')
   const [leaderboard, setLeaderboard] = useState<Ranker[]>([])
 
   useEffect(() => {
@@ -30,47 +29,77 @@ export default function LeaguePage() {
     }
 
     fetchLeaderboard()
-    // TODO: Add logic to refetch data based on the 'period' filter
-  }, [period])
+  }, [])
 
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6">
-      <h1 className="text-2xl font-semibold mb-4">리그</h1>
-      <section className="bg-white border rounded-md p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium">리그 순위</h2>
-          <div className="flex gap-2">
-            <button onClick={() => setPeriod('weekly')} className={`px-3 py-1 rounded ${period === 'weekly' ? 'bg-primary-600 text-white' : 'bg-neutral-100'}`}>주간</button>
-            <button onClick={() => setPeriod('monthly')} className={`px-3 py-1 rounded ${period === 'monthly' ? 'bg-primary-600 text-white' : 'bg-neutral-100'}`}>월간</button>
-          </div>
-        </div>
+      <h1 className="text-xl font-semibold mb-6">리그 순위</h1>
 
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-neutral-500">
-              <th className="pb-2 text-center w-16">순위</th>
-              <th className="pb-2 text-left">이름</th>
-              <th className="pb-2 text-right w-24">골드</th>
-              <th className="pb-2 text-right w-20">푼 문제</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboard.map(row => {
-              const isMe = row.id === user?.id
-              return (
-              <tr
-                key={row.rank}
-                className={`border-t ${isMe ? 'bg-primary-50 font-semibold' : ''}`}
-              >
-                <td className="py-3 text-center">{row.rank}</td>
-                <td className="py-3 text-left">{row.username || row.full_name || '익명'}</td>
-                <td className="py-3 text-right">{row.gold.toLocaleString()}G</td>
-                <td className="py-3 text-right text-neutral-600">{row.solved_count || 0}개</td>
+      <section className="bg-white border rounded-md p-6">
+        {/* 필터 버튼 - 현재 사용 안함 */}
+        {/* <div className="flex justify-end mb-4">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPeriod('weekly')}
+              className={`px-3 py-1.5 text-sm rounded ${period === 'weekly' ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-600'}`}
+            >
+              주간
+            </button>
+            <button
+              onClick={() => setPeriod('monthly')}
+              className={`px-3 py-1.5 text-sm rounded ${period === 'monthly' ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-600'}`}
+            >
+              월간
+            </button>
+          </div>
+        </div> */}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm table-fixed">
+            <thead>
+              <tr className="border-b">
+                <th className="pb-3 text-center text-neutral-500 font-medium" style={{ width: '15%' }}>순위</th>
+                <th className="pb-3 text-left text-neutral-500 font-medium" style={{ width: '35%' }}>이름</th>
+                <th className="pb-3 text-right text-neutral-500 font-medium" style={{ width: '25%' }}>골드</th>
+                <th className="pb-3 text-center text-neutral-500 font-medium" style={{ width: '25%' }}>문제</th>
               </tr>
-              )
-            })}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {leaderboard.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-12 text-center text-neutral-500">
+                    리더보드 데이터를 불러오는 중...
+                  </td>
+                </tr>
+              ) : (
+                leaderboard.map(row => {
+                  const isMe = row.id === user?.id
+                  return (
+                    <tr
+                      key={row.rank}
+                      className={`border-t ${isMe ? 'bg-primary-50' : ''}`}
+                    >
+                      <td className="py-3 text-center">
+                        <span className={`${row.rank <= 3 ? 'font-bold text-primary-600' : 'text-neutral-700'}`}>
+                          {row.rank}
+                        </span>
+                      </td>
+                      <td className={`py-3 text-left ${isMe ? 'font-semibold text-neutral-900' : 'text-neutral-700'} truncate`}>
+                        {row.username || row.full_name || '익명'}
+                      </td>
+                      <td className={`py-3 text-right ${isMe ? 'font-semibold text-neutral-900' : 'text-neutral-700'} whitespace-nowrap`}>
+                        {row.gold.toLocaleString()}G
+                      </td>
+                      <td className="py-3 text-center text-neutral-600 whitespace-nowrap">
+                        {row.solved_count || 0}
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   )
