@@ -185,7 +185,7 @@ async function handleSubmit() {
       setStatus('fail')
 
       // 오답 시 10~30골드 랜덤 차감
-      const goldLoss = Math.floor(Math.random() * 21) + 10 // 10 ~ 30
+      const goldLoss = Math.floor(Math.random() * 50) + 1 // 1 ~ 50
       setLostGold(goldLoss)
 
       // 연승 초기화 및 골드 차감을 동시에 수행
