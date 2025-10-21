@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       <div className="space-y-2 w-full max-w-xs">
         <SocialButton provider="google" onClick={() => handleSocialLogin('google')} />
-        <SocialButton provider="naver" onClick={() => handleSocialLogin('naver')} />
+        <SocialButton provider="naver" onClick={() => handleSocialLogin('naver 미구현')} />
         <SocialButton provider="kakao" onClick={() => handleSocialLogin('kakao')} />
       </div>
 
