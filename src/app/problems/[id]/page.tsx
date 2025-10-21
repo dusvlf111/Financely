@@ -19,6 +19,7 @@ export default function ProblemPage() {
   const [status, setStatus] = useState<'idle' | 'started' | 'submitted' | 'success' | 'fail'>('idle')
   const [answer, setAnswer] = useState('')
   const [earnedBonus, setEarnedBonus] = useState({ gold: 0, energy: 0 })
+  const [lostGold, setLostGold] = useState(0)
   const [showModal, setShowModal] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -86,105 +87,114 @@ export default function ProblemPage() {
   }
 
 async function handleSubmit() {
-    setStatus('submitted')
-    const correct = (prob.correctAnswer ?? '').toUpperCase().trim()
-    const userAnswer = answer.toUpperCase().trim()
-    if (userAnswer === correct && correct !== '') {
-      incrementStreak()
-      const currentStreak = streak + 1
-      let bonusGold = 0
-      let bonusEnergy = 0
+    setStatus('submitted')
+    const correct = (prob.correctAnswer ?? '').toUpperCase().trim()
+    const userAnswer = answer.toUpperCase().trim()
+    if (userAnswer === correct && correct !== '') {
+      incrementStreak()
+      const currentStreak = streak + 1
+      let bonusGold = 0
+      let bonusEnergy = 0
 
       // ▼▼▼ [수정됨] 10연승까지 보너스 세분화 ▼▼▼
-      switch (currentStreak) {
-        case 2:
-          // 2연승: 1.5배 골드
-          bonusGold = Math.round(prob.rewardGold * 1.5)
-          break
-        case 3:
-          // 3연승: 2배 골드 + 에너지 1
-          bonusGold = Math.round(prob.rewardGold * 2)
-          bonusEnergy = 1
-          break
-        case 4:
-          // 4연승: 2.5배 골드 + 에너지 1
-          bonusGold = Math.round(prob.rewardGold * 2.5)
-          bonusEnergy = 1
-          break
-        case 5:
-          // 5연승: 3배 골드 + 에너지 2
-          bonusGold = Math.round(prob.rewardGold * 3)
-          bonusEnergy = 2
-          break
-        case 6:
-          // 6연승: 3.5배 골드 + 에너지 2
-          bonusGold = Math.round(prob.rewardGold * 3.5)
-          bonusEnergy = 2
-          break
-        case 7:
-          // 7연승: 4배 골드 + 에너지 3
-          bonusGold = Math.round(prob.rewardGold * 4)
-          bonusEnergy = 3
-          break
-        case 8:
-          // 8연승: 4.5배 골드 + 에너지 3
-          bonusGold = Math.round(prob.rewardGold * 4.5)
-          bonusEnergy = 3
-          break
-        case 9:
-          // 9연승: 5배 골드 + 에너지 4
-          bonusGold = Math.round(prob.rewardGold * 5)
-          bonusEnergy = 4
-          break
-        case 10:
-          // 10연승: 7배 골드 + 에너지 5 (특별 보상!)
-          bonusGold = Math.round(prob.rewardGold * 7)
-          bonusEnergy = 5
-          break
-        default:
-          // 11연승 이상일 경우 10연승과 동일한 최대 보상 유지
-          if (currentStreak > 10) {
-            bonusGold = Math.round(prob.rewardGold * 7)
-            bonusEnergy = 5
-          }
-          // (1연승일 때는 switch/default에 해당 안 되므로 보너스 0 유지)
-      }
+      switch (currentStreak) {
+        case 2:
+          // 2연승: +10골드
+          bonusGold = Math.round(prob.rewardGold + 10)
+          break
+        case 3:
+          // 3연승: +20골드 + 에너지 1
+          bonusGold = Math.round(prob.rewardGold + 20)
+          bonusEnergy = 1
+          break
+        case 4:
+          // 4연승: 2.5배 골드 + 에너지 1
+          bonusGold = Math.round(prob.rewardGold * 2 + 30 )
+          bonusEnergy = 1
+          break
+        case 5:
+          // 5연승: 3배 골드 + 에너지 2
+          bonusGold = Math.round(prob.rewardGold * 3 + 40)
+          bonusEnergy = 2
+          break
+        case 6:
+          // 6연승: 3.5배 골드 + 에너지 2
+          bonusGold = Math.round(prob.rewardGold * 3.5 + 50)
+          bonusEnergy = 2
+          break
+        case 7:
+          // 7연승: 4배 골드 + 에너지 3
+          bonusGold = Math.round(prob.rewardGold * 4 + 60)
+          bonusEnergy = 3
+          break
+        case 8:
+          // 8연승: 4.5배 골드 + 에너지 3
+          bonusGold = Math.round(prob.rewardGold * 4.5 + 70)
+          bonusEnergy = 3
+          break
+        case 9:
+          // 9연승: 5배 골드 + 에너지 4
+          bonusGold = Math.round(prob.rewardGold * 5 + 80)
+          bonusEnergy = 4
+          break
+        case 10:
+          // 10연승: 7배 골드 + 에너지 5 (특별 보상!)
+          bonusGold = Math.round(prob.rewardGold * 7 + 100)
+          bonusEnergy = 5
+          break
+        default:
+          // 11연승 이상일 경우 10연승과 동일한 최대 보상 유지
+          if (currentStreak > 10) {
+            bonusGold = Math.round(prob.rewardGold * 7 + 200)
+            bonusEnergy = 5
+          }
+          // (1연승일 때는 switch/default에 해당 안 되므로 보너스 0 유지)
+      }
       // ▲▲▲ [수정됨] 여기까지 ▲▲▲
 
-      setEarnedBonus({ gold: bonusGold, energy: bonusEnergy })
+      setEarnedBonus({ gold: bonusGold, energy: bonusEnergy })
 
-      setStatus('success')
-      if (addGold) addGold(prob.rewardGold + bonusGold)
-      if (addEnergy && bonusEnergy > 0) addEnergy(bonusEnergy)
+      setStatus('success')
+      if (addGold) addGold(prob.rewardGold + bonusGold)
+      if (addEnergy && bonusEnergy > 0) addEnergy(bonusEnergy)
 
-      // 푼 문제를 user_solved_problems 테이블에 기록
-      if (user && prob.id) {
-        const { error } = await supabase
-          .from('user_solved_problems')
-          .upsert(
-            {
-              user_id: user.id,
-              problem_id: prob.id,
-              solved_at: new Date().toISOString(),
-            },
-            {
-              onConflict: 'user_id,problem_id',
-            }
-          )
+      // 푼 문제를 user_solved_problems 테이블에 기록
+      if (user && prob.id) {
+        const { error } = await supabase
+          .from('user_solved_problems')
+          .upsert(
+            {
+              user_id: user.id,
+              problem_id: prob.id,
+              solved_at: new Date().toISOString(),
+            },
+            {
+              onConflict: 'user_id,problem_id',
+            }
+          )
 
-        if (error) {
-          console.error('Error saving solved problem:', error)
-        }
-      }
+        if (error) {
+          console.error('Error saving solved problem:', error)
+        }
+      }
 
-      if (trackQuestProgress) {
-        trackQuestProgress('solve_problem') // '문제 풀기' 타입의 퀘스트 진행도 업데이트
-      }
-    } else {
-      setStatus('fail')
-      resetStreak()
-    }
-  }
+      if (trackQuestProgress) {
+        trackQuestProgress('solve_problem') // '문제 풀기' 타입의 퀘스트 진행도 업데이트
+      }
+    } else {
+      setStatus('fail')
+
+      // 오답 시 10~30골드 랜덤 차감
+      const goldLoss = Math.floor(Math.random() * 21) + 10 // 10 ~ 30
+      setLostGold(goldLoss)
+
+      // 연승 초기화 및 골드 차감을 동시에 수행
+      await Promise.all([
+        resetStreak(),
+        addGold ? addGold(-goldLoss) : Promise.resolve()
+      ])
+    }
+  }
 
   function handleRetry() {
     // 에너지 체크
@@ -198,6 +208,7 @@ async function handleSubmit() {
     setAnswer('')
     setStatus('started') // 'idle'이 아닌 'started'로 설정하여 바로 문제 풀이 시작
     setEarnedBonus({ gold: 0, energy: 0 })
+    setLostGold(0)
   }
 
   async function handleNextProblem() {
@@ -443,8 +454,13 @@ async function handleSubmit() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-2xl">❌</span>
                 <span className="text-lg font-bold text-red-700">아쉽지만 오답입니다</span>
-              </div><p className="text-sm text-red-700">🔥 연속 정답 기록이 초기화되었습니다.</p>
-              <p className="text-red-700 mb-2">정답: <strong>{prob.correctAnswer}</strong></p>
+              </div>
+              <p className="text-sm text-red-700">🔥 연속 정답 기록이 초기화되었습니다.</p>
+              <div className="flex items-center gap-1 text-red-700 font-bold mt-1">
+                <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
+                <span>-{lostGold} 골드가 차감되었습니다.</span>
+              </div>
+              <p className="text-red-700 mb-2 mt-2">정답: <strong>{prob.correctAnswer}</strong></p>
               <p className="text-sm text-red-600">
                 다시 도전하려면 에너지가 {prob.energyCost} 필요합니다.
               </p>

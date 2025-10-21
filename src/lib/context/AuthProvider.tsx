@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const resetStreak = async () => {
-    if (!user || !profile || profile.streak === 0) return
+    if (!user || !profile) return
     setProfile(p => (p ? { ...p, streak: 0 } : null)) // Optimistic update
     await supabase
       .from('profiles')
