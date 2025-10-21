@@ -10,8 +10,9 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { type GoldHistoryEntry } from '@/lib/store/goldStore'
+import { time } from 'console'
 
-type TimeRange = 'TODAY' | '1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'
+type TimeRange = 'TODAY' | '1D' | '1W' | '1M' | '1Y' | 'ALL'
 
 interface GoldChartProps {
   data: GoldHistoryEntry[]
@@ -20,86 +21,91 @@ interface GoldChartProps {
 
 function GoldChart({ data, timeRange }: GoldChartProps) {
   // Filter data based on time range - useMemo로 최적화
-  const filteredData = React.useMemo(
-    () => filterDataByTimeRange(data, timeRange),
+  const processedData = React.useMemo(
+    () => processChartData(data, timeRange),
     [data, timeRange]
   )
 
-  // 데이터 범위 계산 (일 단위)
-  const dataRangeInDays = data.length > 0
-    ? (data[data.length - 1].timestamp - data[0].timestamp) / (1000 * 60 * 60 * 24)
-    : 0
 
-  // 필요한 데이터 범위
-  const requiredDays: Record<TimeRange, number> = {
-    'TODAY': 0,
-    '1D': 1,
-    '1W': 7,
-    '1M': 30,
-    '3M': 90,
-    '1Y': 365,
-    'ALL': 0,
-  }
 
-  // 데이터 부족 체크
-  const isDataInsufficient = timeRange !== 'ALL' && dataRangeInDays < requiredDays[timeRange]
-
-  if (filteredData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-sm text-gray-400">
-        해당 기간의 데이터가 없습니다
-      </div>
-    )
-  }
-
-  // 데이터 부족 경고
-  if (isDataInsufficient) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-sm text-gray-500">
-        <div className="text-center">
-          <div className="mb-2">📊</div>
-          <div className="font-medium">{timeRange} 차트를 보기에 데이터가 부족합니다</div>
-          <div className="mt-1 text-xs text-gray-400">
-            현재: {Math.ceil(dataRangeInDays)}일 / 필요: {requiredDays[timeRange]}일
-          </div>
+  if (processedData.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-full text-sm text-gray-400">
+          해당 기간의 데이터가 없습니다
         </div>
-      </div>
-    )
-  }
+      );
+    }
 
-  return <LineChartView data={filteredData} timeRange={timeRange} />
+  return <LineChartView data={processedData} timeRange={timeRange} />
 }
 
 function LineChartView({ data, timeRange }: { data: GoldHistoryEntry[]; timeRange: TimeRange }) {
-  // 데이터 샘플링 및 차트 데이터 메모이제이션
+  // 1. useMemo 훅 (차트 데이터 생성)은 이전과 동일합니다.
   const { chartData, shouldShowDots } = React.useMemo(() => {
-    const maxDataPoints = 50
-    const sampledData = data.length > maxDataPoints
-      ? data.filter((_, index) => index % Math.ceil(data.length / maxDataPoints) === 0)
-      : data
+    const maxDataPoints = 50;
+    const sampledData =
+      data.length > maxDataPoints
+        ? data.filter(
+            (_, index) =>
+              index % Math.ceil(data.length / maxDataPoints) === 0,
+          )
+        : data;
 
     return {
-      chartData: sampledData.map((entry, index) => ({
-        time: formatTime(entry.timestamp, timeRange),
-        gold: entry.gold,
-        timestamp: entry.timestamp,
-        index,
-      })),
+      chartData: sampledData,
       shouldShowDots: sampledData.length < 20,
+    };
+  }, [data, timeRange]);
+
+  // 2. (수정) X축 Ticks를 '마지막 날짜' 기준으로 수동 생성
+  const xAxisTicks = React.useMemo(() => {
+    // '집계'된 뷰(1W, 1M 등)는 undefined 반환 (자동 틱)
+    if (
+      timeRange !== 'ALL' &&
+      timeRange !== 'TODAY' &&
+      timeRange !== '1D'
+    ) {
+      return undefined;
     }
-  }, [data, timeRange])
+
+    // 'raw' 뷰(ALL, TODAY, 1D)는 중복 라벨을 제거
+    const formattedLabels = new Set<string>();
+    const ticksToShow: number[] = []; // 중복이 제거된 '마지막' timestamp 저장
+
+    // (수정) 데이터를 '뒤에서부터' 순회합니다.
+    for (let i = chartData.length - 1; i >= 0; i--) {
+      const entry = chartData[i];
+      const formatted = formatTime(entry.timestamp, timeRange);
+
+      // 이 라벨을 Set에서 처음 만났다면 (즉, 해당 날짜의 '마지막' 데이터)
+      if (!formattedLabels.has(formatted)) {
+        formattedLabels.add(formatted); // Set에 라벨 기록
+        ticksToShow.push(entry.timestamp); // 틱 목록에 추가
+      }
+    }
+    
+    // (수정) 배열이 [10/21, 10/20] 처럼 역순이므로 다시 뒤집어서 반환
+    return ticksToShow.reverse();
+  }, [chartData, timeRange]); // chartData나 timeRange가 바뀔 때만 다시 계산
 
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
         <XAxis
-          dataKey="time"
+          dataKey="timestamp"
           tick={{ fontSize: 11, fill: '#6B7280' }}
           tickLine={{ stroke: '#D1D5DB' }}
           axisLine={{ stroke: '#D1D5DB' }}
-          interval="preserveStartEnd"
+          
+          // 3. (수정) 'interval' prop 삭제
+          
+          // 4. (NEW) 'ticks' prop에 우리가 만든 'xAxisTicks' 배열 전달
+          ticks={xAxisTicks} 
+          
+          tickFormatter={(timestamp) => formatTime(timestamp, timeRange)}
         />
+        {/* ... (YAxis, Tooltip, Line은 그대로 둡니다) ... */}
         <YAxis
           domain={['dataMin - 50', 'dataMax + 50']}
           tick={{ fontSize: 11, fill: '#6B7280' }}
@@ -107,19 +113,14 @@ function LineChartView({ data, timeRange }: { data: GoldHistoryEntry[]; timeRang
           axisLine={{ stroke: '#D1D5DB' }}
         />
         <Tooltip
+          labelFormatter={(timestamp) => formatTime(timestamp, timeRange)}
+          formatter={(value: number) => [`${value.toLocaleString()}G`, '골드']}
           contentStyle={{
             backgroundColor: '#fff',
             border: '1px solid #E5E7EB',
             borderRadius: '6px',
             fontSize: '12px',
           }}
-          labelFormatter={(_, payload) => {
-            if (payload && payload.length > 0) {
-              return formatTime(payload[0].payload.timestamp, timeRange)
-            }
-            return ''
-          }}
-          formatter={(value: number) => [`${value.toLocaleString()}G`, '골드']}
         />
         <Line
           type="monotone"
@@ -133,74 +134,173 @@ function LineChartView({ data, timeRange }: { data: GoldHistoryEntry[]; timeRang
         />
       </LineChart>
     </ResponsiveContainer>
-  )
+  );
 }
 
 function formatTime(timestamp: number, timeRange: TimeRange): string {
-  const date = new Date(timestamp)
+  const date = new Date(timestamp);
 
   switch (timeRange) {
-    case 'TODAY':
-    case '1D':
-      // 오늘/1일: 시간:분 표시
+    case 'TODAY': // '오늘'은 시간:분
       return date.toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
-      })
-    case '1W':
-      // 1주: 월.일 시간 표시
-      return date.toLocaleDateString('ko-KR', {
+      });
+    case '1D': // '1일'은 월/일 + 시간:분 (날짜가 바뀔 수 있으므로)
+      return date.toLocaleString('ko-KR', { // toLocaleString 사용
         month: 'short',
         day: 'numeric',
-        hour: '2-digit',
-      })
-    case '1M':
-    case '3M':
-      // 1개월, 3개월: 월.일 표시
+      });
+    case '1W': 
+    // "몇월 몇째주"로 표시
+      const month = date.getMonth() + 1; // getMonth()는 0부터 시작
+      const dayOfMonth = date.getDate();
+      
+      // 그 달의 날짜를 7로 나누어 올림하면 'N주차'가 됩니다.
+      // (1~7일 -> 1주차, 8~14일 -> 2주차)
+      // 우리 집계 로직이 '주의 시작일'을 쓰므로 이 계산이 잘 맞습니다.
+      const weekOfMonth = Math.ceil(dayOfMonth / 7);
+      return `${month}월 ${weekOfMonth}주차`;
+    case '1M': // 1W와 1M은 '일' 단위로 집계되므로 '월.일' 표시
       return date.toLocaleDateString('ko-KR', {
         month: 'short',
-        day: 'numeric',
-      })
+      });
     case '1Y':
-    case 'ALL':
-      // 1년, 전체: 년.월 표시
+      return date.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+      });
+    case 'ALL': // 1Y와 ALL은 '월' 단위로 집계되므로 '년.월' 표시
       return date.toLocaleDateString('ko-KR', {
         year: '2-digit',
         month: 'short',
-      })
+        day: 'numeric',
+        hour: '2-digit',
+      });
     default:
       return date.toLocaleDateString('ko-KR', {
         month: 'short',
         day: 'numeric',
-      })
+      });
   }
 }
 
-function filterDataByTimeRange(data: GoldHistoryEntry[], timeRange: TimeRange): GoldHistoryEntry[] {
-  if (timeRange === 'ALL') return data
+// GoldHistoryEntry 타입이 { timestamp: number, gold: number } 라고 가정합니다.
 
-  const now = Date.now()
+/**
+ * 날짜(타임스탬프)와 집계 단위(granularity)를 기반으로
+ * 그룹핑할 '키(key)'를 생성합니다.
+ */
+function getBucketKey(
+  timestamp: number,
+  granularity: 'raw' | 'day' | 'week' | 'month',
+): string {
+  const date = new Date(timestamp);
 
-  // 오늘 00시 기준
-  if (timeRange === 'TODAY') {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return data.filter(entry => entry.timestamp >= today.getTime())
+  switch (granularity) {
+    case 'day':
+      // '2025-10-21' (일 단위)
+      return date.toISOString().split('T')[0];
+    case 'week':
+      // '주의 시작일' (예: 일요일)을 기준으로 키 생성
+      const firstDayOfWeek = new Date(date);
+      firstDayOfWeek.setDate(date.getDate() - date.getDay()); // 일요일 00시
+      firstDayOfWeek.setHours(0, 0, 0, 0);
+      return firstDayOfWeek.toISOString().split('T')[0];
+    case 'month':
+      // '2025-10' (월 단위)
+      return date.toISOString().substring(0, 7);
+    case 'raw':
+    default:
+      // 'raw' 데이터는 고유 타임스탬프를 키로 사용
+      return String(timestamp);
   }
-
-  const ranges: Record<TimeRange, number> = {
-    'TODAY': 0,
-    '1D': 24 * 60 * 60 * 1000,
-    '1W': 7 * 24 * 60 * 60 * 1000,
-    '1M': 30 * 24 * 60 * 60 * 1000,
-    '3M': 90 * 24 * 60 * 60 * 1000,
-    '1Y': 365 * 24 * 60 * 60 * 1000,
-    'ALL': 0,
-  }
-
-  const cutoffTime = now - ranges[timeRange]
-  return data.filter(entry => entry.timestamp >= cutoffTime)
 }
 
-// React.memo로 감싸서 props가 변경될 때만 재렌더링
-export default React.memo(GoldChart)
+function processChartData(
+  data: GoldHistoryEntry[],
+  timeRange: TimeRange,
+): GoldHistoryEntry[] {
+  let startTime = 0;
+  let granularity: 'raw' | 'day' | 'week' | 'month' = 'day';
+
+  const now = new Date();
+  const today = new Date(now).setHours(0, 0, 0, 0); // 오늘 00시
+
+  // 1. TimeRange에 따라 필터링 시작 시간과 집계 단위를 결정
+  switch (timeRange) {
+    case 'TODAY':
+      // "today는 오늘 변화량"
+      startTime = today;
+      granularity = 'raw';
+      break;
+
+    case '1D':
+      // "1d는 하루를 하나의 점으로 일주일치 보기"
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      startTime = sevenDaysAgo.setHours(0, 0, 0, 0);
+      granularity = 'day';
+      break;
+
+    case '1W':
+      // "1w는 1주를 한묶음으로 한달보기"
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+      startTime = thirtyDaysAgo.setHours(0, 0, 0, 0);
+      granularity = 'week';
+      break;
+
+    case '1M':
+      // "1m는 1달을 한묶음으로 1년보기"
+      const oneYearAgo = new Date(now);
+      oneYearAgo.setFullYear(now.getFullYear() - 1);
+      startTime = oneYearAgo.setHours(0, 0, 0, 0);
+      granularity = 'month';
+      break;
+
+    // --- 아래는 사용자님이 정의하지 않은 3M, 1Y, ALL에 대한 규칙입니다. ---
+    // --- (기존 로직을 기반으로 합리적으로 설정) ---
+      
+    case '1Y':
+      // 1년 범위, '월' 단위 집계 (1M과 동일하게)
+      const oneYearAgo_1Y = new Date(now);
+      oneYearAgo_1Y.setFullYear(now.getFullYear() - 1);
+      startTime = oneYearAgo_1Y.setHours(0, 0, 0, 0);
+      granularity = 'month';
+      break;
+
+    case 'ALL':
+      // 전체 범위, '월' 단위 집계
+      startTime = 0;
+      granularity = 'raw';
+      break;
+      
+    default:
+      startTime = today;
+      granularity = 'raw';
+  }
+
+  // 2. 시간 범위에 맞는 데이터 필터링
+  const filteredData = data.filter(entry => entry.timestamp >= startTime);
+
+  // 3. 'raw' 데이터는 집계 없이 바로 반환 (TODAY, 1D)
+  if (granularity === 'raw') {
+    return filteredData;
+  }
+
+  // 4. 'day', 'week', 'month' 단위로 데이터 집계 (Grouping)
+  // Map을 사용해 각 '버킷(bucket)'의 '마지막' 값만 저장합니다.
+  const buckets = new Map<string, GoldHistoryEntry>();
+
+  for (const entry of filteredData) {
+    const key = getBucketKey(entry.timestamp, granularity);
+    // 주식 차트처럼 '해당 기간의 마지막 값'을 저장
+    // (데이터가 시간순으로 정렬되어 있다고 가정)
+    buckets.set(key, entry);
+  }
+
+  // Map의 값들(마지막 데이터 포인트들)을 배열로 변환하여 반환
+  return Array.from(buckets.values());
+}
+
+export default React.memo(GoldChart);

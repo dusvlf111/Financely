@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import { useGoldStore } from '@/lib/store/goldStore'
 import GoldChart from './GoldChart'
 
-type TimeRange = 'TODAY' | '1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'
+type TimeRange = 'TODAY' | '1D' | '1W' | '1M' | '1Y' | 'ALL'
 
 export default function GoldPortfolio() {
   const { profile, user } = useAuth()
@@ -62,13 +62,12 @@ export default function GoldPortfolio() {
 
   const goldChangeToday = profile && todayStartGold !== null ? profile.gold - todayStartGold : 0
 
-  const timeRanges: TimeRange[] = ['TODAY', '1D', '1W', '1M', '3M', '1Y', 'ALL']
+  const timeRanges: TimeRange[] = ['TODAY', '1D', '1W', '1M', '1Y', 'ALL']
   const timeRangeLabels: Record<TimeRange, string> = {
     'TODAY': '오늘',
     '1D': '1D',
     '1W': '1W',
     '1M': '1M',
-    '3M': '3M',
     '1Y': '1Y',
     'ALL': 'ALL',
   }
