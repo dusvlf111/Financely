@@ -8,7 +8,7 @@ const tabs = [
   { key: 'learn', label: '학습', href: '/learn', icon: '/icons/Home_fill.svg' },
   { key: 'league', label: '리그', href: '/league', icon: '/icons/Road_finish_light.svg' },
   { key: 'quest', label: '퀘스트', href: '/quest', icon: '/icons/Search_alt_light.svg' },
-  { key: 'asset', label: '자산', href: '/asset', icon: '/icons/Wallet_light.svg' },
+  { key: 'shop', label: '상점', href: '/shop', icon: '/icons/Wallet_light.svg' },
   { key: 'mypage', label: '마이', href: '/mypage', icon: '/icons/User_light.svg' },
 ]
 
