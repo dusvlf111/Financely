@@ -9,6 +9,7 @@ type Ranker = {
   username: string | null
   full_name: string | null
   gold: number
+  solved_count?: number
 }
 
 export default function LeaguePage() {
@@ -18,12 +19,15 @@ export default function LeaguePage() {
 
   useEffect(() => {
     async function fetchLeaderboard() {
-      // Call the database function we created
+      // Call the database function (now includes solved_count)
       const { data, error } = await supabase.rpc('get_leaderboard', { limit_count: 100 })
 
       if (error) {
         console.error('Error fetching leaderboard:', error)
       } else if (data) {
+        console.log('Leaderboard data:', data)
+        console.log('First user:', data[0])
+        console.log('Has solved_count?', 'solved_count' in (data[0] || {}))
         setLeaderboard(data as Ranker[])
       }
     }
@@ -31,9 +35,6 @@ export default function LeaguePage() {
     fetchLeaderboard()
     // TODO: Add logic to refetch data based on the 'period' filter
   }, [period])
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const myRank = leaderboard.find(r => r.id === user?.id)
 
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6">
@@ -49,10 +50,11 @@ export default function LeaguePage() {
 
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-neutral-500">
-              <th className="pb-2">순위</th>
-              <th className="pb-2">이름</th>
-              <th className="pb-2">골드</th>
+            <tr className="text-neutral-500">
+              <th className="pb-2 text-center w-16">순위</th>
+              <th className="pb-2 text-left">이름</th>
+              <th className="pb-2 text-right w-24">골드</th>
+              <th className="pb-2 text-right w-20">푼 문제</th>
             </tr>
           </thead>
           <tbody>
@@ -63,9 +65,10 @@ export default function LeaguePage() {
                 key={row.rank}
                 className={`border-t ${isMe ? 'bg-primary-50 font-semibold' : ''}`}
               >
-                <td className="py-2">{row.rank}</td>
-                <td className="py-2">{row.username || row.full_name || '익명'}</td>
-                <td className="py-2">{row.gold.toLocaleString()}G</td>
+                <td className="py-3 text-center">{row.rank}</td>
+                <td className="py-3 text-left">{row.username || row.full_name || '익명'}</td>
+                <td className="py-3 text-right">{row.gold.toLocaleString()}G</td>
+                <td className="py-3 text-right text-neutral-600">{row.solved_count || 0}개</td>
               </tr>
               )
             })}
