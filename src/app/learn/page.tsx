@@ -2,11 +2,12 @@
 import React, { useEffect, useState } from 'react'
 import GoldPortfolio from './components/GoldPortfolio'
 import LevelProgress from './components/LevelProgress'
+import LevelWorksheet from './components/LevelWorksheet'
 import { useAuth } from '@/lib/context/AuthProvider'
 import { useRouter } from 'next/navigation'
 
 export default function LearnPage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
@@ -34,6 +35,8 @@ export default function LearnPage() {
     return null
   }
 
+  const currentLevel = profile?.level || 0
+
   return (
     <div>
       <main className="max-w-[768px] mx-auto">
@@ -43,6 +46,11 @@ export default function LearnPage() {
 
         <section className="mb-6">
           <LevelProgress />
+        </section>
+
+        {/* 레벨별 학습지 */}
+        <section className="mb-6">
+          <LevelWorksheet level={currentLevel} />
         </section>
       </main>
     </div>
