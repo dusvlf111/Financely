@@ -203,7 +203,7 @@ export default function LevelProgress() {
               }
             }}
           >
-            다음 문제 풀기
+            문제 풀기
           </button>
           <EnergyModal open={showModal} onClose={() => setShowModal(false)} />
           <SuccessModal

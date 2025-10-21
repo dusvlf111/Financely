@@ -81,7 +81,7 @@ export default function GoldPortfolio() {
 
   return (
     <div className="bg-white border rounded-md p-4 shadow-sm">
-      <h4 className="text-sm font-medium text-gray-600 mb-2">나의 골드 포트폴리오</h4>
+      <h4 className="text-sm font-medium text-gray-600 mb-2">나의 학습 골드</h4>
 
       <div className="flex items-end gap-3 mb-1">
         <div className="flex items-center gap-2">
