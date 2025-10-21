@@ -61,6 +61,13 @@ export default function GoldPortfolio() {
   }
 
   const goldChangeToday = profile && todayStartGold !== null ? profile.gold - todayStartGold : 0
+  // 1. 퍼센티지 숫자 계산
+  const percentageChange = profile
+    ? calculateGoldPercentageChange(profile.gold, todayStartGold)
+    : 0;
+  
+  // 2. 퍼센티지 문자열 포맷팅 (소수점 1자리)
+  const percentageString = formatPercentage(percentageChange, 1);
 
   const timeRanges: TimeRange[] = ['TODAY', '1D', '1W', '1M', '1Y', 'ALL']
   const timeRangeLabels: Record<TimeRange, string> = {
@@ -87,12 +94,12 @@ export default function GoldPortfolio() {
           goldChangeToday > 0 ? (
             <div className="text-base text-green-600 font-semibold flex items-center gap-1">
               <span>↗</span>
-              <span>+{goldChangeToday.toLocaleString()}</span>
+              <span>+{goldChangeToday.toLocaleString()} ({percentageString})</span>
             </div>
           ) : (
             <div className="text-base text-red-600 font-semibold flex items-center gap-1">
               <span>↘</span>
-              <span>{goldChangeToday.toLocaleString()}</span>
+              <span>{goldChangeToday.toLocaleString()} ({percentageString})</span>
             </div>
           )
         )}
@@ -130,7 +137,7 @@ export default function GoldPortfolio() {
         </div>
         {goldHistory.length > 0 && (
           <div className="flex justify-between text-xs text-gray-500 mt-2">
-            <span>첫 활동</span>
+            <span></span>
             <span>총 {goldHistory.length}개 활동</span>
           </div>
         )}
@@ -139,3 +146,44 @@ export default function GoldPortfolio() {
   )
 }
 
+function calculateGoldPercentageChange(
+  currentGold: number,
+  startGold: number | null | undefined,
+): number {
+  // 1. 시작 골드 데이터가 없거나(null, undefined) '0'이면 0% 반환
+  if (!startGold) { 
+    return 0;
+  }
+  
+  // 2. 시작 골드와 현재 골드가 같다면 0% 반환
+  if (currentGold === startGold) {
+    return 0;
+  }
+
+  // 3. 변화량 및 퍼센트 계산: ( (현재 - 시작) / 시작 ) * 100
+  const change = currentGold - startGold;
+  const percentageChange = (change / startGold) * 100;
+
+  return percentageChange;
+}
+
+/**
+ * 계산된 변화율(%) 숫자를 포맷팅하여 문자열로 반환합니다.
+ */
+function formatPercentage(percentage: number, precision: number = 1): string {
+  // 0%일 경우
+  if (percentage === 0) {
+    return `0.${'0'.repeat(precision)}%`; // 예: "0.0%"
+  }
+  
+  // 소수점 자릿수 적용
+  const formatted = percentage.toFixed(precision);
+  
+  // 0보다 클 경우 '+' 부호 붙이기
+  if (percentage > 0) {
+    return `+${formatted}%`;
+  }
+  
+  // 0보다 작을 경우
+  return `${formatted}%`; 
+}
