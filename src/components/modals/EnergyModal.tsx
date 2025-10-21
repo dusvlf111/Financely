@@ -10,9 +10,9 @@ export default function EnergyModal({ open, onClose }: { open: boolean; onClose:
   if (!open) return null
 
   async function handleBuy() {
-    // 10개 구매: 100G
+    // 10개 구매: 300G
     const energyAmount = 10
-    const totalPrice = 100
+    const totalPrice = 300
 
     if (!spendGold) return
     const ok = await spendGold(totalPrice)

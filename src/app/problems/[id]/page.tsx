@@ -14,7 +14,7 @@ export default function ProblemPage() {
   const router = useRouter()
   const id = params.id
   const [problem, setProblem] = useState<Problem | null>(null)
-  const { energy, consume } = useEnergy()
+  const { energy, consume, add: addEnergy } = useEnergy()
   const { addGold, user, profile, trackQuestProgress, streak, incrementStreak, resetStreak, addXp } = useAuth()
   const [status, setStatus] = useState<'idle' | 'started' | 'submitted' | 'success' | 'fail'>('idle')
   const [answer, setAnswer] = useState('')
@@ -85,59 +85,106 @@ export default function ProblemPage() {
     setAnswer(selectedAnswer)
   }
 
-  async function handleSubmit() {
-    setStatus('submitted')
-    const correct = (prob.correctAnswer ?? '').toUpperCase().trim()
-    const userAnswer = answer.toUpperCase().trim()
-    if (userAnswer === correct && correct !== '') {
-      incrementStreak()
-      const currentStreak = streak + 1
-      let bonusGold = 0
-      let bonusEnergy = 0
+async function handleSubmit() {
+    setStatus('submitted')
+    const correct = (prob.correctAnswer ?? '').toUpperCase().trim()
+    const userAnswer = answer.toUpperCase().trim()
+    if (userAnswer === correct && correct !== '') {
+      incrementStreak()
+      const currentStreak = streak + 1
+      let bonusGold = 0
+      let bonusEnergy = 0
 
-      // 연속 정답 보너스 계산
-      if (currentStreak === 2) bonusGold = Math.round(prob.rewardGold * 0.2)
-      else if (currentStreak === 3) {
-        bonusGold = Math.round(prob.rewardGold * 0.5)
-        bonusEnergy = 1
-      } else if (currentStreak >= 5) {
-        bonusGold = Math.round(prob.rewardGold * 1.5)
-        bonusEnergy = 2
-      }
+      // ▼▼▼ [수정됨] 10연승까지 보너스 세분화 ▼▼▼
+      switch (currentStreak) {
+        case 2:
+          // 2연승: 1.5배 골드
+          bonusGold = Math.round(prob.rewardGold * 1.5)
+          break
+        case 3:
+          // 3연승: 2배 골드 + 에너지 1
+          bonusGold = Math.round(prob.rewardGold * 2)
+          bonusEnergy = 1
+          break
+        case 4:
+          // 4연승: 2.5배 골드 + 에너지 1
+          bonusGold = Math.round(prob.rewardGold * 2.5)
+          bonusEnergy = 1
+          break
+        case 5:
+          // 5연승: 3배 골드 + 에너지 2
+          bonusGold = Math.round(prob.rewardGold * 3)
+          bonusEnergy = 2
+          break
+        case 6:
+          // 6연승: 3.5배 골드 + 에너지 2
+          bonusGold = Math.round(prob.rewardGold * 3.5)
+          bonusEnergy = 2
+          break
+        case 7:
+          // 7연승: 4배 골드 + 에너지 3
+          bonusGold = Math.round(prob.rewardGold * 4)
+          bonusEnergy = 3
+          break
+        case 8:
+          // 8연승: 4.5배 골드 + 에너지 3
+          bonusGold = Math.round(prob.rewardGold * 4.5)
+          bonusEnergy = 3
+          break
+        case 9:
+          // 9연승: 5배 골드 + 에너지 4
+          bonusGold = Math.round(prob.rewardGold * 5)
+          bonusEnergy = 4
+          break
+        case 10:
+          // 10연승: 7배 골드 + 에너지 5 (특별 보상!)
+          bonusGold = Math.round(prob.rewardGold * 7)
+          bonusEnergy = 5
+          break
+        default:
+          // 11연승 이상일 경우 10연승과 동일한 최대 보상 유지
+          if (currentStreak > 10) {
+            bonusGold = Math.round(prob.rewardGold * 7)
+            bonusEnergy = 5
+          }
+          // (1연승일 때는 switch/default에 해당 안 되므로 보너스 0 유지)
+      }
+      // ▲▲▲ [수정됨] 여기까지 ▲▲▲
 
-      setEarnedBonus({ gold: bonusGold, energy: bonusEnergy })
+      setEarnedBonus({ gold: bonusGold, energy: bonusEnergy })
 
-      setStatus('success')
-      if (addGold) addGold(prob.rewardGold + bonusGold)
+      setStatus('success')
+      if (addGold) addGold(prob.rewardGold + bonusGold)
+      if (addEnergy && bonusEnergy > 0) addEnergy(bonusEnergy)
 
-      // 푼 문제를 user_solved_problems 테이블에 기록
-      if (user && prob.id) {
-        const { error } = await supabase
-          .from('user_solved_problems')
-          .upsert(
-            {
-              user_id: user.id,
-              problem_id: prob.id,
-              solved_at: new Date().toISOString(),
-            },
-            {
-              onConflict: 'user_id,problem_id',
-            }
-          )
+      // 푼 문제를 user_solved_problems 테이블에 기록
+      if (user && prob.id) {
+        const { error } = await supabase
+          .from('user_solved_problems')
+          .upsert(
+            {
+              user_id: user.id,
+              problem_id: prob.id,
+              solved_at: new Date().toISOString(),
+            },
+            {
+              onConflict: 'user_id,problem_id',
+            }
+          )
 
-        if (error) {
-          console.error('Error saving solved problem:', error)
-        }
-      }
+        if (error) {
+          console.error('Error saving solved problem:', error)
+        }
+      }
 
-      if (trackQuestProgress) {
-        trackQuestProgress('solve_problem') // '문제 풀기' 타입의 퀘스트 진행도 업데이트
-      }
-    } else {
-      setStatus('fail')
-      resetStreak()
-    }
-  }
+      if (trackQuestProgress) {
+        trackQuestProgress('solve_problem') // '문제 풀기' 타입의 퀘스트 진행도 업데이트
+      }
+    } else {
+      setStatus('fail')
+      resetStreak()
+    }
+  }
 
   function handleRetry() {
     setAnswer('')
