@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { useAuth } from '@/lib/context/AuthProvider'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
-import ProblemItem from '../problems/ProblemItem'
 import { type Problem } from '@/lib/mock/problems'
 
 export default function MyPage() {
@@ -192,16 +191,41 @@ export default function MyPage() {
         ) : (
           <>
             <div className="space-y-2">
-              {(isProblemsExpanded ? filteredProblems : filteredProblems.slice(0, 5)).map(p => (
-                <ProblemItem key={p.id} problem={p} />
+              {(isProblemsExpanded ? filteredProblems : filteredProblems.slice(0, 3)).map(p => (
+                <div
+                  key={p.id}
+                  onClick={() => router.push(`/problems/${p.id}`)}
+                  className="flex items-center justify-between p-3 bg-neutral-50 hover:bg-neutral-100 rounded-md cursor-pointer transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium text-neutral-500">{p.category}</span>
+                      <span className="text-xs text-neutral-400">Lv.{p.level}</span>
+                    </div>
+                    <h4 className="text-sm font-medium text-neutral-900">{p.title}</h4>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <Image src="/icons/gold_icon.svg" alt="Gold" width={14} height={14} className="w-3.5 h-3.5" />
+                      <span className="text-xs font-medium text-neutral-600">{p.rewardGold}G</span>
+                    </div>
+                    {problemStatusFilter === 'solved' && (
+                      <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
-            {filteredProblems.length > 5 && (
+            {filteredProblems.length > 3 && (
               <button
                 onClick={() => setIsProblemsExpanded(!isProblemsExpanded)}
                 className="w-full mt-3 py-2 text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
               >
-                {isProblemsExpanded ? '접기 ▲' : `더보기 (${filteredProblems.length - 5}개) ▼`}
+                {isProblemsExpanded ? '접기 ▲' : `더보기 (${filteredProblems.length - 3}개) ▼`}
               </button>
             )}
           </>
