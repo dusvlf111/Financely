@@ -198,17 +198,25 @@ function getBucketKey(
 
   switch (granularity) {
     case 'day':
-      // '2025-10-21' (일 단위)
-      return date.toISOString().split('T')[0];
+      // 로컬 시간 기준으로 '2025-10-21' (일 단위)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     case 'week':
       // '주의 시작일' (예: 일요일)을 기준으로 키 생성
       const firstDayOfWeek = new Date(date);
       firstDayOfWeek.setDate(date.getDate() - date.getDay()); // 일요일 00시
       firstDayOfWeek.setHours(0, 0, 0, 0);
-      return firstDayOfWeek.toISOString().split('T')[0];
+      const weekYear = firstDayOfWeek.getFullYear();
+      const weekMonth = String(firstDayOfWeek.getMonth() + 1).padStart(2, '0');
+      const weekDay = String(firstDayOfWeek.getDate()).padStart(2, '0');
+      return `${weekYear}-${weekMonth}-${weekDay}`;
     case 'month':
-      // '2025-10' (월 단위)
-      return date.toISOString().substring(0, 7);
+      // 로컬 시간 기준으로 '2025-10' (월 단위)
+      const monthYear = date.getFullYear();
+      const monthNum = String(date.getMonth() + 1).padStart(2, '0');
+      return `${monthYear}-${monthNum}`;
     case 'raw':
     default:
       // 'raw' 데이터는 고유 타임스탬프를 키로 사용
