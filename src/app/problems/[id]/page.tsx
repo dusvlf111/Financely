@@ -187,6 +187,14 @@ async function handleSubmit() {
   }
 
   function handleRetry() {
+    // 에너지 체크
+    if (energy < prob.energyCost) {
+      setShowModal(true)
+      return
+    }
+    // 에너지 소비
+    consume(prob.energyCost)
+
     setAnswer('')
     setStatus('started') // 'idle'이 아닌 'started'로 설정하여 바로 문제 풀이 시작
     setEarnedBonus({ gold: 0, energy: 0 })
@@ -437,7 +445,9 @@ async function handleSubmit() {
                 <span className="text-lg font-bold text-red-700">아쉽지만 오답입니다</span>
               </div><p className="text-sm text-red-700">🔥 연속 정답 기록이 초기화되었습니다.</p>
               <p className="text-red-700 mb-2">정답: <strong>{prob.correctAnswer}</strong></p>
-              <p className="text-sm text-red-600">골드 손실은 없습니다. 다시 도전해보세요!</p>
+              <p className="text-sm text-red-600">
+                다시 도전하려면 에너지가 {prob.energyCost} 필요합니다.
+              </p>
             </div>
 
             {prob.explanation && (
@@ -453,12 +463,6 @@ async function handleSubmit() {
                 className="flex-1 btn-primary"
               >
                 이 문제 다시 풀기
-              </button>
-              <button
-                onClick={handleNextProblem}
-                className="flex-1 btn-secondary"
-              >
-                다음 문제로 →
               </button>
             </div>
           </div>
