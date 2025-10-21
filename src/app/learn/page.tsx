@@ -52,6 +52,28 @@ export default function LearnPage() {
         <section className="mb-6">
           <LevelWorksheet level={currentLevel} />
         </section>
+
+        {/* 상점 CTA */}
+        <section className="mb-6">
+          <div className="bg-gradient-to-r from-primary-50 to-blue-50 border border-primary-200 rounded-md p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-sm text-neutral-900 mb-1">
+                  더 많은 문제를 풀고 싶으신가요?
+                </h3>
+                <p className="text-xs text-neutral-600">
+                  상점에서 특별 아이템을 확인해보세요
+                </p>
+              </div>
+              <button
+                onClick={() => router.push('/shop')}
+                className="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded hover:bg-primary-600 transition-colors whitespace-nowrap"
+              >
+                상점 가기
+              </button>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   )
