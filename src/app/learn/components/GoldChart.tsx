@@ -123,7 +123,7 @@ function LineChartView({ data, timeRange }: { data: GoldHistoryEntry[]; timeRang
           }}
         />
         <Line
-          type="monotone"
+          type="linear"
           dataKey="gold"
           stroke="#10B981"
           strokeWidth={2}
