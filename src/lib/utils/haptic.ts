@@ -60,7 +60,7 @@ export function hapticHeavy() {
  */
 export function hapticSuccess() {
   if (!hapticEnabled || typeof window === 'undefined' || !navigator.vibrate) return
-  navigator.vibrate(100) // 100ms 긴 진동
+  navigator.vibrate(200) // 200ms 긴 진동 (한 번)
 }
 
 /**
@@ -69,7 +69,7 @@ export function hapticSuccess() {
  */
 export function hapticError() {
   if (!hapticEnabled || typeof window === 'undefined' || !navigator.vibrate) return
-  navigator.vibrate([30, 50, 30]) // 30ms 진동, 50ms 대기, 30ms 진동
+  navigator.vibrate([50, 100, 50]) // 50ms 진동, 100ms 대기, 50ms 진동 (짧게 두 번)
 }
 
 /**
