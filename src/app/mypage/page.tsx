@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/context/AuthProvider'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { type Problem } from '@/lib/mock/problems'
+import InstallAppButton from '@/components/InstallAppButton'
 
 export default function MyPage() {
   const { profile, updateProfile, logout, user } = useAuth()
@@ -245,6 +246,11 @@ export default function MyPage() {
           </button>
         </div>
       </section>
+
+      {/* 앱 설치 섹션 (페이지 하단) */}
+      <div className="mt-6">
+        <InstallAppButton />
+      </div>
     </div>
   )
 }
