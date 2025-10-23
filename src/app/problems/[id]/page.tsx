@@ -5,9 +5,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEnergy } from '@/lib/store/energyStore'
 import { useAuth } from '@/lib/context/AuthProvider'
 import EnergyModal from '@/components/modals/EnergyModal'
+import CelebrationIcon from '@/components/modals/CelebrationIcon'
+import GoldIncreaseAnimation from '@/components/animations/GoldIncreaseAnimation'
+import LevelUpModal from '@/components/modals/LevelUpModal'
 import type { Problem } from '@/lib/mock/problems'
 import { supabase } from '@/lib/supabase/client'
 import { LEVEL_CATEGORIES } from '@/lib/game/levels'
+import { hapticSuccess, hapticError, hapticGoldIncrease } from '@/lib/utils/haptic'
 
 export default function ProblemPage() {
   const params = useParams() as { id?: string }
@@ -22,6 +26,13 @@ export default function ProblemPage() {
   const [lostGold, setLostGold] = useState(0)
   const [showModal, setShowModal] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
+  const [celebrationType, setCelebrationType] = useState<'success' | 'error'>('success')
+  const [showGoldIncrease, setShowGoldIncrease] = useState(false)
+  const [goldIncreaseAmount, setGoldIncreaseAmount] = useState(0)
+  const [goldAnimPosition, setGoldAnimPosition] = useState<{ top: number; left: number } | undefined>()
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false)
+  const [levelUpInfo, setLevelUpInfo] = useState<{ nextLevel: number; nextCategory: string } | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -87,6 +98,9 @@ export default function ProblemPage() {
   }
 
 async function handleSubmit() {
+    // 기존 축하 애니메이션 초기화
+    setShowCelebration(false)
+
     setStatus('submitted')
     const correct = (prob.correctAnswer ?? '').toUpperCase().trim()
     const userAnswer = answer.toUpperCase().trim()
@@ -154,8 +168,30 @@ async function handleSubmit() {
 
       setEarnedBonus({ gold: bonusGold, energy: bonusEnergy })
 
+      // 성공 햅틱 피드백 및 축하 애니메이션 (상태 변경 전에 실행)
+      hapticSuccess()
+
       setStatus('success')
-      if (addGold) addGold(prob.rewardGold + bonusGold)
+
+      // 약간의 딜레이 후 축하 애니메이션 표시 (상태 안정화 후)
+      setTimeout(() => {
+        setCelebrationType('success')
+        setShowCelebration(true)
+      }, 100)
+
+      // 골드 증가 애니메이션 및 햅틱
+      const totalGold = prob.rewardGold + bonusGold
+      setGoldIncreaseAmount(totalGold)
+      hapticGoldIncrease()
+
+      // 화면 중앙 고정 위치에서 시작
+      setGoldAnimPosition({
+        top: window.innerHeight / 2,
+        left: window.innerWidth / 2
+      })
+      setShowGoldIncrease(true)
+
+      if (addGold) addGold(totalGold)
       if (addEnergy && bonusEnergy > 0) addEnergy(bonusEnergy)
 
       // 푼 문제를 user_solved_problems 테이블에 기록
@@ -182,7 +218,16 @@ async function handleSubmit() {
         trackQuestProgress('solve_problem') // '문제 풀기' 타입의 퀘스트 진행도 업데이트
       }
     } else {
+      // 오답 햅틱 피드백 (상태 변경 전에 실행)
+      hapticError()
+
       setStatus('fail')
+
+      // 약간의 딜레이 후 에러 애니메이션 표시 (상태 안정화 후)
+      setTimeout(() => {
+        setCelebrationType('error')
+        setShowCelebration(true)
+      }, 100)
 
       // 오답 시 10~30골드 랜덤 차감
       const goldLoss = Math.floor(Math.random() * 50) + 1 // 1 ~ 50
@@ -209,6 +254,37 @@ async function handleSubmit() {
     setStatus('started') // 'idle'이 아닌 'started'로 설정하여 바로 문제 풀이 시작
     setEarnedBonus({ gold: 0, energy: 0 })
     setLostGold(0)
+    setShowCelebration(false) // 축하 애니메이션 초기화
+    setShowGoldIncrease(false) // 골드 증가 애니메이션 초기화
+  }
+
+  async function handleLevelUpClose() {
+    setShowLevelUpModal(false)
+
+    if (!profile || !user) return
+
+    const currentLevel = profile.level
+    const nextLevel = levelUpInfo?.nextLevel ?? currentLevel + 1
+    const nextCategory = LEVEL_CATEGORIES[nextLevel]
+
+    if (nextCategory && nextCategory !== '모든 레벨 완료!') {
+      // 다음 레벨의 첫 문제로 이동
+      const { data: nextLevelProblems } = await supabase
+        .from('problems')
+        .select('id')
+        .eq('category', nextCategory)
+        .order('id', { ascending: true })
+        .limit(1)
+
+      if (nextLevelProblems && nextLevelProblems.length > 0) {
+        router.push(`/problems/${nextLevelProblems[0].id}`)
+      } else {
+        router.push('/learn')
+      }
+    } else {
+      // 모든 레벨 완료 시 학습 페이지로
+      router.push('/learn')
+    }
   }
 
   async function handleNextProblem() {
@@ -269,15 +345,21 @@ async function handleSubmit() {
             .limit(1)
 
           if (nextLevelProblems && nextLevelProblems.length > 0) {
-            // 레벨업 메시지 표시 후 다음 레벨 문제로 이동
-            alert(`🎉 축하합니다! 레벨 ${nextLevel}로 승급했습니다!\n다음 주제: ${nextCategory}`)
-            router.push(`/problems/${nextLevelProblems[0].id}`)
+            // 레벨업 모달 표시
+            setLevelUpInfo({
+              nextLevel: nextLevel,
+              nextCategory: nextCategory
+            })
+            setShowLevelUpModal(true)
             return
           }
         } else {
           // 마지막 레벨까지 완료
-          alert('🎊 축하합니다! 모든 레벨을 완료했습니다!')
-          router.push('/learn')
+          setLevelUpInfo({
+            nextLevel: currentLevel,
+            nextCategory: '모든 레벨 완료!'
+          })
+          setShowLevelUpModal(true)
           return
         }
       }
@@ -398,7 +480,10 @@ async function handleSubmit() {
         {/* 정답 */}
         {status === 'success' && (
           <div className="space-y-4">
-            <div className="p-4 bg-green-50 border-2 border-green-500 rounded-md">
+            <div
+              id="success-card"
+              className="p-4 bg-green-50 border-2 border-green-500 rounded-md"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-2xl">✅</span>
                 <span className="text-lg font-bold text-green-700">정답입니다!</span>
@@ -485,6 +570,17 @@ async function handleSubmit() {
         )}
       </div>
       <EnergyModal open={showModal} onClose={() => setShowModal(false)} />
+      <CelebrationIcon
+        show={showCelebration}
+        type={celebrationType}
+        onComplete={() => setShowCelebration(false)}
+      />
+      <LevelUpModal
+        open={showLevelUpModal}
+        onClose={handleLevelUpClose}
+        nextLevel={levelUpInfo?.nextLevel ?? 1}
+        nextCategory={levelUpInfo?.nextCategory ?? ''}
+      />
     </div>
   )
 }

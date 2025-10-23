@@ -188,11 +188,34 @@ export default function LevelProgress() {
                   const nextProblemId = unsolvedProblems[Math.floor(Math.random() * unsolvedProblems.length)].id
                   router.push(`/problems/${nextProblemId}`)
                 } else {
-                  // 모두 풀었다면, 다음 레벨의 첫 문제로 (임시)
-                  setSuccessModal({
-                    open: true,
-                    message: '현재 레벨의 모든 문제를 완료했습니다!\n다음 레벨로 도전하세요.'
-                  })
+                  // 모두 풀었다면, 다음 레벨의 첫 문제 찾기
+                  const nextLevel = profile.level + 1
+                  const nextCategory = LEVEL_CATEGORIES[nextLevel]
+
+                  if (nextCategory) {
+                    // 다음 레벨의 첫 문제 찾기
+                    const { data: nextLevelProblems } = await supabase
+                      .from('problems')
+                      .select('id')
+                      .eq('category', nextCategory)
+                      .order('id', { ascending: true })
+                      .limit(1)
+
+                    if (nextLevelProblems && nextLevelProblems.length > 0) {
+                      router.push(`/problems/${nextLevelProblems[0].id}`)
+                    } else {
+                      setSuccessModal({
+                        open: true,
+                        message: '다음 레벨의 문제를 준비 중입니다.'
+                      })
+                    }
+                  } else {
+                    // 마지막 레벨까지 완료
+                    setSuccessModal({
+                      open: true,
+                      message: '축하합니다!\n모든 레벨을 완료했습니다.'
+                    })
+                  }
                 }
               } catch (error) {
                 console.error('Error finding next problem:', error)
@@ -205,16 +228,17 @@ export default function LevelProgress() {
           >
             문제 풀기
           </button>
-          <EnergyModal open={showModal} onClose={() => setShowModal(false)} />
-          <SuccessModal
-            open={successModal.open}
-            onClose={() => setSuccessModal({ open: false, message: '' })}
-            title="알림"
-            description={successModal.message}
-            buttonText="확인"
-          />
         </div>
       </div>
+
+      <EnergyModal open={showModal} onClose={() => setShowModal(false)} />
+      <SuccessModal
+        open={successModal.open}
+        onClose={() => setSuccessModal({ open: false, message: '' })}
+        title="알림"
+        description={successModal.message}
+        buttonText="확인"
+      />
     </div>
   )
 }
