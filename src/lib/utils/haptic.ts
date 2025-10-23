@@ -59,7 +59,11 @@ export function hapticHeavy() {
  * - 문제를 맞췄을 때
  */
 export function hapticSuccess() {
-  if (!hapticEnabled || typeof window === 'undefined' || !navigator.vibrate) return
+  if (!hapticEnabled || typeof window === 'undefined' || !navigator.vibrate) {
+    console.log('[Haptic] Success vibration blocked:', { hapticEnabled, hasNavigator: typeof window !== 'undefined', hasVibrate: navigator?.vibrate })
+    return
+  }
+  console.log('[Haptic] Success vibration triggered')
   navigator.vibrate(200) // 200ms 긴 진동 (한 번)
 }
 
@@ -68,7 +72,11 @@ export function hapticSuccess() {
  * - 문제를 틀렸을 때
  */
 export function hapticError() {
-  if (!hapticEnabled || typeof window === 'undefined' || !navigator.vibrate) return
+  if (!hapticEnabled || typeof window === 'undefined' || !navigator.vibrate) {
+    console.log('[Haptic] Error vibration blocked:', { hapticEnabled, hasNavigator: typeof window !== 'undefined', hasVibrate: navigator?.vibrate })
+    return
+  }
+  console.log('[Haptic] Error vibration triggered')
   navigator.vibrate([50, 100, 50]) // 50ms 진동, 100ms 대기, 50ms 진동 (짧게 두 번)
 }
 
