@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev:pwa": "NEXT_PUBLIC_PWA=1 next dev --no-turbo",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest --passWithNoTests",

@@ -3,8 +3,8 @@ export default function Head() {
     <>
       {/* PWA Manifest */}
   <link rel="manifest" href="/manifest.json?v=20251024-1" />
-      {/* Theme Color for address bar styling */}
-      <meta name="theme-color" content="#10B981" />
+  {/* Theme Color for address bar styling (match manifest) */}
+  <meta name="theme-color" content="#3182F6" />
 
       {/* Icons */}
       <link rel="icon" href="/favicon/favicon-32x32.png" sizes="32x32" type="image/png" />
