@@ -17,15 +17,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-neutral-100 text-neutral-800 text-base">
         <AuthProvider>
           <EnergyProvider>
-            {isSplash ? (
-            {!isLayoutNeeded ? (
-              <>{children}</>
-            ) : (
+            {isLayoutNeeded ? (
               <div className="max-w-[768px] mx-auto">
                 <Header />
                 <main className="px-4 pt-4 pb-28">{children}</main>
                 <Navigation />
               </div>
+            ) : (
+              <>{children}</>
             )}
           </EnergyProvider>
         </AuthProvider>
