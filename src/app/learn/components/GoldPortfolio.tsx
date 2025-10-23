@@ -52,7 +52,7 @@ export default function GoldPortfolio() {
 
   if (!mounted) {
     return (
-      <div className="bg-white border rounded-md p-4 shadow-sm">
+      <div className="card-md p-4">
         <div className="h-48 flex items-center justify-center text-gray-400">
           로딩 중...
         </div>
@@ -80,7 +80,7 @@ export default function GoldPortfolio() {
   }
 
   return (
-    <div className="bg-white border rounded-md p-4 shadow-sm">
+    <div className="card-md p-4">
       <h4 className="text-sm font-medium text-gray-600 mb-2">나의 학습 골드</h4>
 
       <div className="flex items-end gap-3 mb-1">

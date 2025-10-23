@@ -11,7 +11,7 @@ export default function LevelWorksheet({ level }: LevelWorksheetProps) {
 
   if (!worksheet) {
     return (
-      <div className="bg-white border rounded-md p-6">
+      <div className="card-md p-6">
         <div className="text-center py-12 text-neutral-500 text-sm">
           <p>이 레벨의 학습 자료가 준비 중입니다.</p>
         </div>
@@ -20,7 +20,7 @@ export default function LevelWorksheet({ level }: LevelWorksheetProps) {
   }
 
   return (
-    <div className="bg-white border rounded-md p-6">
+    <div className="card-md p-6">
       {/* 헤더 */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">

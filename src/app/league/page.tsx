@@ -35,7 +35,7 @@ export default function LeaguePage() {
     <div className="max-w-[768px] mx-auto px-4 py-6">
       <h1 className="text-xl font-semibold mb-6">리그 순위</h1>
 
-      <section className="bg-white border rounded-md p-6">
+      <section className="card-md p-6">
         {/* 필터 버튼 - 현재 사용 안함 */}
         {/* <div className="flex justify-end mb-4">
           <div className="flex gap-2">

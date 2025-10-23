@@ -68,6 +68,67 @@
   .btn-category-active {
     @apply w-full text-left p-3 border-2 border-primary-500 bg-primary-50 rounded-lg font-semibold text-primary-700;
   }
+
+  /* === 카드 스타일 === */
+  .card {
+    @apply bg-white rounded-lg border border-neutral-200 shadow;
+  }
+
+  .card-md {
+    @apply bg-white rounded-md border border-neutral-200 shadow;
+  }
+
+  /* 호버 효과가 있는 카드 */
+  .card-hover {
+    @apply bg-white rounded-lg border border-neutral-200 shadow-sm transition-shadow;
+    @apply hover:shadow-md;
+  }
+
+  .card-hover-md {
+    @apply bg-white rounded-md border border-neutral-200 shadow-sm transition-shadow;
+    @apply hover:shadow-md;
+  }
+
+  /* === 네비게이션 스타일 === */
+  .bottom-nav {
+    @apply fixed bottom-4 left-0 right-0 z-40;
+  }
+
+  .bottom-nav-container {
+    @apply max-w-[768px] mx-auto px-4 ;
+  }
+
+  .bottom-nav-bar {
+    @apply bg-white rounded-xl shadow flex justify-between py-3 px-6 border border-neutral-200;
+  }
+
+  .nav-item {
+    @apply flex flex-col items-center gap-1 transition-colors;
+  }
+
+  .nav-item-active {
+    @apply text-primary-500;
+  }
+
+  .nav-item-inactive {
+    @apply text-neutral-600;
+  }
+
+  .nav-icon {
+    @apply w-6 h-6 relative transition-opacity;
+  }
+
+  .nav-icon-active {
+    @apply opacity-100;
+  }
+
+  .nav-icon-inactive {
+    @apply opacity-60;
+  }
+
+  .nav-label {
+    @apply text-xs font-medium;
+  }
 }
 
 /* 기본 글로벌 스타일 */

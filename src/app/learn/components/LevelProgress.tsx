@@ -70,7 +70,7 @@ export default function LevelProgress() {
   const progressPercent = levelProgress.total > 0 ? (levelProgress.completed / levelProgress.total) * 100 : 0
 
   return (
-    <div className="bg-white border rounded-md p-4">
+    <div className="card-md p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm text-neutral-500">레벨별 학습 주제</h4>
         <button

@@ -10,7 +10,7 @@ export default function AssetPage() {
 
       <div className="grid gap-4">
         <GoldPortfolio />
-        <section className="bg-white border rounded-md p-4">
+        <section className="card-md p-4">
           <h2 className="font-medium">보유 자산 요약</h2>
           <div className="mt-2">
             <ul className="text-sm text-neutral-600 space-y-2">

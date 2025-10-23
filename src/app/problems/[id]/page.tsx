@@ -53,7 +53,7 @@ export default function ProblemPage() {
   if (!mounted) {
     return (
       <div className="max-w-[768px] mx-auto px-4 py-6">
-        <div className="bg-white border rounded-md p-6 text-center">
+        <div className="card-md p-6 text-center">
           <p className="mb-4">로딩 중...</p>
         </div>
       </div>
@@ -308,7 +308,7 @@ async function handleSubmit() {
         ← 학습 페이지로
       </button>
 
-      <div className="bg-white border rounded-md p-6">
+      <div className="card-md p-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded">{problem.category}</span>
           <span className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded">{problem.difficulty}</span>

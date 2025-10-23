@@ -24,7 +24,7 @@ export default function LearnPage() {
   if (!mounted) {
     return (
       <div className="max-w-[768px] mx-auto py-6">
-        <div className="bg-white border rounded-md p-6 text-center">
+        <div className="card-md p-6 text-center">
           <p className="mb-4">로딩 중...</p>
         </div>
       </div>
