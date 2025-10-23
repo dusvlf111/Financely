@@ -6,6 +6,7 @@ import Navigation from '../components/layout/Navigation'
 import AuthProvider from '@/lib/context/AuthProvider'
 import { EnergyProvider } from '@/lib/store/energyStore'
 import { usePathname } from 'next/navigation'
+import PwaInstallCapture from './PwaInstallCapture'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {  
   const pathname = usePathname()
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-neutral-100 text-neutral-800 text-base">
         <AuthProvider>
           <EnergyProvider>
+            <PwaInstallCapture />
             {isLayoutNeeded ? (
               <div className="max-w-[768px] mx-auto">
                 <Header />

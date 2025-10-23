@@ -22,6 +22,12 @@ export default function InstallAppButton() {
     )
     setInstalled(!!isStandalone)
 
+    // 전역에 보관된 지연 프롬프트가 있으면 재사용
+    if (typeof window !== 'undefined' && (window as any).__deferredInstallPrompt) {
+      deferredRef.current = (window as any).__deferredInstallPrompt
+      setCanInstall(true)
+    }
+
     const onBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
       deferredRef.current = e as DeferredPromptEvent
@@ -32,6 +38,9 @@ export default function InstallAppButton() {
       setInstalled(true)
       setCanInstall(false)
       deferredRef.current = null
+      if (typeof window !== 'undefined') {
+        ;(window as any).__deferredInstallPrompt = null
+      }
     }
 
     window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
