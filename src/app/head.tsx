@@ -2,7 +2,7 @@ export default function Head() {
   return (
     <>
       {/* PWA Manifest */}
-      <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="/manifest.json?v=20251024-1" />
       {/* Theme Color for address bar styling */}
       <meta name="theme-color" content="#10B981" />
 
