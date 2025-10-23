@@ -7,6 +7,17 @@ type DeferredPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
+// 전역 Window에 지연 설치 프롬프트를 안전하게 저장하기 위한 타입 보강
+declare global {
+  interface Window {
+    __deferredInstallPrompt?: DeferredPromptEvent | null
+  }
+  interface Navigator {
+    // iOS Safari PWA 환경에서만 존재하는 프로퍼티
+    standalone?: boolean
+  }
+}
+
 export default function InstallAppButton() {
   const deferredRef = useRef<DeferredPromptEvent | null>(null)
   const [canInstall, setCanInstall] = useState(false)
@@ -23,8 +34,8 @@ export default function InstallAppButton() {
     setInstalled(!!isStandalone)
 
     // 전역에 보관된 지연 프롬프트가 있으면 재사용
-    if (typeof window !== 'undefined' && (window as any).__deferredInstallPrompt) {
-      deferredRef.current = (window as any).__deferredInstallPrompt
+    if (typeof window !== 'undefined' && window.__deferredInstallPrompt) {
+      deferredRef.current = window.__deferredInstallPrompt
       setCanInstall(true)
     }
 
@@ -39,7 +50,7 @@ export default function InstallAppButton() {
       setCanInstall(false)
       deferredRef.current = null
       if (typeof window !== 'undefined') {
-        ;(window as any).__deferredInstallPrompt = null
+        window.__deferredInstallPrompt = null
       }
     }
 
