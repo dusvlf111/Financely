@@ -78,7 +78,7 @@ export default function QuestPage() {
     const progressPercent = Math.min((userQuest.progress / quest.target) * 100, 100)
 
     return (
-      <div key={quest.id} className="card-md p-4">
+      <div key={quest.id} className="card-md-animated card-scale-in p-4">
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="font-semibold text-lg">{quest.title}</h3>
@@ -134,7 +134,7 @@ export default function QuestPage() {
   if (!profile) {
     return (
       <div className="max-w-[768px] mx-auto px-4 py-6">
-        <div className="card-md p-6 text-center">
+        <div className="card-md-animated animate__animated animate__fadeInUp p-6 text-center">
           <p>로그인이 필요합니다.</p>
         </div>
       </div>
@@ -152,7 +152,7 @@ export default function QuestPage() {
         </div>
         <div className="space-y-3">
           {weeklyQuests.length === 0 ? (
-            <div className="card-md p-4 text-center text-neutral-500">
+            <div className="card-md-animated card-scale-in p-4 text-center text-neutral-500">
               주간 퀘스트가 없습니다.
             </div>
           ) : (
@@ -168,7 +168,7 @@ export default function QuestPage() {
         </div>
         <div className="space-y-3">
           {dailyQuests.length === 0 ? (
-            <div className="card-md p-4 text-center text-neutral-500">
+            <div className="card-md-animated card-scale-in p-4 text-center text-neutral-500">
               일일 퀘스트가 없습니다.
             </div>
           ) : (

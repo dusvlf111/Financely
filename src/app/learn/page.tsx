@@ -24,7 +24,7 @@ export default function LearnPage() {
   if (!mounted) {
     return (
       <div className="max-w-[768px] mx-auto py-6">
-        <div className="card-md p-6 text-center">
+        <div className="card-md-animated animate__animated animate__fadeInUp p-6 text-center">
           <p className="mb-4">로딩 중...</p>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default function LearnPage() {
 
         {/* 상점 CTA */}
         <section className="mb-6">
-          <div className="bg-gradient-to-r from-primary-50 to-blue-50 border border-primary-200 rounded-md p-4">
+          <div className="bg-gradient-to-r from-primary-50 to-blue-50 border border-primary-200 rounded-md p-4 animate__animated animate__fadeInUp stagger-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-sm text-neutral-900 mb-1">

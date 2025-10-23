@@ -70,7 +70,7 @@ export default function LevelProgress() {
   const progressPercent = levelProgress.total > 0 ? (levelProgress.completed / levelProgress.total) * 100 : 0
 
   return (
-    <div className="card-md p-4">
+    <div className="card-md-animated animate__animated animate__fadeInUp stagger-2 p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm text-neutral-500">레벨별 학습 주제</h4>
         <button
@@ -103,7 +103,7 @@ export default function LevelProgress() {
 
       {/* 모든 레벨 표시 (펼쳤을 때만) */}
       {isExpanded && (
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2 mb-4 expand-down-fast">
           {Object.entries(levelInfo).map(([level, info]) => {
             const levelNum = parseInt(level)
             const isCurrentLevel = levelNum === currentLevel

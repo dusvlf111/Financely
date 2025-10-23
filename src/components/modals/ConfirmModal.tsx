@@ -33,7 +33,7 @@ export default function ConfirmModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 card-scale-in-fast">
         <h2 className="text-lg font-semibold text-neutral-900 mb-2">
           {title}
         </h2>

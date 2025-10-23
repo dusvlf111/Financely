@@ -52,7 +52,7 @@ export default function GoldPortfolio() {
 
   if (!mounted) {
     return (
-      <div className="card-md p-4">
+      <div className="card-md-animated animate__animated animate__fadeInUp p-4">
         <div className="h-48 flex items-center justify-center text-gray-400">
           로딩 중...
         </div>
@@ -65,7 +65,7 @@ export default function GoldPortfolio() {
   const percentageChange = profile
     ? calculateGoldPercentageChange(profile.gold, todayStartGold)
     : 0;
-  
+
   // 2. 퍼센티지 문자열 포맷팅 (소수점 1자리)
   const percentageString = formatPercentage(percentageChange, 1);
 
@@ -80,7 +80,7 @@ export default function GoldPortfolio() {
   }
 
   return (
-    <div className="card-md p-4">
+    <div className="card-md-animated animate__animated animate__fadeInUp stagger-1 p-4">
       <h4 className="text-sm font-medium text-gray-600 mb-2">나의 학습 골드</h4>
 
       <div className="flex items-end gap-3 mb-1">

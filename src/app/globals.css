@@ -1,6 +1,12 @@
 /* Pretendard 폰트 import */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
 
+/* Animate.css import */
+@import 'animate.css';
+
+/* 커스텀 애니메이션 설정 */
+@import './animations.css';
+
 @import "tailwindcss";
 
 @theme {
@@ -87,6 +93,20 @@
   .card-hover-md {
     @apply bg-white rounded-md border border-neutral-200 shadow-sm transition-shadow;
     @apply hover:shadow-md;
+  }
+
+  /* 애니메이션이 적용된 카드 */
+  .card-animated {
+    @apply bg-white rounded-lg border border-neutral-200 shadow;
+  }
+
+  .card-md-animated {
+    @apply bg-white rounded-md border border-neutral-200 shadow;
+  }
+
+  /* 위에서 아래로 펼쳐지는 애니메이션 */
+  .card-slideInDown {
+    @apply bg-white rounded-md border border-neutral-200 shadow;
   }
 
   /* === 네비게이션 스타일 === */

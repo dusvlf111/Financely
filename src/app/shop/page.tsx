@@ -145,7 +145,7 @@ export default function ShopPage() {
       <p className="text-sm text-neutral-600 mb-6">특별한 아이템으로 학습을 더 효율적으로!</p>
 
       {/* 보유 골드 */}
-      <div className="card-md p-4 mb-6">
+      <div className="card-md-animated animate__animated animate__fadeInUp p-4 mb-6">
         <div className="flex items-center justify-between">
           <span className="text-sm text-neutral-600">보유 골드</span>
           <div className="flex items-center gap-1">
@@ -162,7 +162,7 @@ export default function ShopPage() {
         {SHOP_ITEMS.map((item) => (
           <div
             key={item.id}
-            className={`card-md p-5 ${!item.enabled ? 'opacity-60' : ''}`}
+            className={`card-md-animated animate__animated animate__fadeInUp p-5 ${!item.enabled ? 'opacity-60' : ''}`}
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">

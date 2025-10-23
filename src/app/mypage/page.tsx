@@ -77,7 +77,7 @@ export default function MyPage() {
       <h1 className="text-2xl font-semibold mb-6">마이페이지</h1>
 
       {/* 프로필 & 통계 섹션 */}
-      <section className="card p-6 mb-6">
+      <section className="card-animated animate__animated animate__fadeInUp stagger-1 p-6 mb-6">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h2 className="font-semibold text-lg mb-2">
@@ -154,7 +154,7 @@ export default function MyPage() {
       </section>
 
       {/* 문제 목록 섹션 */}
-      <section className="card p-6 mb-6">
+      <section className="card-animated animate__animated animate__fadeInUp stagger-2 p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg">나의 문제 목록</h3>
         </div>
@@ -233,7 +233,7 @@ export default function MyPage() {
       </section>
 
       {/* 계정 관리 섹션 */}
-      <section className="card p-6">
+      <section className="card-animated animate__animated animate__fadeInUp stagger-3 p-6">
         <h3 className="font-semibold text-lg mb-4">계정 관리</h3>
         <div className="space-y-2">
           <button className="w-full btn-secondary" onClick={handleLogout}>로그아웃</button>
