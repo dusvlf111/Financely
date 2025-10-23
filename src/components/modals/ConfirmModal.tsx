@@ -25,7 +25,7 @@ export default function ConfirmModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate__animated animate__fadeIn animate__faster">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
@@ -33,7 +33,7 @@ export default function ConfirmModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 card-scale-in-fast">
         <h2 className="text-lg font-semibold text-neutral-900 mb-2">
           {title}
         </h2>

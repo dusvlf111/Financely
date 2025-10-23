@@ -16,18 +16,18 @@ export default function Navigation() {
   const pathname = usePathname() || ''
 
   return (
-    <nav className="fixed bottom-4 left-0 right-0 z-40">
-      <div className="max-w-[768px] mx-auto px-4">
-        <div className="bg-white rounded-xl shadow-md flex justify-between py-3 px-6">
+    <nav className="bottom-nav">
+      <div className="bottom-nav-container">
+        <div className="bottom-nav-bar">
           {tabs.map((t) => {
             const active = pathname === t.href || (t.href !== '/' && pathname.startsWith(t.href))
             return (
               <Link
                 key={t.key}
                 href={t.href}
-                className={`flex flex-col items-center gap-1 transition-colors ${active ? 'text-primary-500' : 'text-neutral-400'}`}
+                className={`nav-item ${active ? 'nav-item-active' : 'nav-item-inactive'}`}
               >
-                <div className={`w-6 h-6 relative transition-opacity ${active ? 'opacity-100' : 'opacity-60'}`}>
+                <div className={`nav-icon ${active ? 'nav-icon-active' : 'nav-icon-inactive'}`}>
                   <Image
                     src={t.icon}
                     alt={t.label}
@@ -39,7 +39,7 @@ export default function Navigation() {
                     }}
                   />
                 </div>
-                <span className="text-xs font-medium">{t.label}</span>
+                <span className="nav-label">{t.label}</span>
               </Link>
             )
           })}

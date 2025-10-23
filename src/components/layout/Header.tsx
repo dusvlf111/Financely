@@ -32,7 +32,7 @@ export default function Header() {
         </div>
 
         {/* 골드 */}
-        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm ">
+        <div id="header-gold" className="flex items-center gap-2 bg-white/80 backdrop-blur-sm ">
           <Image src="/icons/gold_icon.svg" alt="Gold" width={20} height={20} className="h-5 w-5" />
           <span className="text-sm font-semibold">{profile.gold.toLocaleString()}</span>
         </div>

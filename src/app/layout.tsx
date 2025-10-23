@@ -1,43 +1,31 @@
+"use client"
 import './globals.css'
 import React from 'react'
 import Header from '../components/layout/Header'
 import Navigation from '../components/layout/Navigation'
 import AuthProvider from '@/lib/context/AuthProvider'
 import { EnergyProvider } from '@/lib/store/energyStore'
+import { usePathname } from 'next/navigation'
 
-export const metadata = {
-  title: 'Financely',
-  description: '게임형 금융 학습 플랫폼',
-  manifest: '/manifest.json',
-  themeColor: '#10B981',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Financely',
-  },
-  icons: {
-    apple: '/favicon/apple-touch-icon.png',
-  },
-}
+export default function RootLayout({ children }: { children: React.ReactNode }) {  
+  const pathname = usePathname()
+  const isSplash = pathname === '/splash'
+  const isLayoutNeeded = !['/splash', '/login'].includes(pathname)
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-}
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
       <body className="min-h-screen bg-neutral-100 text-neutral-800 text-base">
         <AuthProvider>
           <EnergyProvider>
-            <div className="max-w-[768px] mx-auto">
-              <Header />
-              <main className="px-4 pt-4 pb-28">{children}</main>
-              <Navigation />
-            </div>
+            {isLayoutNeeded ? (
+              <div className="max-w-[768px] mx-auto">
+                <Header />
+                <main className="px-4 pt-4 pb-28">{children}</main>
+                <Navigation />
+              </div>
+            ) : (
+              <>{children}</>
+            )}
           </EnergyProvider>
         </AuthProvider>
       </body>
