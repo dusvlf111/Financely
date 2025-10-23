@@ -50,7 +50,7 @@ export default function CelebrationIcon({ show, type, onComplete }: CelebrationI
       setIsVisible(false)
       setIsFadingOut(false)
     }
-  }, [show])
+  }, [show, hasShown, onComplete])
 
   if (!isVisible) return null
 

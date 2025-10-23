@@ -34,7 +34,7 @@ export default function GoldIncreaseAnimation({ amount, show, onComplete, startP
       setHasShown(false)
       setIsVisible(false)
     }
-  }, [show, amount])
+  }, [show, amount, hasShown, onComplete])
 
   if (!isVisible || amount <= 0) return null
 

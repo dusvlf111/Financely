@@ -17,8 +17,8 @@ export default function InstallAppButton() {
     // 이미 설치되어 있는지 초기 판단
     const isStandalone = typeof window !== 'undefined' && (
       window.matchMedia?.('(display-mode: standalone)').matches ||
-      // iOS Safari PWA
-      (navigator as any).standalone === true
+      // iOS Safari PWA (navigator.standalone)
+      ((navigator as Navigator & { standalone?: boolean }).standalone === true)
     )
     setInstalled(!!isStandalone)
 
@@ -53,7 +53,7 @@ export default function InstallAppButton() {
         setCanInstall(false)
         deferredRef.current = null
       }
-    } catch (err) {
+    } catch {
       // 무시: 사용자 취소 등
     } finally {
       setBusy(false)
@@ -87,7 +87,7 @@ export default function InstallAppButton() {
       </div>
       {!canInstall && (
         <p className="text-xs text-neutral-500 mt-2">
-          설치 버튼이 보이지 않으면 브라우저 메뉴(⋮)에서 "앱 설치" 또는 "홈 화면에 추가"를 선택하세요.
+          설치 버튼이 보이지 않으면 브라우저 메뉴(⋮)에서 &quot;앱 설치&quot; 또는 &quot;홈 화면에 추가&quot;를 선택하세요.
         </p>
       )}
     </section>

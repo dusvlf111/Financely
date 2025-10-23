@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useEnergy } from '@/lib/store/energyStore'
 import { useAuth } from '@/lib/context/AuthProvider'

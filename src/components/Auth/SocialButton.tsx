@@ -45,7 +45,7 @@ function ProviderIcon({ provider }: { provider: SocialProvider }) {
 }
 
 export default function SocialButton({ provider, label, className = '', ...rest }: Props) {
-  const buttonText = rest.children || providerLabels[provider]
+  const buttonText = label ?? rest.children ?? providerLabels[provider]
 
   return (
     <button
