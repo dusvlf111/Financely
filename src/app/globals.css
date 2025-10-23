@@ -38,31 +38,46 @@
 @layer components {
   /* === 버튼 스타일 === */
   .btn-primary {
-    @apply bg-primary-500 text-white font-bold py-3 px-5 rounded-md transition-colors;
+    @apply bg-primary-500 text-white font-bold py-3 px-5 rounded-lg transition-colors;
     @apply hover:bg-primary-600;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500/50;
     @apply disabled:bg-neutral-400 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-neutral-50 text-neutral-600 font-bold py-3 px-5 rounded-md;
+    @apply bg-neutral-50 text-neutral-600 font-bold py-3 px-5 rounded-lg;
     @apply hover:bg-neutral-200;
     @apply focus:outline-none focus:ring-2 focus:ring-neutral-400;
     @apply disabled:bg-neutral-100 disabled:cursor-not-allowed;
   }
 
   .btn-success {
-    @apply bg-primary-500 text-white font-bold py-3 px-5 rounded-md transition-colors;
+    @apply bg-primary-500 text-white font-bold py-3 px-5 rounded-lg transition-colors;
     @apply hover:bg-primary-600;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500;
     @apply disabled:bg-neutral-400 disabled:cursor-not-allowed;
   }
 
   .btn-danger {
-    @apply bg-red-500 text-white font-bold py-3 px-5 rounded-md;
+    @apply bg-red-500 text-white font-bold py-3 px-5 rounded-lg;
     @apply hover:bg-red-600;
     @apply focus:outline-none focus:ring-2 focus:ring-red-500;
     @apply disabled:bg-neutral-400 disabled:cursor-not-allowed;
+  }
+
+  /* === 소셜 로그인 버튼 === */
+  .btn-social {
+    @apply w-full flex items-center justify-center gap-2 py-3 px-5 rounded-lg font-semibold transition-colors;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  .btn-kakao {
+    @apply bg-[#FEE500] text-black/85 hover:bg-[#F3D900] focus:ring-[#FEE500];
+  }
+  .btn-naver {
+    @apply bg-[#03C75A] text-white hover:bg-[#02B250] focus:ring-[#03C75A];
+  }
+  .btn-google {
+    @apply bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50 focus:ring-blue-500;
   }
 
   /* === 카테고리 필터 버튼 === */
@@ -149,6 +164,7 @@
   .nav-label {
     @apply text-xs font-medium;
   }
+  
 }
 
 /* 기본 글로벌 스타일 */

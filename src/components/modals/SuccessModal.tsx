@@ -19,7 +19,7 @@ export default function SuccessModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate__animated animate__fadeIn animate__faster">
       <div className="bg-white p-6 rounded-md w-80 card-scale-in-fast">
         <div className="text-center mb-4">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">

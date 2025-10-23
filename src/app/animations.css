@@ -1,59 +1,196 @@
-/* 위에서 아래로 펼쳐지는 애니메이션 */
+/* ========================================
+   애니메이션 설정 파일
+   - Animate.css를 활용한 커스텀 애니메이션
+   - 수정 시 이 파일만 편집하면 됩니다
+======================================== */
+
+/* 카드 애니메이션 - 아래에서 위로 올라오기 */
+.card-animated {
+  /* 기본 카드에는 투명도 강제 적용하지 않음 (사라짐 방지) */
+  animation-duration: 0.6s;
+}
+
+.card-md-animated {
+  /* 기본 카드에는 투명도 강제 적용하지 않음 (사라짐 방지) */
+  animation-duration: 0.6s;
+}
+
+/* 리그 카드 애니메이션 - 위에서 아래로 펼쳐지기 */
 .card-slideInDown {
-  animation-name: slideInDown;
-  animation-duration: 0.5s;
-  animation-timing-function: ease-out;
+  animation-duration: 1s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  animation-name: fadeInDown;
 }
 
-@keyframes slideInDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* 카드가 스케일업되며 나타나는 애니메이션 */
-.card-scale-in {
-  animation-name: scaleIn;
+/* 레벨별 학습주제 펼침 애니메이션 */
+.level-expand-animation {
   animation-duration: 0.4s;
-  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-@keyframes scaleIn {
+.card-scale-in {
+  animation-name: zoomIn;
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+}
+
+/* 빠른 카드 줌인 애니메이션 (모달용) */
+.card-scale-in-fast {
+  animation-name: zoomIn;
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+}
+
+/* ========================================
+   애니메이션 속도 조절
+   - animate__faster: 0.5s
+   - animate__fast: 0.8s
+   - animate__slow: 2s
+   - animate__slower: 3s
+======================================== */
+
+/* 커스텀 애니메이션 속도 */
+.animate-duration-300 {
+  animation-duration: 0.3s;
+}
+
+.animate-duration-500 {
+  animation-duration: 0.5s;
+}
+
+.animate-duration-700 {
+  animation-duration: 0.7s;
+}
+
+/* ========================================
+   애니메이션 딜레이 설정
+======================================== */
+
+.animate-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animate-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animate-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animate-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.animate-delay-500 {
+  animation-delay: 0.5s;
+}
+
+/* ========================================
+   순차적 애니메이션을 위한 딜레이 클래스
+   - 여러 카드가 순서대로 나타날 때 사용
+======================================== */
+
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.stagger-5 {
+  animation-delay: 0.5s;
+}
+
+.stagger-6 {
+  animation-delay: 0.6s;
+}
+
+/* ========================================
+   자주 사용하는 애니메이션 조합
+======================================== */
+
+/* 페이드인 + 위로 슬라이드 (카드용) */
+.fade-slide-up {
+  animation-name: fadeInUp;
+  animation-duration: 0.6s;
+  animation-fill-mode: both;
+}
+
+/* 페이드인 + 아래로 슬라이드 (드롭다운용) */
+.fade-slide-down {
+  animation-name: fadeInDown;
+  animation-duration: 0.4s;
+  animation-fill-mode: both;
+}
+
+/* 줌인 효과 (모달용) */
+.zoom-in {
+  animation-name: zoomIn;
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+/* 바운스 효과 (버튼 클릭용) */
+.bounce-effect {
+  animation-name: bounce;
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+
+/* ========================================
+   커스텀 펼침 애니메이션
+======================================== */
+
+/* 위에서 아래로 펼쳐지는 애니메이션 (높이 확장) */
+@keyframes expandDown {
   from {
-    transform: scale(0.95);
-    opacity: 0.8;
+    max-height: 0;
+    opacity: 0;
+    transform: scaleY(0) translateZ(0);
+    transform-origin: top;
   }
   to {
-    transform: scale(1);
+    max-height: 2000px;
     opacity: 1;
+    transform: scaleY(1) translateZ(0);
+    transform-origin: top;
   }
 }
 
-.jello-horizontal {
-	-webkit-animation: jello-horizontal 0.9s both;
-	        animation: jello-horizontal 0.9s both;
+.expand-down {
+  animation: expandDown 0.5s ease-out forwards;
+  overflow: hidden;
+  will-change: transform, opacity, max-height;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
-@-webkit-keyframes jello-horizontal {
-  0% { -webkit-transform: scale3d(1, 1, 1); transform: scale3d(1, 1, 1); }
-  30% { -webkit-transform: scale3d(1.25, 0.75, 1); transform: scale3d(1.25, 0.75, 1); }
-  40% { -webkit-transform: scale3d(0.75, 1.25, 1); transform: scale3d(0.75, 1.25, 1); }
-  50% { -webkit-transform: scale3d(1.15, 0.85, 1); transform: scale3d(1.15, 0.85, 1); }
-  65% { -webkit-transform: scale3d(0.95, 1.05, 1); transform: scale3d(0.95, 1.05, 1); }
-  75% { -webkit-transform: scale3d(1.05, 0.95, 1); transform: scale3d(1.05, 0.95, 1); }
-  100% { -webkit-transform: scale3d(1, 1, 1); transform: scale3d(1, 1, 1); }
+/* 빠른 펼침 효과 */
+.expand-down-fast {
+  animation: expandDown 0.3s ease-out forwards;
+  overflow: hidden;
+  will-change: transform, opacity, max-height;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
-@keyframes jello-horizontal {
-  0% { -webkit-transform: scale3d(1, 1, 1); transform: scale3d(1, 1, 1); }
-  30% { -webkit-transform: scale3d(1.25, 0.75, 1); transform: scale3d(1.25, 0.75, 1); }
-  40% { -webkit-transform: scale3d(0.75, 1.25, 1); transform: scale3d(0.75, 1.25, 1); }
-  50% { -webkit-transform: scale3d(1.15, 0.85, 1); transform: scale3d(1.15, 0.85, 1); }
-  65% { -webkit-transform: scale3d(0.95, 1.05, 1); transform: scale3d(0.95, 1.05, 1); }
-  75% { -webkit-transform: scale3d(1.05, 0.95, 1); transform: scale3d(1.05, 0.95, 1); }
-  100% { -webkit-transform: scale3d(1, 1, 1); transform: scale3d(1, 1, 1); }
+
+/* 느린 펼침 효과 */
+.expand-down-slow {
+  animation: expandDown 0.7s ease-out forwards;
+  overflow: hidden;
+  will-change: transform, opacity, max-height;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }

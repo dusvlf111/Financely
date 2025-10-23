@@ -85,7 +85,7 @@ export default function ProblemPage() {
     return null
   }
 
-  if (!problem) return <div className="p-6">문제를 찾을 수 없습니다.</div>
+  if (!problem) return <div className="p-6">로딩중...</div>
 
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6 pb-28">
