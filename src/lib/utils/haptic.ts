@@ -31,6 +31,29 @@ export function getHapticEnabled(): boolean {
 }
 
 /**
+ * 햅틱 강도 설정 (light | normal | strong)
+ */
+export type HapticIntensity = 'light' | 'normal' | 'strong'
+let hapticIntensity: HapticIntensity = 'strong'
+
+export function setHapticIntensity(level: HapticIntensity) {
+  hapticIntensity = level
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('haptic_intensity', level)
+  }
+}
+
+export function getHapticIntensity(): HapticIntensity {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('haptic_intensity') as HapticIntensity | null
+    if (saved === 'light' || saved === 'normal' || saved === 'strong') {
+      hapticIntensity = saved
+    }
+  }
+  return hapticIntensity
+}
+
+/**
  * 기본 진동 (짧은 진동 한 번)
  */
 export function hapticLight() {
@@ -63,8 +86,10 @@ export function hapticSuccess() {
     console.log('[Haptic] Success vibration blocked:', { hapticEnabled, hasNavigator: typeof window !== 'undefined', hasVibrate: navigator?.vibrate })
     return
   }
-  console.log('[Haptic] Success vibration triggered')
-  navigator.vibrate(200) // 200ms 긴 진동 (한 번)
+  const level = getHapticIntensity()
+  const duration = 200 // 길이 고정
+  console.log('[Haptic] Success vibration triggered', { level, duration })
+  navigator.vibrate(duration) // 한 번 진동 (길이 고정)
 }
 
 /**
@@ -76,8 +101,10 @@ export function hapticError() {
     console.log('[Haptic] Error vibration blocked:', { hapticEnabled, hasNavigator: typeof window !== 'undefined', hasVibrate: navigator?.vibrate })
     return
   }
-  console.log('[Haptic] Error vibration triggered')
-  navigator.vibrate([50, 100, 50]) // 50ms 진동, 100ms 대기, 50ms 진동 (짧게 두 번)
+  const level = getHapticIntensity()
+  const pattern = [50, 100, 50] // 길이 고정
+  console.log('[Haptic] Error vibration triggered', { level, pattern })
+  navigator.vibrate(pattern) // 두 번 진동 (길이 고정)
 }
 
 /**
