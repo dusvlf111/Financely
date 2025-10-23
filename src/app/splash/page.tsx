@@ -1,29 +1,29 @@
 "use client"
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/context/AuthProvider'
 
 export default function SplashPage() {
   const router = useRouter()
-  const { user } = useAuth()
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (user) {
-        router.replace('/learn')
-      } else {
-        router.replace('/login')
-      }
-    }, 2000) // 2초 후 이동
+      router.replace('/learn')
+    }, 3000) // 3초 후 /learn 페이지로 이동
 
     return () => clearTimeout(timer)
-  }, [user, router])
+  }, [router])
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-primary-500 z-50">
-      <h1 className="text-4xl font-bold text-white">
-        Financely
-      </h1>
+    <div className="flex items-center justify-center min-h-screen bg-primary-500">
+      <div className="text-center">
+        <h1 className="text-5xl font-bold text-white tracking-widest">
+          {'Financely'.split('').map((char, index) => (
+            <span key={index} className="inline-block jello-horizontal" style={{ animationDelay: `${index * 0.1}s` }}>
+              {char}
+            </span>
+          ))}
+        </h1>
+      </div>
     </div>
   )
 }
