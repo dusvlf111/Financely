@@ -18,18 +18,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-      <div className="w-40 h-40 bg-secondary-500 rounded-full" />
-      <h2 className="text-xl font-semibold">Financely에 오신 것을 환영합니다</h2>
-      <p className="text-sm text-neutral-600">학습을 시작하려면 소셜 계정으로 로그인하세요</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-white px-4">
+      <div className="w-full max-w-sm text-center">
+        <div className="card-scale-in p-8 bg-white/70 backdrop-blur-sm shadow-lg rounded-xl">
+          <h1 className="text-4xl font-bold text-primary-500 tracking-tight mb-2">
+            Financely
+          </h1>
+          <h2 className="text-base font-medium text-neutral-600 mb-8">
+            학습하며 쌓는 금융 자신감
+          </h2>
 
-      <div className="space-y-2 w-full max-w-xs">
-        <SocialButton provider="google" onClick={() => handleSocialLogin('google')} />
-        <SocialButton provider="naver" onClick={() => handleSocialLogin('naver 미구현')} />
-        <SocialButton provider="kakao" onClick={() => handleSocialLogin('kakao')} />
+          <div className="space-y-3">
+            {/* SocialButton 컴포넌트가 provider에 따라 스타일을 내부적으로 처리한다고 가정합니다. */}
+            <SocialButton provider="google" onClick={() => handleSocialLogin('google')}>Google로 시작하기</SocialButton>
+            <SocialButton provider="naver" onClick={() => handleSocialLogin('naver 미구현')}>Naver로 시작하기</SocialButton>
+            <SocialButton provider="kakao" onClick={() => handleSocialLogin('kakao')}>Kakao로 시작하기</SocialButton>
+          </div>
+        </div>
+        <p className="mt-6 text-xs text-neutral-500">계속 진행하면 이용 약관 및 개인정보처리방침에 동의하게 됩니다.</p>
       </div>
-
-      <div className="mt-4 text-xs text-neutral-500">계속 진행하면 이용 약관 및 개인정보처리방침에 동의하게 됩니다.</div>
     </div>
   )
 }
