@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/context/AuthProvider'
 import EnergyModal from '@/components/modals/EnergyModal'
-import CelebrationIcon from '@/components/modals/CelebrationIcon'
 import LevelUpModal from '@/components/modals/LevelUpModal'
 import type { Problem } from '@/lib/mock/problems'
 import { supabase } from '@/lib/supabase/client'
@@ -58,9 +57,6 @@ export default function ProblemPage() {
     lostGold,
     showEnergyModal,
     setShowEnergyModal,
-    showCelebration,
-    celebrationType,
-    setShowCelebration,
     showLevelUpModal,
     levelUpInfo,
     handleStart,
@@ -123,11 +119,6 @@ export default function ProblemPage() {
         )}
       </div>
       <EnergyModal open={showEnergyModal} onClose={() => setShowEnergyModal(false)} />
-      <CelebrationIcon
-        show={showCelebration}
-        type={celebrationType}
-        onComplete={() => setShowCelebration(false)}
-      />
       <LevelUpModal
         open={showLevelUpModal}
         onClose={handleLevelUpClose}

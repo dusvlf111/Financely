@@ -18,8 +18,6 @@ export function useProblemSolver(problem: Problem | null) {
   const [earnedBonus, setEarnedBonus] = useState({ gold: 0, energy: 0 })
   const [lostGold, setLostGold] = useState(0)
   const [showEnergyModal, setShowEnergyModal] = useState(false)
-  const [showCelebration, setShowCelebration] = useState(false)
-  const [celebrationType, setCelebrationType] = useState<'success' | 'error'>('success')
   const [showGoldIncrease, setShowGoldIncrease] = useState(false)
   const [goldIncreaseAmount, setGoldIncreaseAmount] = useState(0)
   const [showLevelUpModal, setShowLevelUpModal] = useState(false)
@@ -38,7 +36,6 @@ export function useProblemSolver(problem: Problem | null) {
   const handleSubmit = useCallback(async () => {
     if (!problem || !user) return
 
-    setShowCelebration(false)
     setStatus('submitted')
 
     const isCorrect = answer.toUpperCase().trim() === (problem.correctAnswer ?? '').toUpperCase().trim() && answer.trim() !== ''
@@ -70,11 +67,6 @@ export function useProblemSolver(problem: Problem | null) {
       hapticSuccess()
       setStatus('success')
 
-      setTimeout(() => {
-        setCelebrationType('success')
-        setShowCelebration(true)
-      }, 100)
-
       const totalGold = problem.rewardGold + bonusGold
       setGoldIncreaseAmount(totalGold)
       hapticGoldIncrease()
@@ -94,11 +86,6 @@ export function useProblemSolver(problem: Problem | null) {
     } else {
       hapticError()
       setStatus('fail')
-
-      setTimeout(() => {
-        setCelebrationType('error')
-        setShowCelebration(true)
-      }, 100)
 
       const goldLoss = Math.floor(Math.random() * 50) + 1
       setLostGold(goldLoss)
@@ -121,7 +108,6 @@ export function useProblemSolver(problem: Problem | null) {
     setStatus('started')
     setEarnedBonus({ gold: 0, energy: 0 })
     setLostGold(0)
-    setShowCelebration(false)
     setShowGoldIncrease(false)
   }, [problem, energy, consume])
 
@@ -236,9 +222,6 @@ export function useProblemSolver(problem: Problem | null) {
     lostGold,
     showEnergyModal,
     setShowEnergyModal,
-    showCelebration,
-    celebrationType,
-    setShowCelebration,
     showGoldIncrease,
     goldIncreaseAmount,
     showLevelUpModal,
