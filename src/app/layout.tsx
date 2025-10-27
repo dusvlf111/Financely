@@ -11,7 +11,7 @@ import PwaInstallCapture from './PwaInstallCapture'
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isSplash = pathname === '/splash'
-  const isLayoutNeeded = !['/splash', '/login'].includes(pathname)
+  const isLayoutNeeded = !['/splash', '/login', '/landing'].includes(pathname)
 
   return (
     <html lang="ko">
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Icons */}
         <link rel="icon" href="/favicon/favicon-32x32.png" sizes="32x32" type="image/png" />
         <link rel="icon" href="/favicon/favicon-16x16.png" sizes="16x16" type="image/png" />
-        <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/favicon/apple-icon-180x180.png" />
 
         {/* Mobile meta */}
         <meta name="mobile-web-app-capable" content="yes" />
