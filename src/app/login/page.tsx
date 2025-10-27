@@ -21,10 +21,19 @@ export default function LoginPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-white px-4">
       <div className="w-full max-w-sm text-center">
         <div className="card-scale-in p-8 bg-white/70 backdrop-blur-sm shadow-lg rounded-xl">
+          {/* 로고 */}
+          <div className="flex justify-center mb-6">
+            <img
+              src="/favicon/apple-icon-180x180.png"
+              alt="Financely"
+              className="w-24 h-24 md:w-28 md:h-28 drop-shadow-2xl"
+            />
+          </div>
+
           <h1 className="text-4xl font-bold text-primary-500 tracking-tight mb-2">
             Financely
           </h1>
-          <h2 className="text-base font-medium text-neutral-600 mb-8">
+          <h2 className="text-base font-medium text-neutral-600 mb-10">
             학습하며 쌓는 금융 자신감
           </h2>
 

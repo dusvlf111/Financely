@@ -511,7 +511,7 @@ export default function LandingPage() {
             <img
               src="/favicon/apple-icon-180x180.png"
               alt="Financely"
-              className="w-12 h-12 mb-3 opacity-80"
+              className="w-12 h-12 mb-3 opacity-90"
             />
             <p className="font-bold text-white text-lg mb-2">Financely</p>
             <p className="text-sm text-neutral-400 text-center max-w-md">

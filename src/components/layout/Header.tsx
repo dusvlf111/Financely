@@ -12,8 +12,15 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between py-3 px-4">
-      <Link href="/learn" className="text-xl font-bold text-primary-500">
-        Financely
+      <Link href="/learn" className="flex items-center gap-2">
+        <Image
+          src="/favicon/apple-icon-180x180.png"
+          alt="Financely"
+          width={32}
+          height={32}
+          className="w-8 h-8"
+        />
+        <span className="text-xl font-bold text-primary-500">Financely</span>
       </Link>
 
       <div className="flex items-center gap-4">
