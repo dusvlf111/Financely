@@ -25,7 +25,16 @@ export default function SplashPage() {
       <div className="relative text-center z-10">
         {/* 로고 배경 원 - 크게 확장 */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-white/20 rounded-full animate__animated animate__zoomIn"></div>
-        
+
+        {/* 로고 이미지 */}
+        <div className="flex justify-center mb-6 animate__animated animate__zoomIn animate__delay-1s">
+          <img
+            src="/favicon/apple-icon-180x180.png"
+            alt="Financely Logo"
+            className="w-32 h-32 drop-shadow-2xl"
+          />
+        </div>
+
         {/* 메인 로고 텍스트 */}
         <div className="animate__animated animate__fadeIn animate__delay-1s">
           <h1 className="text-4xl font-bold text-white tracking-wider mb-4 drop-shadow-2xl">
