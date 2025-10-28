@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import { WORKSHEET_CONTENTS, type WorksheetContent } from '@/lib/data/worksheetContent'
+import { WORKSHEET_CONTENTS } from '@/lib/data/worksheetContent'
 
 interface LevelWorksheetProps {
   level: number

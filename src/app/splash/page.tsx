@@ -1,6 +1,7 @@
 "use client"
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function SplashPage() {
   const router = useRouter()
@@ -28,9 +29,11 @@ export default function SplashPage() {
 
         {/* 로고 이미지 */}
         <div className="flex justify-center mb-6 animate__animated animate__zoomIn animate__delay-1s">
-          <img
+          <Image
             src="/favicon/apple-icon-180x180.png"
             alt="Financely Logo"
+            width={128}
+            height={128}
             className="w-32 h-32 drop-shadow-2xl"
           />
         </div>

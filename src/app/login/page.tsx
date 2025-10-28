@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect } from 'react'
+import Image from 'next/image'
 import SocialButton from '../../components/Auth/SocialButton'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/context/AuthProvider'
@@ -23,9 +24,11 @@ export default function LoginPage() {
         <div className="card-scale-in p-8 bg-white/70 backdrop-blur-sm shadow-lg rounded-xl">
           {/* 로고 */}
           <div className="flex justify-center mb-6">
-            <img
+            <Image
               src="/favicon/apple-icon-180x180.png"
               alt="Financely"
+              width={112}
+              height={112}
               className="w-24 h-24 md:w-28 md:h-28 drop-shadow-2xl"
             />
           </div>

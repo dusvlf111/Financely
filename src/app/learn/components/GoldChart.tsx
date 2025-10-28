@@ -10,7 +10,6 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { type GoldHistoryEntry } from '@/lib/store/goldStore'
-import { time } from 'console'
 
 type TimeRange = 'TODAY' | '1D' | '1W' | '1M' | '1Y' | 'ALL'
 
@@ -55,7 +54,7 @@ function LineChartView({ data, timeRange }: { data: GoldHistoryEntry[]; timeRang
       chartData: sampledData,
       shouldShowDots: sampledData.length < 20,
     };
-  }, [data, timeRange]);
+  }, [data]);
 
   // 2. (수정) X축 Ticks를 '마지막 날짜' 기준으로 수동 생성
   const xAxisTicks = React.useMemo(() => {

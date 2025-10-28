@@ -10,7 +10,6 @@ import PwaInstallCapture from './PwaInstallCapture'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isSplash = pathname === '/splash'
   const isLayoutNeeded = !['/splash', '/login', '/landing'].includes(pathname)
 
   return (
