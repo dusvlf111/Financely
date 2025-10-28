@@ -1,10 +1,10 @@
 "use client"
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
+import Image from 'next/image'
 
 export default function LandingPage() {
   const router = useRouter()
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set())
 
   const handleCTA = () => {
     router.push('/login')
@@ -42,9 +42,11 @@ export default function LandingPage() {
           <div className="text-center">
             {/* 로고 */}
             <div className="flex justify-center mb-8 animate-fade-in-down">
-              <img
+              <Image
                 src="/favicon/apple-icon-180x180.png"
                 alt="Financely"
+                width={96}
+                height={96}
                 className="w-20 h-20 md:w-24 md:h-24 drop-shadow-2xl"
               />
             </div>
@@ -82,7 +84,7 @@ export default function LandingPage() {
       </section>
 
       {/* 데이터 기반 문제 제기 Section */}
-      <section className="py-16 md:py-20 bg-neutral-50">
+      <section className="py-16 md:py-20 bg-gradient-to-b from-white to-blue-50/30">
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-neutral-800">
@@ -99,7 +101,7 @@ export default function LandingPage() {
               data-animate
               className="bg-white p-6 rounded-2xl shadow-md scroll-animate"
             >
-              <h3 className="text-xl font-bold mb-3 text-neutral-800">"용어가 너무 어려워"</h3>
+              <h3 className="text-xl font-bold mb-3 text-neutral-800">&quot;용어가 너무 어려워&quot;</h3>
               <p className="text-neutral-600 text-sm mb-3">
                 복리, 인플레이션, 분산투자...<br />
                 기본 개념도 이해 못 하고 투자 시작
@@ -115,7 +117,7 @@ export default function LandingPage() {
               className="bg-white p-6 rounded-2xl shadow-md scroll-animate"
               style={{ transitionDelay: '0.1s' }}
             >
-              <h3 className="text-xl font-bold mb-3 text-neutral-800">"공부는 지루해"</h3>
+              <h3 className="text-xl font-bold mb-3 text-neutral-800">&quot;공부는 지루해&quot;</h3>
               <p className="text-neutral-600 text-sm mb-3">
                 유튜브 봐도 이해 안 되고<br />
                 학원은 비싸고 시간도 없어
@@ -131,7 +133,7 @@ export default function LandingPage() {
               className="bg-white p-6 rounded-2xl shadow-md scroll-animate"
               style={{ transitionDelay: '0.2s' }}
             >
-              <h3 className="text-xl font-bold mb-3 text-neutral-800">"결국 손해보고 포기"</h3>
+              <h3 className="text-xl font-bold mb-3 text-neutral-800">&quot;결국 손해보고 포기&quot;</h3>
               <p className="text-neutral-600 text-sm mb-3">
                 뉴스에 민감하게 반응해서<br />
                 손실 보고 투자 포기
@@ -172,9 +174,11 @@ export default function LandingPage() {
             >
               <div className="flex-1 flex justify-center">
                 <div className="relative w-full max-w-[300px]">
-                  <img
+                  <Image
                     src="/mockup design/lean_page.png"
                     alt="학습 페이지 - 골드 차트"
+                    width={300}
+                    height={600}
                     className="w-full h-auto drop-shadow-2xl"
                   />
                 </div>
@@ -204,9 +208,11 @@ export default function LandingPage() {
             >
               <div className="flex-1 flex justify-center">
                 <div className="relative w-full max-w-[300px]">
-                  <img
+                  <Image
                     src="/mockup design/problems_page.png"
                     alt="문제 풀이 페이지"
+                    width={300}
+                    height={600}
                     className="w-full h-auto drop-shadow-2xl"
                   />
                 </div>
@@ -341,7 +347,7 @@ export default function LandingPage() {
       </section>
 
       {/* 가격 Section - 실제 비즈니스 모델 반영 */}
-      <section className="py-16 md:py-20 bg-neutral-50">
+      <section className="py-16 md:py-20 bg-gradient-to-b from-purple-50/20 to-white">
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-neutral-800">
             커피 한 잔 값으로 시작
@@ -508,9 +514,11 @@ export default function LandingPage() {
       <footer className="bg-neutral-800 text-neutral-300 py-12">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col items-center mb-8">
-            <img
+            <Image
               src="/favicon/apple-icon-180x180.png"
               alt="Financely"
+              width={48}
+              height={48}
               className="w-12 h-12 mb-3 opacity-90"
             />
             <p className="font-bold text-white text-lg mb-2">Financely</p>
