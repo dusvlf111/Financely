@@ -88,8 +88,9 @@ function extractRewardLabel(reward: Record<string, unknown> | null): string {
 export default function QuestPage() {
   const { user, profile } = useAuth()
   const [quests, setQuests] = useState<QuestListItem[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState<boolean>(() => !!user)
   const [error, setError] = useState<string | null>(null)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [interactionState, setInteractionState] = useState<Record<string, QuestInteraction>>({})
 
   const getDefaultInteraction = () => ({
@@ -116,6 +117,9 @@ export default function QuestPage() {
   useEffect(() => {
     if (!user) {
       setQuests([])
+      setInteractionState({})
+      setIsLoading(false)
+      setHasLoaded(false)
       return
     }
 
@@ -123,6 +127,7 @@ export default function QuestPage() {
 
     const fetchQuests = async () => {
       setIsLoading(true)
+      setHasLoaded(false)
       setError(null)
 
       try {
@@ -151,6 +156,7 @@ export default function QuestPage() {
         }
       } finally {
         if (!isCancelled) {
+          setHasLoaded(true)
           setIsLoading(false)
         }
       }
@@ -514,7 +520,7 @@ export default function QuestPage() {
           <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
           <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
         </div>
-      ) : quests.length === 0 && !error ? (
+      ) : hasLoaded && quests.length === 0 && !error ? (
         <div className="card-md-animated card-scale-in p-6 text-center text-neutral-500">{EMPTY_MESSAGE}</div>
       ) : (
         <>

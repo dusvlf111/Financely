@@ -142,6 +142,40 @@ describe('QuestPage UI', () => {
     expect(screen.getByText('✓ 완료')).toBeInTheDocument()
   })
 
+  it('does not flash empty state before quests finish loading', async () => {
+    const userId = 'user-loading'
+    const profile = createProfile()
+
+    let resolveFetch: ((value: { ok: boolean; json: () => Promise<{ data: unknown[] }> }) => void) | undefined
+
+    ;(global.fetch as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve
+        })
+    )
+
+    mockUseAuth.mockReturnValue({
+      user: { id: userId },
+      profile,
+    })
+
+    render(<QuestPage />)
+
+    expect(screen.queryByText('등록된 퀘스트가 없습니다.')).not.toBeInTheDocument()
+
+    expect(resolveFetch).toBeDefined()
+
+    resolveFetch?.({
+      ok: true,
+      json: async () => ({ data: [] }),
+    })
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1))
+
+    await waitFor(() => expect(screen.getByText('등록된 퀘스트가 없습니다.')).toBeInTheDocument())
+  })
+
   it('supports event quest interactions and displays rich reward labels', async () => {
     const userId = 'user-2'
     const profile = createProfile()
