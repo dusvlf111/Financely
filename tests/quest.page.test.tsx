@@ -300,4 +300,58 @@ describe('QuestPage UI', () => {
 
     expect(await screen.findByText('정답입니다! 응모권이 지급 대기 상태입니다.')).toBeInTheDocument()
   })
+
+  it('applies mobile-friendly typography classes on quest cards and heading', async () => {
+    const userId = 'mobile-user'
+    const profile = createProfile()
+
+    const mobileQuest = {
+      id: 'quest-mobile',
+      title: '모바일 전용 퀘스트',
+      description: '작은 화면에서도 보기 좋게 조정되었습니다.',
+      type: 'weekly' as const,
+      status: 'active' as const,
+      reward: { gold: 25 },
+      options: ['A', 'B', 'C', 'D', 'E'],
+      progress: {
+        status: 'idle' as const,
+        remainingAttempts: 3,
+        startedAt: null,
+        submittedAt: null,
+        isSuccess: null,
+      },
+      timer: {
+        limitSeconds: 45,
+        expiresAt: null,
+        startsAt: null,
+      },
+    }
+
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [mobileQuest] }),
+    })
+
+    mockUseAuth.mockReturnValue({
+      user: { id: userId },
+      profile,
+    })
+
+    const { container } = render(<QuestPage />)
+
+    const heading = await screen.findByRole('heading', { name: '퀘스트' })
+    expect(heading.className).toContain('text-xl')
+    expect(heading.className).toContain('sm:text-2xl')
+
+    const questTitle = await screen.findByText('모바일 전용 퀘스트')
+    expect(questTitle.className).toContain('text-base')
+    expect(questTitle.className).toContain('sm:text-lg')
+
+    const card = questTitle.closest('[data-testid="quest-card"]')
+    expect(card).not.toBeNull()
+    expect(card?.className).toContain('p-4')
+    expect(card?.className).toContain('sm:p-5')
+
+    expect(container.querySelectorAll('[data-testid="quest-card"]').length).toBe(1)
+  })
 })

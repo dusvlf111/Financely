@@ -420,7 +420,7 @@ export default function QuestPage() {
   }
 
   const renderQuestCard = (quest: QuestListItem) => {
-  const statusLabel = STATUS_LABEL[quest.progress.status] ?? '알 수 없음'
+    const statusLabel = STATUS_LABEL[quest.progress.status] ?? '알 수 없음'
     const rewardLabel = extractRewardLabel(quest.reward)
     const isCompleted = quest.progress.status === 'completed' || quest.progress.isSuccess === true
     const attemptLabel = `남은 시도 ${quest.progress.remainingAttempts}`
@@ -432,18 +432,18 @@ export default function QuestPage() {
     const isInQuestion = interaction.phase === 'question' || interaction.phase === 'submitting'
 
     return (
-      <div key={quest.id} className="card-md-animated card-scale-in p-4">
-        <div className="flex justify-between items-start mb-2">
+      <div key={quest.id} data-testid="quest-card" className="card-md-animated card-scale-in p-4 sm:p-5">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between mb-2">
           <div>
-            <h3 className="font-semibold text-lg">{quest.title}</h3>
-            {quest.description && <p className="text-sm text-neutral-600">{quest.description}</p>}
+            <h3 className="font-semibold text-base sm:text-lg">{quest.title}</h3>
+            {quest.description && <p className="text-xs sm:text-sm text-neutral-600">{quest.description}</p>}
           </div>
-          {isCompleted && <span className="text-green-600 font-medium">✓ 완료</span>}
+          {isCompleted && <span className="text-green-600 font-medium text-sm sm:text-base">✓ 완료</span>}
         </div>
 
-        <div className="grid gap-2 text-sm text-neutral-700">
+        <div className="grid gap-2 text-xs sm:text-sm text-neutral-700">
           <div className="flex gap-2 flex-wrap">
-            <span className="font-medium">상태:</span>
+            <span className="font-medium whitespace-nowrap">상태:</span>
             <span>{statusLabel}</span>
             <span className="text-neutral-500">({attemptLabel})</span>
           </div>
@@ -451,7 +451,7 @@ export default function QuestPage() {
             <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
             <span>{rewardLabel}</span>
           </div>
-          <div className="flex gap-4 flex-wrap text-xs text-neutral-500">
+          <div className="flex gap-4 flex-wrap text-[11px] sm:text-xs text-neutral-500">
             <span>시작: {startsAt}</span>
             <span>만료: {expiresAt}</span>
           </div>
@@ -459,14 +459,14 @@ export default function QuestPage() {
 
         {quest.type === 'event' && (
           <div className="mt-4 space-y-3">
-            {interaction.error && <p className="text-sm text-red-600">{interaction.error}</p>}
+            {interaction.error && <p className="text-xs sm:text-sm text-red-600">{interaction.error}</p>}
             {interaction.message && (
-              <p className={`text-sm ${interaction.isSuccess ? 'text-green-600' : 'text-neutral-700'}`}>{interaction.message}</p>
+              <p className={`text-xs sm:text-sm ${interaction.isSuccess ? 'text-green-600' : 'text-neutral-700'}`}>{interaction.message}</p>
             )}
 
             {isInQuestion ? (
               <div className="space-y-3">
-                <p className="text-sm font-medium text-neutral-800">정답을 선택하세요.</p>
+                <p className="text-xs sm:text-sm font-medium text-neutral-800">정답을 선택하세요.</p>
                 <div className="grid gap-2">
                   {quest.options.map((option, index) => {
                     const optionValue = index + 1
@@ -477,7 +477,7 @@ export default function QuestPage() {
                         type="button"
                         onClick={() => handleSelectOption(quest.id, optionValue)}
                         disabled={interaction.phase === 'submitting'}
-                        className={`rounded border px-3 py-2 text-left text-sm transition ${
+                        className={`rounded border px-3 py-2 text-left text-xs sm:text-sm transition ${
                           isSelected
                             ? 'border-primary-500 bg-primary-50 text-primary-700'
                             : 'border-neutral-200 hover:border-primary-200'
@@ -493,7 +493,7 @@ export default function QuestPage() {
                   type="button"
                   onClick={() => handleSubmitAnswer(quest)}
                   disabled={!interaction.selectedOption || interaction.phase === 'submitting'}
-                  className="w-full rounded bg-primary-500 px-3 py-2 text-sm font-semibold text-white disabled:bg-neutral-300"
+                  className="w-full rounded bg-primary-500 px-3 py-2 text-xs sm:text-sm font-semibold text-white disabled:bg-neutral-300"
                 >
                   답안 제출
                 </button>
@@ -505,14 +505,14 @@ export default function QuestPage() {
                 type="button"
                 onClick={() => handleStartQuest(quest)}
                 disabled={interaction.phase === 'starting'}
-                className="w-full rounded bg-primary-500 px-3 py-2 text-sm font-semibold text-white disabled:bg-neutral-300"
+                className="w-full rounded bg-primary-500 px-3 py-2 text-xs sm:text-sm font-semibold text-white disabled:bg-neutral-300"
               >
                 {interaction.phase === 'starting' ? '도전 준비 중...' : '도전하기'}
               </button>
             ) : null}
 
             {!hasAttempts && quest.progress.status !== 'completed' && !isInQuestion ? (
-              <p className="text-sm text-neutral-500">남은 도전 기회가 없습니다.</p>
+              <p className="text-xs sm:text-sm text-neutral-500">남은 도전 기회가 없습니다.</p>
             ) : null}
           </div>
         )}
@@ -523,8 +523,8 @@ export default function QuestPage() {
   const renderSection = (key: string, title: string, items: QuestListItem[], emptyLabel: string) => (
     <section key={key} className="mb-8 last:mb-0">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <span className="text-sm text-neutral-600">총 {items.length}개</span>
+        <h2 className="text-lg sm:text-xl font-semibold">{title}</h2>
+        <span className="text-xs sm:text-sm text-neutral-600">총 {items.length}개</span>
       </div>
       <div className="space-y-3">
         {items.length === 0 ? (
@@ -542,7 +542,7 @@ export default function QuestPage() {
 
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6 pb-28">
-      <h1 className="text-2xl font-semibold mb-6">퀘스트</h1>
+      <h1 className="text-xl sm:text-2xl font-semibold mb-6">퀘스트</h1>
 
       {error && (
         <div className="card-md-animated card-scale-in p-4 mb-6 bg-red-50 text-red-600 text-sm">
