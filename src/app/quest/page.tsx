@@ -18,7 +18,6 @@ export default function QuestPage() {
     groupedQuests,
     fallbackQuests,
     error,
-    hasRevealedQuests,
     shouldAnimateCards,
     showSkeleton,
     showEmptyState,
@@ -48,8 +47,8 @@ export default function QuestPage() {
 
       {showSkeleton ? (
         <div className="space-y-3">
-          <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
-          <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
+          <div className="card-md-animated p-4 bg-neutral-100 animate-pulse h-28 rounded-lg" />
+          <div className="card-md-animated p-4 bg-neutral-100 animate-pulse h-28 rounded-lg" />
         </div>
       ) : showEmptyState ? (
         <div className="card-md-animated card-scale-in p-6 text-center text-neutral-500">{EMPTY_MESSAGE}</div>
@@ -67,7 +66,6 @@ export default function QuestPage() {
                 title={title}
                 items={items}
                 emptyLabel={emptyLabel}
-                hasRevealedQuests={hasRevealedQuests}
                 shouldAnimateCards={shouldAnimateCards}
                 getInteraction={getInteraction}
                 onSelectOption={handleSelectOption}
@@ -82,7 +80,6 @@ export default function QuestPage() {
               title={OTHER_TYPE_LABEL.title}
               items={fallbackQuests}
               emptyLabel={OTHER_TYPE_LABEL.emptyLabel}
-              hasRevealedQuests={hasRevealedQuests}
               shouldAnimateCards={shouldAnimateCards}
               getInteraction={getInteraction}
               onSelectOption={handleSelectOption}

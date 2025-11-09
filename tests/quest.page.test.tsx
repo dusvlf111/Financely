@@ -395,9 +395,8 @@ describe('QuestPage UI', () => {
     render(<QuestPage />)
 
     const card = await screen.findByTestId('quest-card')
-    expect(card.getAttribute('data-revealed')).toBe('false')
-    await waitFor(() => expect(card.getAttribute('data-revealed')).toBe('true'))
-    expect(card.className).toContain('opacity-100')
+    expect(card.className).toContain('animate__animated')
+    expect(card.className).toContain('animate__fadeInUp')
   })
 
   it('reuses cached quests on remount to avoid skeleton flicker', async () => {
@@ -453,9 +452,79 @@ describe('QuestPage UI', () => {
 
     expect(screen.getByText('캐시된 퀘스트')).toBeInTheDocument()
     const cachedCard = screen.getByTestId('quest-card')
-    expect(cachedCard.className).not.toContain('card-scale-in')
+    expect(cachedCard.className).not.toContain('animate__animated')
     expect(secondContainer.querySelector('.animate-pulse')).toBeNull()
     expect(global.fetch).toHaveBeenCalledWith('/api/quests', expect.any(Object))
+  })
+
+  it('prevents card flickering when API completes after cache hydration', async () => {
+    const userId = 'user-no-flicker'
+    const profile = createProfile()
+
+    const questData = {
+      id: 'quest-no-flicker',
+      title: '깜박임 없는 퀘스트',
+      description: 'API 응답 후에도 깜박이지 않습니다.',
+      type: 'daily' as const,
+      status: 'active' as const,
+      reward: { xp: 50 },
+      options: ['A', 'B', 'C', 'D', 'E'],
+      progress: {
+        status: 'idle' as const,
+        remainingAttempts: 1,
+        startedAt: null,
+        submittedAt: null,
+        isSuccess: null,
+      },
+      timer: {
+        limitSeconds: 60,
+        expiresAt: null,
+        startsAt: null,
+      },
+    }
+
+    // First render: populate cache
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: [questData] }),
+    })
+
+    mockUseAuth.mockReturnValue({
+      user: { id: userId },
+      profile,
+    })
+
+    const { unmount } = render(<QuestPage />)
+    await screen.findByText('깜박임 없는 퀘스트')
+    unmount()
+
+    // Second render: cache exists, API returns new data
+    ;(global.fetch as jest.Mock).mockClear()
+    let resolveApiCall: (value: unknown) => void
+    const apiPromise = new Promise((resolve) => {
+      resolveApiCall = resolve
+    })
+
+    ;(global.fetch as jest.Mock).mockReturnValue(apiPromise)
+
+    render(<QuestPage />)
+
+    // Card should be visible immediately from cache without animation
+    const card = await screen.findByTestId('quest-card')
+    expect(card).toBeInTheDocument()
+    expect(card.className).not.toContain('animate__animated')
+
+    // Wait for API to complete
+    resolveApiCall!({
+      ok: true,
+      json: async () => ({ data: [questData] }),
+    })
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+
+    // Card should still be visible without animation (no flickering)
+    await new Promise((r) => setTimeout(r, 150))
+    expect(card.className).not.toContain('animate__animated')
   })
 
   it('renders named sections for quest groupings', async () => {

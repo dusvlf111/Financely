@@ -29,9 +29,10 @@
 }
 
 .card-scale-in {
-  animation-name: zoomIn;
-  animation-duration: 0.5s;
+  animation-name: fadeInUpScale;
+  animation-duration: 0.4s;
   animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity;
 }
 
@@ -203,11 +204,23 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translate3d(0, 40px, 0);
+    transform: translate3d(0, 20px, 0);
   }
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
+  }
+}
+
+/* 페이드인 + 위로 + 작은 크기에서 시작 */
+@keyframes fadeInUpScale {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 

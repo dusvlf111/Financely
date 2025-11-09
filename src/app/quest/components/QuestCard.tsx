@@ -56,7 +56,6 @@ interface QuestCardProps {
   quest: QuestListItem
   index: number
   interaction: QuestInteraction
-  hasRevealedQuests: boolean
   shouldAnimateCards: boolean
   onSelectOption: (questId: string, optionValue: number) => void
   onStartQuest: (quest: QuestListItem) => Promise<void>
@@ -67,7 +66,6 @@ export default function QuestCard({
   quest,
   index,
   interaction,
-  hasRevealedQuests,
   shouldAnimateCards,
   onSelectOption,
   onStartQuest,
@@ -82,17 +80,16 @@ export default function QuestCard({
   const canStartQuest = quest.type === 'event' && quest.status === 'active'
   const hasAttempts = quest.progress.remainingAttempts > 0
   const isInQuestion = interaction.phase === 'question' || interaction.phase === 'submitting'
-  const revealClass = hasRevealedQuests ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
-  const transitionDelay = `${Math.min(index, 6) * 60}ms`
-  const animationClass = shouldAnimateCards ? 'card-md-animated card-scale-in' : 'card-md-animated'
+  const staggerClass = shouldAnimateCards ? `stagger-${Math.min(index + 1, 6)}` : ''
+  const animationClass = shouldAnimateCards
+    ? 'card-md-animated animate__animated animate__fadeInUp'
+    : 'card-md-animated'
 
   return (
     <div
       key={quest.id}
       data-testid="quest-card"
-      data-revealed={hasRevealedQuests ? 'true' : 'false'}
-      className={`${animationClass} p-4 sm:p-5 transition-all duration-300 ease-out ${revealClass}`}
-      style={{ transitionDelay }}
+      className={`${animationClass} ${staggerClass} p-4 sm:p-5`}
     >
       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between mb-2">
         <div>
