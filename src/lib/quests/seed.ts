@@ -80,7 +80,7 @@ export async function seedQuestData(
     if (reset) {
       try {
         await client.query('TRUNCATE quest_rewards, user_quests, quests RESTART IDENTITY CASCADE')
-      } catch (truncateError) {
+      } catch {
         // pg-mem (used in tests) does not support multi-table truncation; fall back to delete
         await client.query('DELETE FROM quest_rewards')
         await client.query('DELETE FROM user_quests')

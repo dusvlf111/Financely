@@ -1,19 +1,10 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import React from 'react'
 import QuestPage from '@/app/quest/page'
 import type { Profile } from '@/lib/context/AuthProvider'
 
-const mockAddGold = jest.fn()
-const mockFrom = jest.fn()
-
 jest.mock('@/lib/context/AuthProvider', () => ({
   useAuth: jest.fn(),
-}))
-
-jest.mock('@/lib/supabase/client', () => ({
-  supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
-  },
 }))
 
 const mockUseAuth = jest.requireMock('@/lib/context/AuthProvider').useAuth as jest.Mock
@@ -33,24 +24,30 @@ function createProfile(): Profile {
 }
 
 describe('QuestPage UI', () => {
+  const originalFetch = global.fetch
+
   beforeEach(() => {
     jest.clearAllMocks()
+    global.fetch = jest.fn()
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
   })
 
   it('prompts for login when profile is missing', () => {
     mockUseAuth.mockReturnValue({
       user: null,
       profile: null,
-      addGold: mockAddGold,
     })
 
     render(<QuestPage />)
 
     expect(screen.getByText('로그인이 필요합니다.')).toBeInTheDocument()
-    expect(mockFrom).not.toHaveBeenCalled()
+    expect(global.fetch).not.toHaveBeenCalled()
   })
 
-  it('renders quests and allows claiming rewards when eligible', async () => {
+  it('renders quests fetched from the API and shows key quest details', async () => {
     const userId = 'user-1'
     const profile = createProfile()
 
@@ -60,88 +57,65 @@ describe('QuestPage UI', () => {
         title: '골드 수집',
         description: '골드를 모아보자',
         type: 'weekly',
-        target: 3,
-        reward_gold: 150,
-        reward_energy: 0,
+        status: 'active',
+        reward: { gold: 150 },
+        options: ['A', 'B', 'C', 'D', 'E'],
+        progress: {
+          status: 'in_progress',
+          remainingAttempts: 1,
+          startedAt: '2030-01-01T00:00:00Z',
+          submittedAt: null,
+          isSuccess: false,
+        },
+        timer: {
+          limitSeconds: 60,
+          expiresAt: '2030-01-05T12:00:00Z',
+          startsAt: '2030-01-01T00:00:00Z',
+        },
       },
       {
-        id: 'quest-progress',
-        title: '아직 진행 중',
-        description: '진행 중인 퀘스트',
+        id: 'quest-completed',
+        title: '완료된 퀘스트',
+        description: '이미 완료됨',
         type: 'daily',
-        target: 5,
-        reward_gold: 50,
-        reward_energy: 1,
+        status: 'completed',
+        reward: { gold: 50, xp: 20 },
+        options: ['A', 'B', 'C', 'D', 'E'],
+        progress: {
+          status: 'completed',
+          remainingAttempts: 0,
+          startedAt: '2030-01-02T00:00:00Z',
+          submittedAt: '2030-01-02T00:10:00Z',
+          isSuccess: true,
+        },
+        timer: {
+          limitSeconds: 90,
+          expiresAt: null,
+          startsAt: '2030-01-02T00:00:00Z',
+        },
       },
     ]
 
-    const userQuestRows = [
-      {
-        quest_id: 'quest-eligible',
-        progress: 3,
-        completed_at: null,
-      },
-      {
-        quest_id: 'quest-progress',
-        progress: 2,
-        completed_at: null,
-      },
-    ]
-
-    const upsertResult = {
-      progress: 3,
-      completed_at: new Date().toISOString(),
-    }
-
-    const selectQuests = jest.fn().mockResolvedValue({ data: questsResponse })
-    const eqMock = jest.fn().mockResolvedValue({ data: userQuestRows })
-    const selectUserQuests = jest.fn().mockReturnValue({ eq: eqMock })
-    const singleMock = jest.fn().mockResolvedValue({ data: upsertResult })
-    const selectAfterUpsert = jest.fn().mockReturnValue({ single: singleMock })
-    const upsertMock = jest.fn().mockReturnValue({ select: selectAfterUpsert })
-
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'quests') {
-        return { select: selectQuests }
-      }
-      if (table === 'user_quests') {
-        return {
-          select: selectUserQuests,
-          upsert: upsertMock,
-        }
-      }
-      throw new Error(`Unexpected table: ${table}`)
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: questsResponse }),
     })
 
     mockUseAuth.mockReturnValue({
       user: { id: userId },
       profile,
-      addGold: mockAddGold,
     })
 
     render(<QuestPage />)
 
-    await waitFor(() => expect(selectQuests).toHaveBeenCalledTimes(1))
-    expect(mockFrom).toHaveBeenCalledWith('quests')
-    expect(mockFrom).toHaveBeenCalledWith('user_quests')
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/quests', expect.any(Object)))
 
     expect(await screen.findByText('골드 수집')).toBeInTheDocument()
-    expect(screen.getByText('아직 진행 중')).toBeInTheDocument()
-
-    const claimButton = await screen.findByRole('button', { name: '보상 받기' })
-
-    fireEvent.click(claimButton)
-
-    await waitFor(() => {
-      expect(upsertMock).toHaveBeenCalledWith(
-        expect.objectContaining({ user_id: userId, quest_id: 'quest-eligible' }),
-        expect.objectContaining({ onConflict: 'user_id, quest_id' })
-      )
-    })
-
-    expect(mockAddGold).toHaveBeenCalledWith(150)
-
-    await waitFor(() => expect(screen.getByText('보상 수령 완료')).toBeInTheDocument())
-    expect(screen.queryByRole('button', { name: '보상 받기' })).not.toBeInTheDocument()
+    expect(screen.getByText('완료된 퀘스트')).toBeInTheDocument()
+    expect(screen.getByText('골드 +150')).toBeInTheDocument()
+    expect(screen.getByText('골드 +50 · 경험치 +20')).toBeInTheDocument()
+    expect(screen.getAllByText(/남은 시도/)).toHaveLength(2)
+    expect(screen.getAllByText(/만료/)).not.toHaveLength(0)
+    expect(screen.getByText('✓ 완료')).toBeInTheDocument()
   })
 })
