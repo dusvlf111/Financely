@@ -91,6 +91,7 @@ export default function QuestPage() {
   const [isLoading, setIsLoading] = useState<boolean>(() => !!user)
   const [error, setError] = useState<string | null>(null)
   const [hasLoaded, setHasLoaded] = useState(false)
+  const [hasRevealedQuests, setHasRevealedQuests] = useState(false)
   const [interactionState, setInteractionState] = useState<Record<string, QuestInteraction>>({})
 
   const getDefaultInteraction = () => ({
@@ -120,6 +121,7 @@ export default function QuestPage() {
       setInteractionState({})
       setIsLoading(false)
       setHasLoaded(false)
+      setHasRevealedQuests(false)
       return
     }
 
@@ -199,6 +201,29 @@ export default function QuestPage() {
       }
     }
   }, [user])
+
+  useEffect(() => {
+    if (!hasLoaded) {
+      setHasRevealedQuests(false)
+      return
+    }
+
+    let timeoutId: number | null = null
+
+    const reveal = () => setHasRevealedQuests(true)
+
+    if (typeof window !== 'undefined') {
+      timeoutId = window.setTimeout(reveal, 60)
+    } else {
+      reveal()
+    }
+
+    return () => {
+      if (timeoutId !== null && typeof window !== 'undefined') {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [hasLoaded])
 
   const questsByType = useMemo(() => {
     const grouped: Record<QuestType, QuestListItem[]> = {
@@ -419,7 +444,7 @@ export default function QuestPage() {
     }
   }
 
-  const renderQuestCard = (quest: QuestListItem) => {
+  const renderQuestCard = (quest: QuestListItem, index: number) => {
     const statusLabel = STATUS_LABEL[quest.progress.status] ?? '알 수 없음'
     const rewardLabel = extractRewardLabel(quest.reward)
     const isCompleted = quest.progress.status === 'completed' || quest.progress.isSuccess === true
@@ -430,9 +455,19 @@ export default function QuestPage() {
     const canStartQuest = quest.type === 'event' && quest.status === 'active'
     const hasAttempts = quest.progress.remainingAttempts > 0
     const isInQuestion = interaction.phase === 'question' || interaction.phase === 'submitting'
+    const revealClass = hasRevealedQuests
+      ? 'opacity-100 translate-y-0'
+      : 'opacity-0 translate-y-2 pointer-events-none'
+    const transitionDelay = `${Math.min(index, 6) * 60}ms`
 
     return (
-      <div key={quest.id} data-testid="quest-card" className="card-md-animated card-scale-in p-4 sm:p-5">
+      <div
+        key={quest.id}
+        data-testid="quest-card"
+        data-revealed={hasRevealedQuests ? 'true' : 'false'}
+        className={`card-md-animated card-scale-in p-4 sm:p-5 transition-all duration-300 ease-out ${revealClass}`}
+        style={{ transitionDelay }}
+      >
         <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between mb-2">
           <div>
             <h3 className="font-semibold text-base sm:text-lg">{quest.title}</h3>
@@ -530,7 +565,7 @@ export default function QuestPage() {
         {items.length === 0 ? (
           <div className="card-md-animated card-scale-in p-4 text-center text-neutral-500">{emptyLabel}</div>
         ) : (
-          items.map(renderQuestCard)
+          items.map((quest, index) => renderQuestCard(quest, index))
         )}
       </div>
     </section>

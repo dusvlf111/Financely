@@ -354,4 +354,47 @@ describe('QuestPage UI', () => {
 
     expect(container.querySelectorAll('[data-testid="quest-card"]').length).toBe(1)
   })
+
+  it('reveals quest cards with animation after quests finish loading', async () => {
+    const userId = 'user-animate'
+    const profile = createProfile()
+
+    const animatedQuest = {
+      id: 'quest-animated',
+      title: '애니메이션 퀘스트',
+      description: '로딩 완료 후 등장합니다.',
+      type: 'weekly' as const,
+      status: 'active' as const,
+      reward: { gold: 10 },
+      options: ['A', 'B', 'C', 'D', 'E'],
+      progress: {
+        status: 'idle' as const,
+        remainingAttempts: 1,
+        startedAt: null,
+        submittedAt: null,
+        isSuccess: null,
+      },
+      timer: {
+        limitSeconds: 30,
+        expiresAt: null,
+        startsAt: null,
+      },
+    }
+
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [animatedQuest] }),
+    })
+
+    mockUseAuth.mockReturnValue({
+      user: { id: userId },
+      profile,
+    })
+
+    render(<QuestPage />)
+
+    const card = await screen.findByTestId('quest-card')
+    await waitFor(() => expect(card.getAttribute('data-revealed')).toBe('true'))
+    expect(card.className).toContain('opacity-100')
+  })
 })
