@@ -136,6 +136,12 @@ export function useQuestData(userId: string | null): UseQuestDataResult {
         if (!isCancelled) {
           setQuests(body.data)
           saveCachedQuests(userId, body.data)
+
+          // If we already hydrated from cache, skip the reveal animation for the API update
+          if (hydratedFromCache) {
+            skipNextRevealRef.current = true
+          }
+
           scheduleHasLoaded()
         }
       } catch (fetchError) {
