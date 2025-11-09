@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { newDb, IMemoryDb } from 'pg-mem';
+import { newDb, IMemoryDb, DataType } from 'pg-mem';
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 
 const migrationPath = path.join(__dirname, '..', 'supabase', 'migrations', '000_create_quest_tables.sql');
 
@@ -23,6 +24,11 @@ describe('Quest model / DB migrations', () => {
     const sanitizedSql = sanitizeSqlForPgMem(rawSql);
 
     db = newDb({ autoCreateForeignKeyIndices: true });
+    db.public.registerFunction({
+      name: 'uuid_generate_v4',
+      returns: DataType.uuid,
+      implementation: () => randomUUID(),
+    });
     db.public.none(sanitizedSql);
   });
 
