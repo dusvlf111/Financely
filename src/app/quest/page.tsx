@@ -203,27 +203,39 @@ export default function QuestPage() {
   }, [user])
 
   useEffect(() => {
-    if (!hasLoaded) {
-      setHasRevealedQuests(false)
+    if (!hasLoaded || quests.length === 0) {
       return
     }
 
-    let timeoutId: number | null = null
-
-    const reveal = () => setHasRevealedQuests(true)
-
-    if (typeof window !== 'undefined') {
-      timeoutId = window.setTimeout(reveal, 60)
-    } else {
-      reveal()
+    if (typeof window === 'undefined') {
+      setHasRevealedQuests(true)
+      return
     }
 
+    setHasRevealedQuests(false)
+
+    let rafId: number | null = null
+    let timeoutId: number | null = null
+
+    const scheduleReveal = () => {
+      rafId = window.requestAnimationFrame(() => {
+        timeoutId = window.setTimeout(() => {
+          setHasRevealedQuests(true)
+        }, 80)
+      })
+    }
+
+    scheduleReveal()
+
     return () => {
-      if (timeoutId !== null && typeof window !== 'undefined') {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId)
+      }
+      if (timeoutId !== null) {
         window.clearTimeout(timeoutId)
       }
     }
-  }, [hasLoaded])
+  }, [hasLoaded, quests])
 
   const questsByType = useMemo(() => {
     const grouped: Record<QuestType, QuestListItem[]> = {

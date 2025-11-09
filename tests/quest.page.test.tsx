@@ -394,6 +394,7 @@ describe('QuestPage UI', () => {
     render(<QuestPage />)
 
     const card = await screen.findByTestId('quest-card')
+    expect(card.getAttribute('data-revealed')).toBe('false')
     await waitFor(() => expect(card.getAttribute('data-revealed')).toBe('true'))
     expect(card.className).toContain('opacity-100')
   })
