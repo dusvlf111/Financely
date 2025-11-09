@@ -147,16 +147,17 @@ export default function QuestPage() {
 
         if (!isCancelled) {
           setQuests(body.data)
+          setHasLoaded(true)
         }
       } catch (fetchError) {
         if (!isCancelled) {
           const message = fetchError instanceof Error ? fetchError.message : '알 수 없는 오류가 발생했습니다.'
           setError(message)
           setQuests([])
+          setHasLoaded(true)
         }
       } finally {
         if (!isCancelled) {
-          setHasLoaded(true)
           setIsLoading(false)
         }
       }
@@ -505,7 +506,9 @@ export default function QuestPage() {
     </section>
   )
 
-  const showSkeleton = !hasLoaded
+  const hasQuests = quests.length > 0
+  const showSkeleton = !hasLoaded || (isLoading && !hasQuests && !error)
+  const showEmptyState = hasLoaded && !isLoading && !hasQuests && !error
 
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6 pb-28">
@@ -522,7 +525,7 @@ export default function QuestPage() {
           <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
           <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
         </div>
-      ) : quests.length === 0 && !error ? (
+      ) : showEmptyState ? (
         <div className="card-md-animated card-scale-in p-6 text-center text-neutral-500">{EMPTY_MESSAGE}</div>
       ) : (
         <>

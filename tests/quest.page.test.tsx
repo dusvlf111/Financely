@@ -160,9 +160,10 @@ describe('QuestPage UI', () => {
       profile,
     })
 
-    render(<QuestPage />)
+    const { container } = render(<QuestPage />)
 
     expect(screen.queryByText('등록된 퀘스트가 없습니다.')).not.toBeInTheDocument()
+    expect(container.querySelector('.animate-pulse')).toBeInTheDocument()
 
     expect(resolveFetch).toBeDefined()
 
@@ -174,6 +175,7 @@ describe('QuestPage UI', () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1))
 
     await waitFor(() => expect(screen.getByText('등록된 퀘스트가 없습니다.')).toBeInTheDocument())
+    expect(container.querySelector('.animate-pulse')).not.toBeInTheDocument()
   })
 
   it('supports event quest interactions and displays rich reward labels', async () => {
