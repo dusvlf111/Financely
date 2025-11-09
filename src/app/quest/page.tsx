@@ -149,6 +149,7 @@ export default function QuestPage() {
   const [hasRevealedQuests, setHasRevealedQuests] = useState(false)
   const [interactionState, setInteractionState] = useState<Record<string, QuestInteraction>>({})
   const hydratedUserIdRef = useRef<string | null>(null)
+  const skipNextRevealRef = useRef(false)
 
   const getDefaultInteraction = () => ({
     phase: 'idle' as InteractionPhase,
@@ -217,6 +218,7 @@ export default function QuestPage() {
         setError(null)
         setHasLoaded(true)
         setHasRevealedQuests(true)
+        skipNextRevealRef.current = true
       }
     }
 
@@ -282,6 +284,12 @@ export default function QuestPage() {
     }
 
     if (typeof window === 'undefined') {
+      setHasRevealedQuests(true)
+      return
+    }
+
+    if (skipNextRevealRef.current) {
+      skipNextRevealRef.current = false
       setHasRevealedQuests(true)
       return
     }
