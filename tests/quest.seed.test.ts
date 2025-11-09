@@ -57,7 +57,7 @@ describe('seedQuestData', () => {
     const { db, pool } = createTestContext()
 
     try {
-  const questId = '00000000-0000-0000-0000-000000000111'
+      const questId = '00000000-0000-0000-0000-000000000111'
       const startedAt = new Date('2025-01-01T09:00:00Z')
       const submittedAt = new Date('2025-01-01T09:01:05Z')
 
@@ -121,7 +121,7 @@ describe('seedQuestData', () => {
     const { db, pool } = createTestContext()
 
     try {
-  const questId = '00000000-0000-0000-0000-000000000222'
+      const questId = '00000000-0000-0000-0000-000000000222'
 
       await seedQuestData(pool, {
         reset: true,
