@@ -457,4 +457,70 @@ describe('QuestPage UI', () => {
     expect(secondContainer.querySelector('.animate-pulse')).toBeNull()
     expect(global.fetch).toHaveBeenCalledWith('/api/quests', expect.any(Object))
   })
+
+  it('renders named sections for quest groupings', async () => {
+    const userId = 'user-section'
+    const profile = createProfile()
+
+    const groupedQuests = [
+      {
+        id: 'quest-weekly-1',
+        title: '주간 목표',
+        description: null,
+        type: 'weekly' as const,
+        status: 'active' as const,
+        reward: { gold: 10 },
+        options: ['A', 'B', 'C', 'D', 'E'],
+        progress: {
+          status: 'idle' as const,
+          remainingAttempts: 1,
+          startedAt: null,
+          submittedAt: null,
+          isSuccess: null,
+        },
+        timer: {
+          limitSeconds: 30,
+          expiresAt: null,
+          startsAt: null,
+        },
+      },
+      {
+        id: 'quest-event-1',
+        title: '이벤트 목표',
+        description: null,
+        type: 'event' as const,
+        status: 'active' as const,
+        reward: { gold: 20 },
+        options: ['A', 'B', 'C', 'D', 'E'],
+        progress: {
+          status: 'idle' as const,
+          remainingAttempts: 1,
+          startedAt: null,
+          submittedAt: null,
+          isSuccess: null,
+        },
+        timer: {
+          limitSeconds: 30,
+          expiresAt: null,
+          startsAt: null,
+        },
+      },
+    ]
+
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: groupedQuests }),
+    })
+
+    mockUseAuth.mockReturnValue({
+      user: { id: userId },
+      profile,
+    })
+
+    render(<QuestPage />)
+
+    expect(await screen.findByText('주간 목표')).toBeInTheDocument()
+    expect(document.getElementById('quest-section-weekly')).not.toBeNull()
+    expect(document.getElementById('quest-section-event')).not.toBeNull()
+  })
 })
