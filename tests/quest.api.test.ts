@@ -97,7 +97,7 @@ describe('quest API routes', () => {
   })
 
   it('requires authentication headers for quest listing', async () => {
-  const response = await listHandler(createRequest('http://localhost/api/quests'))
+    const response = await listHandler(createRequest('http://localhost/api/quests'))
     expect(response.status).toBe(401)
     const body = await response.json()
     expect(body.error.code).toBe('UNAUTHORIZED')
