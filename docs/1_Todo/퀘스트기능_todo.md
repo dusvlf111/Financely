@@ -5,7 +5,7 @@
 - [ ] 1.0 DB 모델 설계 및 마이그레이션
 	- 설명: `quests`, `user_quests`, `quest_rewards` 등 테이블 설계. 상태(status), 만료시간(expire_at), 시도제한(attempts_allowed) 포함.
 	- 테스트:
-		- [ ] 1.0.1 퀘스트 모델 단위 테스트 작성 (CRUD, 상태 전이, 만료)
+		- [x] 1.0.1 퀘스트 모델 단위 테스트 작성 (CRUD, 상태 전이, 만료)
 		- [ ] 1.0.2 테스트 실행 및 검증
 		- [ ] 1.0.3 테스트 실패 시 오류 수정
 
@@ -61,6 +61,9 @@
 ## 관련 파일
 - `docs/1_Todo/퀘스트기능_PRD.md` - PRD 원문
 - `docs/1_Todo/퀘스트기능_todo.md` - (현재 파일) 세로형 작업 목록
+- `supabase/migrations/000_create_quest_tables.sql` - 퀘스트 관련 테이블 마이그레이션
+- `tests/quest.schema.test.ts` - 마이그레이션 스키마 텍스트 검증 테스트
+- `tests/quest.model.test.ts` - pg-mem 기반 퀘스트 DB 동작 테스트
 
 ## 진행 규칙 (요약)
 - 각 하위 작업 완료 시 반드시 체크하고 커밋합니다.
