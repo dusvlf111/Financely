@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import React from 'react'
 import QuestPage from '@/app/quest/page'
 import type { Profile } from '@/lib/context/AuthProvider'
@@ -140,5 +140,109 @@ describe('QuestPage UI', () => {
   expect(screen.getAllByText(/남은 시도/)).toHaveLength(3)
     expect(screen.getAllByText(/만료/)).not.toHaveLength(0)
     expect(screen.getByText('✓ 완료')).toBeInTheDocument()
+  })
+
+  it('supports event quest interactions and displays rich reward labels', async () => {
+    const userId = 'user-2'
+    const profile = createProfile()
+
+    const eventQuest = {
+      id: 'quest-event',
+      title: '깜짝 퀘스트: 옵션 합성 전략',
+      description: '다음 중 옵션 합성 전략이 아닌 것은 무엇일까요?',
+      type: 'event' as const,
+      status: 'active' as const,
+      reward: {
+        type: 'stock_entry',
+        symbol: 'TSLA',
+        label: '테슬라 주식 응모권',
+        quantity: 1,
+        limited: 50,
+      },
+      options: ['Protective Put', 'Covered Call', 'Straddle', 'Martingale Strategy', 'Butterfly Spread'],
+      progress: {
+        status: 'idle' as const,
+        remainingAttempts: 1,
+        startedAt: null,
+        submittedAt: null,
+        isSuccess: null,
+      },
+      timer: {
+        limitSeconds: 5,
+        expiresAt: null,
+        startsAt: null,
+      },
+    }
+
+    ;(global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [eventQuest] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: {
+            questId: eventQuest.id,
+            status: 'in_progress',
+            attempts: 1,
+            startedAt: '2030-03-01T00:00:00Z',
+            timeLimitSeconds: 5,
+            expiresAt: '2030-03-01T00:00:05Z',
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: {
+            questId: eventQuest.id,
+            status: 'completed',
+            isSuccess: true,
+            timeTakenSeconds: 3,
+            rewardIssued: true,
+          },
+        }),
+      })
+
+    mockUseAuth.mockReturnValue({
+      user: { id: userId },
+      profile,
+    })
+
+    render(<QuestPage />)
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/quests', expect.any(Object)))
+
+    expect(await screen.findByText('테슬라 주식 응모권 ×1 (선착순 50명)')).toBeInTheDocument()
+
+    const startButton = screen.getByRole('button', { name: '도전하기' })
+    fireEvent.click(startButton)
+
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenNthCalledWith(2, `/api/quests/${eventQuest.id}/start`, expect.objectContaining({
+        method: 'POST',
+      }))
+    )
+
+    expect(await screen.findByText('정답을 선택하세요.')).toBeInTheDocument()
+
+    const optionButton = screen.getByRole('button', { name: 'Martingale Strategy' })
+    fireEvent.click(optionButton)
+
+    const submitButton = screen.getByRole('button', { name: '답안 제출' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenNthCalledWith(
+        3,
+        `/api/quests/${eventQuest.id}/submit`,
+        expect.objectContaining({
+          method: 'POST',
+        })
+      )
+    )
+
+    expect(await screen.findByText('정답입니다! 응모권이 지급 대기 상태입니다.')).toBeInTheDocument()
   })
 })
