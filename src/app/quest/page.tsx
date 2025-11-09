@@ -48,8 +48,8 @@ export default function QuestPage() {
 
       {showSkeleton ? (
         <div className="space-y-3">
-          <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
-          <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
+          <div className="card-md-animated p-4 bg-neutral-100 animate-pulse h-28 rounded-lg" />
+          <div className="card-md-animated p-4 bg-neutral-100 animate-pulse h-28 rounded-lg" />
         </div>
       ) : showEmptyState ? (
         <div className="card-md-animated card-scale-in p-6 text-center text-neutral-500">{EMPTY_MESSAGE}</div>
