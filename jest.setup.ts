@@ -20,3 +20,36 @@ if (!globalPolyfill.TextEncoder) {
 if (!globalPolyfill.TextDecoder) {
   globalPolyfill.TextDecoder = TextDecoder as unknown;
 }
+
+const { ReadableStream: NodeReadableStream, WritableStream: NodeWritableStream, TransformStream: NodeTransformStream } = require('node:stream/web');
+
+if (!('ReadableStream' in globalPolyfill)) {
+  globalPolyfill.ReadableStream = NodeReadableStream as unknown;
+}
+
+if (!('WritableStream' in globalPolyfill)) {
+  globalPolyfill.WritableStream = NodeWritableStream as unknown;
+}
+
+if (!('TransformStream' in globalPolyfill)) {
+  globalPolyfill.TransformStream = NodeTransformStream as unknown;
+}
+
+const { fetch: undiciFetch, Request: UndiciRequest, Response: UndiciResponse, Headers: UndiciHeaders } = require('undici') as typeof import('undici');
+
+if (!('fetch' in globalPolyfill) || typeof globalPolyfill.fetch !== 'function') {
+  globalPolyfill.fetch = undiciFetch as unknown;
+}
+
+if (!('Request' in globalPolyfill)) {
+  globalPolyfill.Request = UndiciRequest as unknown;
+}
+
+if (!('Response' in globalPolyfill)) {
+  globalPolyfill.Response = UndiciResponse as unknown;
+}
+
+if (!('Headers' in globalPolyfill)) {
+  globalPolyfill.Headers = UndiciHeaders as unknown;
+}
+
