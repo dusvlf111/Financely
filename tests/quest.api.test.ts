@@ -269,6 +269,110 @@ describe('quest API routes', () => {
 
     expect(record.status).toBe('failed')
   })
+
+  it('enforces timer limit even if a client submits after the deadline', async () => {
+    const questId = '00000000-0000-0000-0000-000000000a05'
+
+    context.db.public.none(`
+      INSERT INTO quests (
+        id, title, type, time_limit_seconds, attempts_allowed,
+        option_a, option_b, option_c, option_d, option_e,
+        correct_option, start_at, expire_at, status
+      ) VALUES (
+        '${questId}', 'Timer Guard Quest', 'daily',
+        30, 1,
+        'A', 'B', 'C', 'D', 'E',
+        1, now() - interval '10 minutes', now() + interval '1 day', 'active'
+      )
+    `)
+
+    await startHandler(
+      createRequest(`http://localhost/api/quests/${questId}/start`, {
+        method: 'POST',
+        headers: withUserHeaders(),
+      }),
+      withParams(questId)
+    )
+
+    context.db.public.none(`
+      UPDATE user_quests
+      SET started_at = now() - interval '90 seconds'
+      WHERE quest_id = '${questId}' AND user_id = '${userId}'
+    `)
+
+    const response = await submitHandler(
+      createRequest(`http://localhost/api/quests/${questId}/submit`, {
+        method: 'POST',
+        headers: withUserHeaders({ 'content-type': 'application/json' }),
+        body: JSON.stringify({ selectedOption: 1 }),
+      }),
+      withParams(questId)
+    )
+
+    expect(response.status).toBe(200)
+    const body = await response.json()
+    expect(body.data.status).toBe('failed')
+    expect(body.data.isSuccess).toBe(false)
+    expect(body.data.rewardIssued).toBe(false)
+    expect(body.data.timeTakenSeconds).toBeGreaterThan(30)
+  })
+
+  it('blocks duplicate submissions and prevents reward duplication', async () => {
+    const questId = '00000000-0000-0000-0000-000000000a06'
+
+    context.db.public.none(`
+      INSERT INTO quests (
+        id, title, type, time_limit_seconds, attempts_allowed,
+        option_a, option_b, option_c, option_d, option_e,
+        correct_option, reward, start_at, expire_at, status
+      ) VALUES (
+        '${questId}', 'Duplicate Submission Quest', 'daily',
+        120, 1,
+        'A', 'B', 'C', 'D', 'E',
+        2, '{"gold": 50}'::jsonb, now() - interval '5 minutes', now() + interval '1 day', 'active'
+      )
+    `)
+
+    await startHandler(
+      createRequest(`http://localhost/api/quests/${questId}/start`, {
+        method: 'POST',
+        headers: withUserHeaders(),
+      }),
+      withParams(questId)
+    )
+
+    const first = await submitHandler(
+      createRequest(`http://localhost/api/quests/${questId}/submit`, {
+        method: 'POST',
+        headers: withUserHeaders({ 'content-type': 'application/json' }),
+        body: JSON.stringify({ selectedOption: 2 }),
+      }),
+      withParams(questId)
+    )
+
+    expect(first.status).toBe(200)
+
+    const duplicate = await submitHandler(
+      createRequest(`http://localhost/api/quests/${questId}/submit`, {
+        method: 'POST',
+        headers: withUserHeaders({ 'content-type': 'application/json' }),
+        body: JSON.stringify({ selectedOption: 2 }),
+      }),
+      withParams(questId)
+    )
+
+    expect(duplicate.status).toBe(409)
+    const duplicateBody = await duplicate.json()
+    expect(duplicateBody.error.code).toBe('QUEST_NOT_IN_PROGRESS')
+
+    const rewardCount = context.db.public.one(`
+      SELECT COUNT(*)::int AS count
+      FROM quest_rewards
+      WHERE user_id = '${userId}'
+    `)
+
+    expect(rewardCount.count).toBe(1)
+  })
 })
 
 describe('quest API fallback without database', () => {
