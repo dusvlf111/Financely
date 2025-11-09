@@ -121,7 +121,7 @@ describe('seedQuestData', () => {
     const { db, pool } = createTestContext()
 
     try {
-  const questId = '00000000-0000-0000-0000-000000000222'
+      const questId = '00000000-0000-0000-0000-000000000222'
 
       await seedQuestData(pool, {
         reset: true,
