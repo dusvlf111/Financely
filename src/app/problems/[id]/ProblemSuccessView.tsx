@@ -13,6 +13,8 @@ export default function ProblemSuccessView({ problem, earnedBonus, onNext }: Pro
   const { streak } = useAuth()
 
   const baseRewardText = `기본 보상으로 ${problem.rewardGold}골드가 지급되었습니다.`
+  const streakBonusText = earnedBonus.gold > 0 ? `🔥 ${streak}연속 정답! 보너스 골드 +${earnedBonus.gold} 획득!` : null
+  const energyBonusText = earnedBonus.energy > 0 ? `⚡ 보너스 에너지 +${earnedBonus.energy}개 환급!` : null
 
   return (
     <div className="space-y-4">
@@ -29,20 +31,26 @@ export default function ProblemSuccessView({ problem, earnedBonus, onNext }: Pro
             <strong className="whitespace-nowrap">{problem.rewardGold}</strong>
             <span className="whitespace-nowrap">골드가 지급되었습니다.</span>
           </div>
-          {earnedBonus.gold > 0 && (
-            <div className="flex items-center gap-1 font-bold text-sm sm:text-base">
-              <span>🔥 {streak}연속 정답! 보너스</span>
-              <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} />
-              <strong>+{earnedBonus.gold}</strong>
-              <span>획득!</span>
+          {streakBonusText && (
+            <div className="flex items-center gap-1 flex-wrap font-bold text-sm sm:text-base" aria-label={streakBonusText}>
+              <span className="sr-only">{streakBonusText}</span>
+              <span className="flex items-center gap-1 whitespace-nowrap" aria-hidden="true">
+                <span aria-hidden="true">🔥</span>
+                <span>{streak}연속 정답! 보너스</span>
+              </span>
+              <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="flex-shrink-0" />
+              <span className="whitespace-nowrap" aria-hidden="true">골드</span>
+              <strong className="whitespace-nowrap">+{earnedBonus.gold}</strong>
+              <span className="whitespace-nowrap" aria-hidden="true">획득!</span>
             </div>
           )}
-          {earnedBonus.energy > 0 && (
-            <div className="flex items-center gap-1 font-bold text-sm sm:text-base">
-              <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} />
-              <span>보너스 에너지</span>
-              <strong>+{earnedBonus.energy}</strong>
-              <span>개 환급!</span>
+          {energyBonusText && (
+            <div className="flex items-center gap-1 flex-wrap font-bold text-sm sm:text-base" aria-label={energyBonusText}>
+              <span className="sr-only">{energyBonusText}</span>
+              <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} className="flex-shrink-0" />
+              <span className="whitespace-nowrap" aria-hidden="true">보너스 에너지</span>
+              <strong className="whitespace-nowrap">+{earnedBonus.energy}</strong>
+              <span className="whitespace-nowrap" aria-hidden="true">개 환급!</span>
             </div>
           )}
         </div>

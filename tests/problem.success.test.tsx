@@ -33,4 +33,17 @@ describe('ProblemSuccessView', () => {
 
     expect(screen.getByText(`기본 보상으로 ${baseProblem.rewardGold}골드가 지급되었습니다.`)).toBeInTheDocument()
   })
+
+  it('groups streak and energy bonus lines for accessibility', () => {
+    render(
+      <ProblemSuccessView
+        problem={baseProblem}
+        earnedBonus={{ gold: 110, energy: 1 }}
+        onNext={jest.fn()}
+      />
+    )
+
+    expect(screen.getByLabelText('🔥 3연속 정답! 보너스 골드 +110 획득!')).toBeInTheDocument()
+    expect(screen.getByLabelText('⚡ 보너스 에너지 +1개 환급!')).toBeInTheDocument()
+  })
 })
