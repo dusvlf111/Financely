@@ -47,12 +47,14 @@ CREATE TABLE IF NOT EXISTS user_quests (
   selected_option smallint CHECK (selected_option BETWEEN 1 AND 5),
   is_success boolean DEFAULT false,
   attempts int NOT NULL DEFAULT 1,
+  CONSTRAINT user_quests_unique UNIQUE (quest_id, user_id),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_quests_user ON user_quests(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_quests_quest ON user_quests(quest_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_quests_unique ON user_quests(quest_id, user_id);
 
 -- quest_rewards table: reward issuance log
 CREATE TABLE IF NOT EXISTS quest_rewards (
@@ -62,10 +64,12 @@ CREATE TABLE IF NOT EXISTS quest_rewards (
   reward jsonb NOT NULL,
   issued boolean NOT NULL DEFAULT false,
   issued_at timestamptz,
+  CONSTRAINT quest_rewards_unique_user_quest UNIQUE (user_quest_id),
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_quest_rewards_user ON quest_rewards(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_quest_rewards_user_quest ON quest_rewards(user_quest_id);
 
 -- Trigger to update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
