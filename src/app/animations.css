@@ -29,9 +29,10 @@
 }
 
 .card-scale-in {
-  animation-name: zoomIn;
-  animation-duration: 0.5s;
+  animation-name: fadeInUp;
+  animation-duration: 0.4s;
   animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity;
 }
 
@@ -203,7 +204,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translate3d(0, 40px, 0);
+    transform: translate3d(0, 20px, 0);
   }
   to {
     opacity: 1;

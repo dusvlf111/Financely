@@ -83,7 +83,7 @@ export default function QuestCard({
   const hasAttempts = quest.progress.remainingAttempts > 0
   const isInQuestion = interaction.phase === 'question' || interaction.phase === 'submitting'
   const revealClass = hasRevealedQuests ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
-  const transitionDelay = `${Math.min(index, 6) * 60}ms`
+  const transitionDelay = `${Math.min(index, 8) * 40}ms`
   const animationClass = shouldAnimateCards ? 'card-md-animated card-scale-in' : 'card-md-animated'
 
   return (
