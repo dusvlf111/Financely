@@ -7,16 +7,24 @@ import { randomUUID } from 'crypto'
 
 import { seedQuestData } from '@/lib/quests/seed'
 
-const migrationPath = path.join(__dirname, '..', 'supabase', 'migrations', '000_create_quest_tables.sql')
+const migrationsDir = path.join(__dirname, '..', 'supabase', 'migrations')
 
 const sanitizeSqlForPgMem = (sql: string) =>
   sql
     .replace(/CREATE EXTENSION[^;]+;/gi, '')
-    .replace(/CREATE OR REPLACE FUNCTION[\s\S]+?LANGUAGE 'plpgsql';/gi, '')
+    .replace(/ALTER TABLE\s+[\w.]+\s+ENABLE ROW LEVEL SECURITY;?/gi, '')
+    .replace(/CREATE POLICY[\s\S]+?;/gi, '')
+    .replace(/CREATE OR REPLACE FUNCTION[\s\S]+?LANGUAGE\s+'?plpgsql'?[\s\S]+?;/gi, '')
     .replace(/CREATE TRIGGER[\s\S]+?;/gi, '')
 
-const rawMigrationSql = fs.readFileSync(migrationPath, 'utf8')
-const sanitizedMigrationSql = sanitizeSqlForPgMem(rawMigrationSql)
+const sanitizedMigrations = fs
+  .readdirSync(migrationsDir)
+  .filter((fileName) => fileName.endsWith('.sql') && fileName.includes('quest'))
+  .sort()
+  .map((fileName) => {
+    const rawSql = fs.readFileSync(path.join(migrationsDir, fileName), 'utf8')
+    return sanitizeSqlForPgMem(rawSql)
+  })
 
 interface TestContext {
   db: IMemoryDb
@@ -32,7 +40,9 @@ function createTestContext(): TestContext {
     implementation: () => randomUUID(),
   })
 
-  db.public.none(sanitizedMigrationSql)
+  for (const sql of sanitizedMigrations) {
+    db.public.none(sql)
+  }
 
   const adapter = db.adapters.createPg()
   const pool = new adapter.Pool() as unknown as Pool
@@ -181,6 +191,104 @@ describe('seedQuestData', () => {
       expect(userQuestRow.status).toBe('failed')
       expect(userQuestRow.attempts).toBe(3)
       expect(userQuestRow.selected_option).toBe(1)
+    } finally {
+      await pool.end()
+    }
+  })
+
+  it('supports upserting quests by title via direct SQL', async () => {
+    const { pool } = createTestContext()
+
+    try {
+      const title = '깜짝 퀘스트: 옵션 합성 전략'
+
+      await pool.query(
+        `
+          INSERT INTO quests (
+            title, description, type,
+            time_limit_seconds, attempts_allowed,
+            option_a, option_b, option_c, option_d, option_e,
+            correct_option, reward, status, metadata
+          )
+          VALUES (
+            $1, $2, $3,
+            $4, $5,
+            $6, $7, $8, $9, $10,
+            $11, $12::jsonb, $13, $14::jsonb
+          )
+        `,
+        [
+          title,
+          '첫 번째 등록',
+          'event',
+          30,
+          1,
+          'Protective Put',
+          'Covered Call',
+          'Straddle',
+          'Martingale Strategy',
+          'Butterfly Spread',
+          4,
+          JSON.stringify({ type: 'stock_entry', symbol: 'TSLA', label: '테슬라 주식 응모권', quantity: 1, limited: 50 }),
+          'active',
+          JSON.stringify({ badge: '깜짝!', details: '선착순 50명 보상 지급' }),
+        ]
+      )
+
+      await pool.query(
+        `
+          INSERT INTO quests (
+            title, description, type,
+            time_limit_seconds, attempts_allowed,
+            option_a, option_b, option_c, option_d, option_e,
+            correct_option, reward, status, metadata
+          )
+          VALUES (
+            $1, $2, $3,
+            $4, $5,
+            $6, $7, $8, $9, $10,
+            $11, $12::jsonb, $13, $14::jsonb
+          )
+          ON CONFLICT (title) DO UPDATE
+          SET
+            description = EXCLUDED.description,
+            reward = EXCLUDED.reward,
+            attempts_allowed = EXCLUDED.attempts_allowed,
+            metadata = EXCLUDED.metadata,
+            updated_at = now()
+        `,
+        [
+          title,
+          '업데이트된 등록',
+          'event',
+          45,
+          2,
+          'Protective Put',
+          'Covered Call',
+          'Straddle',
+          'Martingale Strategy',
+          'Butterfly Spread',
+          4,
+          JSON.stringify({ type: 'stock_entry', symbol: 'TSLA', label: '프리미엄 응모권', quantity: 1, limited: 25 }),
+          'active',
+          JSON.stringify({ badge: '업데이트', details: '보상 재조정' }),
+        ]
+      )
+
+      const { rows } = await pool.query(
+        `
+          SELECT description, attempts_allowed, reward->>'label' AS reward_label, metadata->>'badge' AS badge
+          FROM quests
+          WHERE title = $1
+        `,
+        [title]
+      )
+
+      expect(rows).toHaveLength(1)
+      expect(rows[0].description).toBe('업데이트된 등록')
+      expect(rows[0].attempts_allowed).toBe(2)
+      expect(rows[0].reward_label).toBe('프리미엄 응모권')
+      expect(rows[0].badge).toBe('업데이트')
     } finally {
       await pool.end()
     }

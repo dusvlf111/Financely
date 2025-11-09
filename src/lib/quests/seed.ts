@@ -60,6 +60,21 @@ export const DEFAULT_QUEST_SEEDS: QuestSeed[] = [
     reward: { gold: 300, badge: 'saver' },
     status: 'active',
   },
+  {
+    title: '깜짝 퀘스트: 옵션 합성 전략',
+    description: '다음 중 옵션 합성 전략이 아닌 것은 무엇일까요?',
+    type: 'event',
+    options: ['Protective Put', 'Covered Call', 'Straddle', 'Martingale Strategy', 'Butterfly Spread'],
+    correctOption: 4,
+    reward: { type: 'stock_entry', symbol: 'TSLA', label: '테슬라 주식 응모권', quantity: 1, limited: 50 },
+    timeLimitSeconds: 5,
+    attemptsAllowed: 1,
+    status: 'active',
+    metadata: {
+      badge: '깜짝!',
+      details: '선착순 50명 보상 지급',
+    },
+  },
 ]
 
 function ensureOptionsLength(options: QuestSeed['options']): void {
