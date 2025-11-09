@@ -48,6 +48,7 @@ describe('QuestPage UI', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     global.fetch = jest.fn()
+    window.sessionStorage.clear()
   })
 
   afterEach(() => {
@@ -397,5 +398,61 @@ describe('QuestPage UI', () => {
     expect(card.getAttribute('data-revealed')).toBe('false')
     await waitFor(() => expect(card.getAttribute('data-revealed')).toBe('true'))
     expect(card.className).toContain('opacity-100')
+  })
+
+  it('reuses cached quests on remount to avoid skeleton flicker', async () => {
+    const userId = 'user-cache'
+    const profile = createProfile()
+
+    const cachedQuest = {
+      id: 'quest-cached',
+      title: '캐시된 퀘스트',
+      description: '재방문 시에도 깜박임 없이 표시됩니다.',
+      type: 'weekly' as const,
+      status: 'active' as const,
+      reward: { gold: 70 },
+      options: ['A', 'B', 'C', 'D', 'E'],
+      progress: {
+        status: 'idle' as const,
+        remainingAttempts: 2,
+        startedAt: null,
+        submittedAt: null,
+        isSuccess: null,
+      },
+      timer: {
+        limitSeconds: 45,
+        expiresAt: null,
+        startsAt: null,
+      },
+    }
+
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: [cachedQuest] }),
+    })
+
+    mockUseAuth.mockReturnValue({
+      user: { id: userId },
+      profile,
+    })
+
+    const { unmount, container } = render(<QuestPage />)
+
+    expect(await screen.findByText('캐시된 퀘스트')).toBeInTheDocument()
+    expect(container.querySelector('.animate-pulse')).toBeNull()
+
+    const cachedValue = window.sessionStorage.getItem('financely.questCache.v1')
+    expect(cachedValue).not.toBeNull()
+
+    unmount()
+
+    ;(global.fetch as jest.Mock).mockClear()
+    ;(global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {}))
+
+    const { container: secondContainer } = render(<QuestPage />)
+
+    expect(screen.getByText('캐시된 퀘스트')).toBeInTheDocument()
+    expect(secondContainer.querySelector('.animate-pulse')).toBeNull()
+    expect(global.fetch).toHaveBeenCalledWith('/api/quests', expect.any(Object))
   })
 })

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useAuth } from '@/lib/context/AuthProvider'
 import type { QuestListItem, QuestStatus, QuestType } from '@/lib/quests/service'
@@ -28,6 +28,61 @@ const QUEST_TYPE_LABEL: Record<QuestType, { title: string; emptyLabel: string }>
 }
 
 const OTHER_TYPE_LABEL = { title: '기타 퀘스트', emptyLabel: '기타 퀘스트가 없습니다.' }
+
+const QUEST_CACHE_KEY = 'financely.questCache.v1'
+const QUEST_CACHE_TTL = 1000 * 60 * 5 // 5 minutes
+
+interface QuestCacheEntry {
+  data: QuestListItem[]
+  updatedAt: number
+}
+
+type QuestCacheStore = Record<string, QuestCacheEntry>
+
+function loadCachedQuests(userId: string): QuestCacheEntry | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(QUEST_CACHE_KEY)
+    if (!raw) {
+      return null
+    }
+
+    const parsed = JSON.parse(raw) as QuestCacheStore
+    const entry = parsed[userId]
+    if (!entry) {
+      return null
+    }
+
+    if (Date.now() - entry.updatedAt > QUEST_CACHE_TTL) {
+      return null
+    }
+
+    return entry
+  } catch {
+    return null
+  }
+}
+
+function saveCachedQuests(userId: string, data: QuestListItem[]) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(QUEST_CACHE_KEY)
+    const parsed = raw ? (JSON.parse(raw) as QuestCacheStore) : {}
+    parsed[userId] = {
+      data,
+      updatedAt: Date.now(),
+    }
+    window.sessionStorage.setItem(QUEST_CACHE_KEY, JSON.stringify(parsed))
+  } catch {
+    // ignore cache failures
+  }
+}
 
 type InteractionPhase = 'idle' | 'starting' | 'question' | 'submitting' | 'result'
 
@@ -93,6 +148,7 @@ export default function QuestPage() {
   const [hasLoaded, setHasLoaded] = useState(false)
   const [hasRevealedQuests, setHasRevealedQuests] = useState(false)
   const [interactionState, setInteractionState] = useState<Record<string, QuestInteraction>>({})
+  const hydratedUserIdRef = useRef<string | null>(null)
 
   const getDefaultInteraction = () => ({
     phase: 'idle' as InteractionPhase,
@@ -122,12 +178,14 @@ export default function QuestPage() {
       setIsLoading(false)
       setHasLoaded(false)
       setHasRevealedQuests(false)
+      hydratedUserIdRef.current = null
       return
     }
 
     let isCancelled = false
     let rafId: number | null = null
     let timeoutId: ReturnType<typeof setTimeout> | null = null
+    let hydratedFromCache = false
 
     const scheduleHasLoaded = () => {
       if (isCancelled) {
@@ -149,9 +207,24 @@ export default function QuestPage() {
       }
     }
 
+    if (hydratedUserIdRef.current !== user.id) {
+      hydratedUserIdRef.current = user.id
+      const cachedEntry = loadCachedQuests(user.id)
+      if (cachedEntry && cachedEntry.data.length > 0) {
+        hydratedFromCache = true
+        setInteractionState({})
+        setQuests(cachedEntry.data)
+        setError(null)
+        setHasLoaded(true)
+        setHasRevealedQuests(true)
+      }
+    }
+
     const fetchQuests = async () => {
       setIsLoading(true)
-      setHasLoaded(false)
+      if (!hydratedFromCache) {
+        setHasLoaded(false)
+      }
       setError(null)
 
       try {
@@ -171,6 +244,7 @@ export default function QuestPage() {
 
         if (!isCancelled) {
           setQuests(body.data)
+          saveCachedQuests(user.id, body.data)
           scheduleHasLoaded()
         }
       } catch (fetchError) {
@@ -327,8 +401,8 @@ export default function QuestPage() {
         throw new Error('퀘스트 정보를 불러올 수 없습니다.')
       }
 
-      setQuests((prev) =>
-        prev.map((item) => {
+      setQuests((prev) => {
+        const next = prev.map((item) => {
           if (item.id !== quest.id) {
             return item
           }
@@ -354,7 +428,10 @@ export default function QuestPage() {
             },
           }
         })
-      )
+
+        saveCachedQuests(user.id, next)
+        return next
+      })
 
       updateInteractionState(quest.id, {
         phase: 'question',
@@ -422,8 +499,8 @@ export default function QuestPage() {
         throw new Error('제출 결과를 확인할 수 없습니다.')
       }
 
-      setQuests((prev) =>
-        prev.map((item) =>
+      setQuests((prev) => {
+        const next = prev.map((item) =>
           item.id === quest.id
             ? {
                 ...item,
@@ -436,7 +513,10 @@ export default function QuestPage() {
               }
             : item
         )
-      )
+
+        saveCachedQuests(user.id, next)
+        return next
+      })
 
       const successMessage = data.isSuccess
         ? '정답입니다! 응모권이 지급 대기 상태입니다.'
