@@ -395,9 +395,8 @@ describe('QuestPage UI', () => {
     render(<QuestPage />)
 
     const card = await screen.findByTestId('quest-card')
-    expect(card.getAttribute('data-revealed')).toBe('false')
-    await waitFor(() => expect(card.getAttribute('data-revealed')).toBe('true'))
-    expect(card.className).toContain('opacity-100')
+    expect(card.className).toContain('animate__animated')
+    expect(card.className).toContain('animate__fadeInUp')
   })
 
   it('reuses cached quests on remount to avoid skeleton flicker', async () => {
@@ -453,7 +452,7 @@ describe('QuestPage UI', () => {
 
     expect(screen.getByText('캐시된 퀘스트')).toBeInTheDocument()
     const cachedCard = screen.getByTestId('quest-card')
-    expect(cachedCard.className).not.toContain('card-scale-in')
+    expect(cachedCard.className).not.toContain('animate__animated')
     expect(secondContainer.querySelector('.animate-pulse')).toBeNull()
     expect(global.fetch).toHaveBeenCalledWith('/api/quests', expect.any(Object))
   })
@@ -510,10 +509,10 @@ describe('QuestPage UI', () => {
 
     render(<QuestPage />)
 
-    // Card should be visible immediately from cache
+    // Card should be visible immediately from cache without animation
     const card = await screen.findByTestId('quest-card')
     expect(card).toBeInTheDocument()
-    expect(card.getAttribute('data-revealed')).toBe('true')
+    expect(card.className).not.toContain('animate__animated')
 
     // Wait for API to complete
     resolveApiCall!({
@@ -523,11 +522,9 @@ describe('QuestPage UI', () => {
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled())
 
-    // Card should still be revealed (no flickering)
+    // Card should still be visible without animation (no flickering)
     await new Promise((r) => setTimeout(r, 150))
-    expect(card.getAttribute('data-revealed')).toBe('true')
-    expect(card.className).toContain('opacity-100')
-    expect(card.className).not.toContain('opacity-0')
+    expect(card.className).not.toContain('animate__animated')
   })
 
   it('renders named sections for quest groupings', async () => {

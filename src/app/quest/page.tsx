@@ -18,7 +18,6 @@ export default function QuestPage() {
     groupedQuests,
     fallbackQuests,
     error,
-    hasRevealedQuests,
     shouldAnimateCards,
     showSkeleton,
     showEmptyState,
@@ -67,7 +66,6 @@ export default function QuestPage() {
                 title={title}
                 items={items}
                 emptyLabel={emptyLabel}
-                hasRevealedQuests={hasRevealedQuests}
                 shouldAnimateCards={shouldAnimateCards}
                 getInteraction={getInteraction}
                 onSelectOption={handleSelectOption}
@@ -82,7 +80,6 @@ export default function QuestPage() {
               title={OTHER_TYPE_LABEL.title}
               items={fallbackQuests}
               emptyLabel={OTHER_TYPE_LABEL.emptyLabel}
-              hasRevealedQuests={hasRevealedQuests}
               shouldAnimateCards={shouldAnimateCards}
               getInteraction={getInteraction}
               onSelectOption={handleSelectOption}

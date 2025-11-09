@@ -16,7 +16,6 @@ interface UseQuestDataResult {
   isLoading: boolean
   error: string | null
   hasLoaded: boolean
-  hasRevealedQuests: boolean
   shouldAnimateCards: boolean
   showSkeleton: boolean
   showEmptyState: boolean
@@ -31,11 +30,9 @@ export function useQuestData(userId: string | null): UseQuestDataResult {
   const [isLoading, setIsLoading] = useState<boolean>(Boolean(userId))
   const [error, setError] = useState<string | null>(null)
   const [hasLoaded, setHasLoaded] = useState(false)
-  const [hasRevealedQuests, setHasRevealedQuests] = useState(false)
   const [interactionState, setInteractionState] = useState<QuestInteractionState>({})
   const [shouldAnimateCards, setShouldAnimateCards] = useState(true)
   const hydratedUserIdRef = useRef<string | null>(null)
-  const skipNextRevealRef = useRef(false)
 
   const updateInteractionState = useCallback(
     (questId: string, patch: Partial<QuestInteraction>) => {
@@ -58,7 +55,6 @@ export function useQuestData(userId: string | null): UseQuestDataResult {
     setInteractionState({})
     setIsLoading(false)
     setHasLoaded(false)
-    setHasRevealedQuests(false)
     setShouldAnimateCards(true)
     hydratedUserIdRef.current = null
   }, [])
@@ -103,8 +99,6 @@ export function useQuestData(userId: string | null): UseQuestDataResult {
         setQuests(cachedEntry.data)
         setError(null)
         setHasLoaded(true)
-        setHasRevealedQuests(true)
-        skipNextRevealRef.current = true
         setShouldAnimateCards(false)
       } else {
         setShouldAnimateCards(true)
@@ -136,12 +130,6 @@ export function useQuestData(userId: string | null): UseQuestDataResult {
         if (!isCancelled) {
           setQuests(body.data)
           saveCachedQuests(userId, body.data)
-
-          // If we already hydrated from cache, skip the reveal animation for the API update
-          if (hydratedFromCache) {
-            skipNextRevealRef.current = true
-          }
-
           scheduleHasLoaded()
         }
       } catch (fetchError) {
@@ -171,42 +159,6 @@ export function useQuestData(userId: string | null): UseQuestDataResult {
     }
   }, [resetState, userId])
 
-  useEffect(() => {
-    if (!hasLoaded || quests.length === 0) {
-      return
-    }
-
-    if (typeof window === 'undefined') {
-      setHasRevealedQuests(true)
-      return
-    }
-
-    if (skipNextRevealRef.current) {
-      skipNextRevealRef.current = false
-      setHasRevealedQuests(true)
-      return
-    }
-
-    setHasRevealedQuests(false)
-
-    let rafId: number | null = null
-    let timeoutId: number | null = null
-
-    rafId = window.requestAnimationFrame(() => {
-      timeoutId = window.setTimeout(() => {
-        setHasRevealedQuests(true)
-      }, 80)
-    })
-
-    return () => {
-      if (rafId !== null) {
-        window.cancelAnimationFrame(rafId)
-      }
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId)
-      }
-    }
-  }, [hasLoaded, quests])
 
   const questsByType = useMemo<QuestsByTypeResult>(() => {
     const grouped: Record<QuestType, QuestListItem[]> = {
@@ -451,7 +403,6 @@ export function useQuestData(userId: string | null): UseQuestDataResult {
     isLoading,
     error,
     hasLoaded,
-    hasRevealedQuests,
     shouldAnimateCards,
     showSkeleton,
     showEmptyState,

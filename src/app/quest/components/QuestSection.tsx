@@ -10,7 +10,6 @@ interface QuestSectionProps {
   title: string
   items: QuestListItem[]
   emptyLabel: string
-  hasRevealedQuests: boolean
   shouldAnimateCards: boolean
   getInteraction: (questId: string) => QuestInteraction
   onSelectOption: (questId: string, optionValue: number) => void
@@ -23,14 +22,15 @@ export default function QuestSection({
   title,
   items,
   emptyLabel,
-  hasRevealedQuests,
   shouldAnimateCards,
   getInteraction,
   onSelectOption,
   onStartQuest,
   onSubmitAnswer,
 }: QuestSectionProps) {
-  const emptyCardClass = shouldAnimateCards ? 'card-md-animated card-scale-in' : 'card-md-animated'
+  const emptyCardClass = shouldAnimateCards
+    ? 'card-md-animated animate__animated animate__fadeInUp'
+    : 'card-md-animated'
 
   return (
     <section id={`quest-section-${sectionKey}`} className="mb-8 last:mb-0">
@@ -48,7 +48,6 @@ export default function QuestSection({
               quest={quest}
               index={index}
               interaction={getInteraction(quest.id)}
-              hasRevealedQuests={hasRevealedQuests}
               shouldAnimateCards={shouldAnimateCards}
               onSelectOption={onSelectOption}
               onStartQuest={onStartQuest}
