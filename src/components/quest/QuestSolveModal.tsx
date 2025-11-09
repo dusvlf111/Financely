@@ -37,6 +37,7 @@ export default function QuestSolveModal({ quest, isOpen, onClose, onSubmit }: Qu
     }, 1000)
 
     return () => clearInterval(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, timeRemaining])
 
   const handleSubmit = (isTimeout = false) => {

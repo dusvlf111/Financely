@@ -1,134 +1,90 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { useAuth } from '@/lib/context/AuthProvider'
-import type { Quest } from '@/lib/mock/quests'
-import { supabase } from '@/lib/supabase/client'
+import type { Quest, QuestWithProgress, QuestSubmitResponse } from '@/lib/types/quest'
+import { 
+  fetchQuestsWithProgress, 
+  startQuestChallenge, 
+  submitQuestAnswer,
+  claimQuestReward 
+} from '@/lib/quest/questService'
+import QuestCard from '@/components/quest/QuestCard'
+import QuestConfirmModal from '@/components/quest/QuestConfirmModal'
+import QuestSolveModal from '@/components/quest/QuestSolveModal'
+import QuestResultModal from '@/components/quest/QuestResultModal'
 
 export default function QuestPage() {
-  const { addGold, user, profile } = useAuth()
-  const [quests, setQuests] = useState<Quest[]>([])
-  const [userQuests, setUserQuests] = useState<Record<string, { progress: number; completed_at: string | null }>>({})
+  const { user, profile } = useAuth()
+  const [quests, setQuests] = useState<QuestWithProgress[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  // Modal states
+  const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null)
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const [solveModalOpen, setSolveModalOpen] = useState(false)
+  const [resultModalOpen, setResultModalOpen] = useState(false)
+  const [questResult, setQuestResult] = useState<QuestSubmitResponse | null>(null)
 
   useEffect(() => {
-    async function fetchQuests() {
-      if (!user) return
-
-      // 1. 모든 퀘스트 목록 가져오기
-      const { data: questsData } = await supabase.from('quests').select('*')
-      if (questsData) {
-        const formattedQuests: Quest[] = questsData.map(q => ({
-          ...q,
-          rewardGold: q.reward_gold,
-          rewardEnergy: q.reward_energy,
-          progress: 0, // 기본값 설정
-        }))
-        setQuests(formattedQuests)
-      }
-
-      // 2. 현재 사용자의 퀘스트 진행도 가져오기
-      const { data: userQuestsData } = await supabase
-        .from('user_quests')
-        .select('quest_id, progress, completed_at')
-        .eq('user_id', user.id)
-
-      if (userQuestsData) {
-        const userQuestsMap = userQuestsData.reduce((acc, q) => {
-          acc[q.quest_id] = { progress: q.progress, completed_at: q.completed_at }
-          return acc
-        }, {} as Record<string, { progress: number; completed_at: string | null }>)
-        setUserQuests(userQuestsMap)
-      }
-    }
-
-    fetchQuests()
+    loadQuests()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  const weeklyQuests = quests.filter(q => q.type === 'weekly')
-  const dailyQuests = quests.filter(q => q.type === 'daily')
-
-  const handleClaimReward = async (questId: string) => {
-    const quest = quests.find(q => q.id === questId)
-    const userQuest = userQuests[questId]
+  const loadQuests = async () => {
+    if (!user) return
     
-    // 이미 완료했거나, 진행도가 부족하면 반환
-    if (!quest || !user || (userQuest && userQuest.completed_at)) return
-    if (!userQuest || userQuest.progress < quest.target) return
+    setLoading(true)
+    const data = await fetchQuestsWithProgress(user.id)
+    setQuests(data)
+    setLoading(false)
+  }
 
-    if (addGold) {
-      addGold(quest.rewardGold)
-    }
+  const handleChallengeClick = (questId: string) => {
+    const quest = quests.find(q => q.id === questId)
+    if (!quest) return
+    
+    setSelectedQuest(quest)
+    setConfirmModalOpen(true)
+  }
 
-    // DB에 완료 상태 저장
-    const { data } = await supabase
-      .from('user_quests')
-      .upsert({ user_id: user.id, quest_id: questId, progress: userQuest.progress, completed_at: new Date().toISOString() }, { onConflict: 'user_id, quest_id' })
-      .select()
-      .single()
-
-    if (data) {
-      setUserQuests(prev => ({ ...prev, [questId]: { progress: data.progress, completed_at: data.completed_at } }))
+  const handleConfirmChallenge = async () => {
+    if (!user || !selectedQuest) return
+    
+    const success = await startQuestChallenge(user.id, selectedQuest.id)
+    if (success) {
+      setSolveModalOpen(true)
+    } else {
+      alert('퀘스트를 시작할 수 없습니다.')
     }
   }
 
-  const renderQuestCard = (quest: Quest) => {
-    const userQuest = userQuests[quest.id] || { progress: 0, completed_at: null }
-    const isCompleted = !!userQuest.completed_at
-    const isClaimable = userQuest.progress >= quest.target && !isCompleted
-    const progressPercent = Math.min((userQuest.progress / quest.target) * 100, 100)
+  const handleSubmitAnswer = async (answer: string, timeTaken: number) => {
+    if (!user || !selectedQuest) return
+    
+    const result = await submitQuestAnswer(user.id, selectedQuest.id, answer, timeTaken)
+    setQuestResult(result)
+    setResultModalOpen(true)
+    
+    // Reload quests to update UI
+    await loadQuests()
+  }
 
-    return (
-      <div key={quest.id} className="card-md-animated card-scale-in p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h3 className="font-semibold text-lg">{quest.title}</h3>
-            <p className="text-sm text-neutral-600">{quest.description}</p>
-          </div>
-          {isCompleted && (
-            <span className="text-green-600 font-medium">✓ 완료</span>
-          )}
-        </div>
+  const handleClaimReward = async (questId: string) => {
+    if (!user) return
+    
+    const success = await claimQuestReward(user.id, questId)
+    if (success) {
+      alert('보상을 받았습니다!')
+      await loadQuests()
+    } else {
+      alert('보상을 받을 수 없습니다.')
+    }
+  }
 
-        <div className="mb-3">
-          <div className="flex justify-between text-sm text-neutral-600 mb-1">
-            <span>진행도</span>
-            <span>{userQuest.progress}/{quest.target}</span>
-          </div>
-          <div className="w-full bg-neutral-200 rounded-full h-2">
-            <div
-              className="bg-primary-600 h-2 rounded-full transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3 text-sm">
-            <div className="flex items-center gap-1">
-              <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="w-4 h-4" />
-              <span className="text-green-600 font-medium">+{quest.rewardGold}</span>
-            </div>
-            {quest.rewardEnergy > 0 && (
-              <div className="flex items-center gap-1">
-                <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} className="w-4 h-4" />
-                <span className="text-blue-600">+{quest.rewardEnergy}</span>
-              </div>
-            )}
-          </div>
-          {isClaimable && (
-            <button
-              onClick={() => handleClaimReward(quest.id)}
-              className="px-4 py-2 bg-primary-600 text-black rounded-md text-sm"
-            >
-              보상 받기
-            </button>
-          )}
-          {isCompleted && (
-            <span className="text-sm text-neutral-500">보상 수령 완료</span>
-          )}
-        </div>
-      </div>
-    )
+  const handleResultModalClose = () => {
+    setResultModalOpen(false)
+    setQuestResult(null)
+    setSelectedQuest(null)
   }
 
   if (!profile) {
@@ -141,41 +97,155 @@ export default function QuestPage() {
     )
   }
 
+  const dailyQuests = quests.filter(q => q.type === 'daily')
+  const weeklyQuests = quests.filter(q => q.type === 'weekly')
+  const monthlyQuests = quests.filter(q => q.type === 'monthly')
+  const premiumQuests = quests.filter(q => q.type === 'premium')
+  const eventQuests = quests.filter(q => q.type === 'event')
+
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6 pb-28">
       <h1 className="text-2xl font-semibold mb-6">퀘스트</h1>
 
-      <section className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">주간 퀘스트</h2>
-          <span className="text-sm text-neutral-600">남은 기간: 5일 8시간</span>
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-neutral-600">퀘스트를 불러오는 중...</p>
         </div>
-        <div className="space-y-3">
-          {weeklyQuests.length === 0 ? (
-            <div className="card-md-animated card-scale-in p-4 text-center text-neutral-500">
-              주간 퀘스트가 없습니다.
-            </div>
-          ) : (
-            weeklyQuests.map(renderQuestCard)
+      ) : (
+        <>
+          {/* Event Quests (깜짝 퀘스트) */}
+          {eventQuests.length > 0 && (
+            <section className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <span>⚡</span>
+                  <span>깜짝 퀘스트</span>
+                </h2>
+                <span className="text-sm text-purple-600 font-medium animate-pulse">선착순!</span>
+              </div>
+              <div className="space-y-3">
+                {eventQuests.map(quest => (
+                  <QuestCard 
+                    key={quest.id} 
+                    quest={quest} 
+                    onChallenge={handleChallengeClick}
+                    onClaim={handleClaimReward}
+                  />
+                ))}
+              </div>
+            </section>
           )}
-        </div>
-      </section>
 
-      <section>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">일일 퀘스트</h2>
-          <span className="text-sm text-neutral-600">오늘 자정에 리셋</span>
-        </div>
-        <div className="space-y-3">
-          {dailyQuests.length === 0 ? (
-            <div className="card-md-animated card-scale-in p-4 text-center text-neutral-500">
-              일일 퀘스트가 없습니다.
-            </div>
-          ) : (
-            dailyQuests.map(renderQuestCard)
+          {/* Monthly Quests */}
+          {monthlyQuests.length > 0 && (
+            <section className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">월간 퀘스트</h2>
+                <span className="text-sm text-neutral-600">이번 달 말까지</span>
+              </div>
+              <div className="space-y-3">
+                {monthlyQuests.map(quest => (
+                  <QuestCard 
+                    key={quest.id} 
+                    quest={quest} 
+                    onChallenge={handleChallengeClick}
+                    onClaim={handleClaimReward}
+                  />
+                ))}
+              </div>
+            </section>
           )}
-        </div>
-      </section>
+
+          {/* Premium Quests */}
+          {premiumQuests.length > 0 && (
+            <section className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">유료 퀘스트</h2>
+                <span className="text-sm text-yellow-600 font-medium">이번 달 3회 도전 가능</span>
+              </div>
+              <div className="space-y-3">
+                {premiumQuests.map(quest => (
+                  <QuestCard 
+                    key={quest.id} 
+                    quest={quest} 
+                    onChallenge={handleChallengeClick}
+                    onClaim={handleClaimReward}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Weekly Quests */}
+          <section className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">주간 퀘스트</h2>
+              <span className="text-sm text-neutral-600">매주 월요일 리셋</span>
+            </div>
+            <div className="space-y-3">
+              {weeklyQuests.length === 0 ? (
+                <div className="card-md-animated card-scale-in p-4 text-center text-neutral-500">
+                  주간 퀘스트가 없습니다.
+                </div>
+              ) : (
+                weeklyQuests.map(quest => (
+                  <QuestCard 
+                    key={quest.id} 
+                    quest={quest} 
+                    onChallenge={handleChallengeClick}
+                    onClaim={handleClaimReward}
+                  />
+                ))
+              )}
+            </div>
+          </section>
+
+          {/* Daily Quests */}
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">일일 퀘스트</h2>
+              <span className="text-sm text-neutral-600">오늘 자정에 리셋</span>
+            </div>
+            <div className="space-y-3">
+              {dailyQuests.length === 0 ? (
+                <div className="card-md-animated card-scale-in p-4 text-center text-neutral-500">
+                  일일 퀘스트가 없습니다.
+                </div>
+              ) : (
+                dailyQuests.map(quest => (
+                  <QuestCard 
+                    key={quest.id} 
+                    quest={quest} 
+                    onChallenge={handleChallengeClick}
+                    onClaim={handleClaimReward}
+                  />
+                ))
+              )}
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* Modals */}
+      <QuestConfirmModal
+        quest={selectedQuest}
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={handleConfirmChallenge}
+      />
+
+      <QuestSolveModal
+        quest={selectedQuest}
+        isOpen={solveModalOpen}
+        onClose={() => setSolveModalOpen(false)}
+        onSubmit={handleSubmitAnswer}
+      />
+
+      <QuestResultModal
+        result={questResult}
+        isOpen={resultModalOpen}
+        onClose={handleResultModalClose}
+      />
     </div>
   )
 }
