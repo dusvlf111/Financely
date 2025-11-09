@@ -178,8 +178,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function trackQuestProgress(questType: string) {
     if (!user) return
-    const { error } = await supabase.rpc('update_quest_progress', { quest_type_param: questType })
-    if (error) {
+
+    try {
+      const { error } = await supabase.rpc('update_quest_progress', {
+        quest_type: questType,
+        user_id: user.id,
+      })
+
+      if (error) {
+        throw error
+      }
+    } catch (error) {
       console.error('Error tracking quest progress:', error)
     }
   }
