@@ -83,6 +83,46 @@ describe('quest service', () => {
     }
   })
 
+  it('includes user quest progress details when a user record exists', async () => {
+    const { db, pool } = createTestContext()
+
+    try {
+      const questId = '00000000-0000-0000-0000-000000000111'
+
+      db.public.none(`
+        INSERT INTO quests (
+          id, title, description, type,
+          time_limit_seconds, attempts_allowed,
+          option_a, option_b, option_c, option_d, option_e,
+          correct_option, reward, start_at, expire_at, status
+        ) VALUES (
+          '${questId}', 'Tracked Quest', 'Keep progress data', 'weekly',
+          180, 3,
+          'A', 'B', 'C', 'D', 'E',
+          4, '{"badge": "silver"}'::jsonb, now() - interval '2 hours', now() + interval '2 days', 'active'
+        )
+      `)
+
+      await startQuest({ userId, questId, pool })
+
+      db.public.none(`
+        UPDATE user_quests
+        SET status = 'in_progress', attempts = 2, started_at = now() - interval '30 seconds'
+        WHERE quest_id = '${questId}' AND user_id = '${userId}'
+      `)
+
+      const [quest] = await listQuests(userId, { type: 'weekly' }, pool)
+
+      expect(quest.progress.status).toBe('in_progress')
+      expect(quest.progress.remainingAttempts).toBe(1)
+      expect(quest.progress.startedAt).not.toBeNull()
+      expect(quest.options).toHaveLength(5)
+      expect(quest.reward).toEqual({ badge: 'silver' })
+    } finally {
+      await pool.end()
+    }
+  })
+
   it('starts a quest once and blocks duplicate in-progress attempts', async () => {
     const { db, pool } = createTestContext()
 

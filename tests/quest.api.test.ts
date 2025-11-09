@@ -54,6 +54,8 @@ const withUserHeaders = (headers?: HeadersInit): HeadersInit => {
 
 const createRequest = (url: string, init?: RequestInit) => new Request(url, init)
 
+const withParams = (questId: string) => ({ params: Promise.resolve({ questId }) })
+
 describe('quest API routes', () => {
   let context: TestContext
 
@@ -122,7 +124,7 @@ describe('quest API routes', () => {
         method: 'POST',
         headers: withUserHeaders(),
       }),
-      { params: { questId } }
+      withParams(questId)
     )
 
     expect(response.status).toBe(200)
@@ -159,7 +161,7 @@ describe('quest API routes', () => {
         method: 'POST',
         headers: withUserHeaders(),
       }),
-      { params: { questId } }
+      withParams(questId)
     )
 
     const response = await submitHandler(
@@ -168,7 +170,7 @@ describe('quest API routes', () => {
         headers: withUserHeaders({ 'content-type': 'application/json' }),
         body: JSON.stringify({ selectedOption: 3 }),
       }),
-      { params: { questId } }
+      withParams(questId)
     )
 
     expect(response.status).toBe(200)
@@ -206,7 +208,7 @@ describe('quest API routes', () => {
         method: 'POST',
         headers: withUserHeaders(),
       }),
-      { params: { questId } }
+      withParams(questId)
     )
 
     const response = await submitHandler(
@@ -215,7 +217,7 @@ describe('quest API routes', () => {
         headers: withUserHeaders({ 'content-type': 'application/json' }),
         body: JSON.stringify({}),
       }),
-      { params: { questId } }
+      withParams(questId)
     )
 
     expect(response.status).toBe(400)
@@ -244,7 +246,7 @@ describe('quest API routes', () => {
         method: 'POST',
         headers: withUserHeaders(),
       }),
-      { params: { questId } }
+      withParams(questId)
     )
 
     const response = await failHandler(
@@ -253,7 +255,7 @@ describe('quest API routes', () => {
         headers: withUserHeaders({ 'content-type': 'application/json' }),
         body: JSON.stringify({ reason: 'timeout' }),
       }),
-      { params: { questId } }
+      withParams(questId)
     )
 
     expect(response.status).toBe(200)
