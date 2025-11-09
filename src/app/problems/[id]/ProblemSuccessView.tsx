@@ -21,10 +21,10 @@ export default function ProblemSuccessView({ problem, earnedBonus, onNext }: Pro
         </div>
         <div className="text-green-700 space-y-1">
           <div className="flex items-center gap-1">
-            <span>기본 보상</span>
+            <span>기본 보상으로</span>
             <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} />
             <strong>{problem.rewardGold}</strong>
-            <span>가 지급되었습니다.</span>
+            <span>골드가 지급되었습니다.</span>
           </div>
           {earnedBonus.gold > 0 && (
             <div className="flex items-center gap-1 font-bold">

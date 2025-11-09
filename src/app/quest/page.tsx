@@ -505,6 +505,8 @@ export default function QuestPage() {
     </section>
   )
 
+  const showSkeleton = !hasLoaded
+
   return (
     <div className="max-w-[768px] mx-auto px-4 py-6 pb-28">
       <h1 className="text-2xl font-semibold mb-6">퀘스트</h1>
@@ -515,12 +517,12 @@ export default function QuestPage() {
         </div>
       )}
 
-      {isLoading ? (
+      {showSkeleton ? (
         <div className="space-y-3">
           <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
           <div className="card-md-animated card-scale-in p-4 bg-neutral-100 animate-pulse h-28" />
         </div>
-      ) : hasLoaded && quests.length === 0 && !error ? (
+      ) : quests.length === 0 && !error ? (
         <div className="card-md-animated card-scale-in p-6 text-center text-neutral-500">{EMPTY_MESSAGE}</div>
       ) : (
         <>
