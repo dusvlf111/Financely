@@ -12,6 +12,8 @@ interface ProblemSuccessViewProps {
 export default function ProblemSuccessView({ problem, earnedBonus, onNext }: ProblemSuccessViewProps) {
   const { streak } = useAuth()
 
+  const baseRewardText = `기본 보상으로 ${problem.rewardGold}골드가 지급되었습니다.`
+
   return (
     <div className="space-y-4">
       <div id="success-card" className="p-4 bg-green-50 border-2 border-green-500 rounded-md">
@@ -20,11 +22,12 @@ export default function ProblemSuccessView({ problem, earnedBonus, onNext }: Pro
           <span className="text-lg font-bold text-green-700">정답입니다!</span>
         </div>
         <div className="text-green-700 space-y-1">
-          <div className="flex items-center gap-1">
-            <span>기본 보상으로</span>
+          <div className="flex items-center gap-1 flex-wrap" aria-label={baseRewardText}>
+            <span className="sr-only">{baseRewardText}</span>
+            <span className="whitespace-nowrap">기본 보상으로</span>
             <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} />
-            <strong>{problem.rewardGold}</strong>
-            <span>골드가 지급되었습니다.</span>
+            <strong className="whitespace-nowrap">{problem.rewardGold}</strong>
+            <span className="whitespace-nowrap">골드가 지급되었습니다.</span>
           </div>
           {earnedBonus.gold > 0 && (
             <div className="flex items-center gap-1 font-bold">

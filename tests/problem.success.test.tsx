@@ -22,7 +22,7 @@ describe('ProblemSuccessView', () => {
     rewardGold: 40,
   }
 
-  it('renders natural language for the base reward payout', () => {
+  it('renders natural language for the base reward payout with proper spacing', () => {
     render(
       <ProblemSuccessView
         problem={baseProblem}
@@ -31,8 +31,6 @@ describe('ProblemSuccessView', () => {
       />
     )
 
-    expect(screen.getByText('기본 보상으로')).toBeInTheDocument()
-    expect(screen.getByText(baseProblem.rewardGold.toString())).toBeInTheDocument()
-    expect(screen.getByText('골드가 지급되었습니다.')).toBeInTheDocument()
+    expect(screen.getByText(`기본 보상으로 ${baseProblem.rewardGold}골드가 지급되었습니다.`)).toBeInTheDocument()
   })
 })
