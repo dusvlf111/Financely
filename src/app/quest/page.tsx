@@ -124,6 +124,28 @@ export default function QuestPage() {
     }
 
     let isCancelled = false
+    let rafId: number | null = null
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+    const scheduleHasLoaded = () => {
+      if (isCancelled) {
+        return
+      }
+
+      if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+        rafId = window.requestAnimationFrame(() => {
+          if (!isCancelled) {
+            setHasLoaded(true)
+          }
+        })
+      } else {
+        timeoutId = setTimeout(() => {
+          if (!isCancelled) {
+            setHasLoaded(true)
+          }
+        }, 0)
+      }
+    }
 
     const fetchQuests = async () => {
       setIsLoading(true)
@@ -147,14 +169,14 @@ export default function QuestPage() {
 
         if (!isCancelled) {
           setQuests(body.data)
-          setHasLoaded(true)
+          scheduleHasLoaded()
         }
       } catch (fetchError) {
         if (!isCancelled) {
           const message = fetchError instanceof Error ? fetchError.message : '알 수 없는 오류가 발생했습니다.'
           setError(message)
           setQuests([])
-          setHasLoaded(true)
+          scheduleHasLoaded()
         }
       } finally {
         if (!isCancelled) {
@@ -167,6 +189,14 @@ export default function QuestPage() {
 
     return () => {
       isCancelled = true
+
+      if (rafId !== null && typeof window !== 'undefined' && typeof window.cancelAnimationFrame === 'function') {
+        window.cancelAnimationFrame(rafId)
+      }
+
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
     }
   }, [user])
 

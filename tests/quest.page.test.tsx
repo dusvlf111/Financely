@@ -9,6 +9,25 @@ jest.mock('@/lib/context/AuthProvider', () => ({
 
 const mockUseAuth = jest.requireMock('@/lib/context/AuthProvider').useAuth as jest.Mock
 
+const originalRequestAnimationFrame = global.requestAnimationFrame
+const originalCancelAnimationFrame = global.cancelAnimationFrame
+
+beforeAll(() => {
+  global.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+    callback(0)
+    return 0
+  }) as typeof global.requestAnimationFrame
+
+  global.cancelAnimationFrame = ((handle: number) => handle) as typeof global.cancelAnimationFrame
+})
+
+afterAll(() => {
+  global.requestAnimationFrame = originalRequestAnimationFrame
+  if (originalCancelAnimationFrame) {
+    global.cancelAnimationFrame = originalCancelAnimationFrame
+  }
+})
+
 function createProfile(): Profile {
   return {
     id: 'profile-1',
