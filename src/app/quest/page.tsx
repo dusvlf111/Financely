@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { useAuth } from '@/lib/context/AuthProvider'
-import type { QuestListItem, QuestStatus } from '@/lib/quests/service'
+import type { QuestListItem, QuestStatus, QuestType } from '@/lib/quests/service'
 
 const STATUS_LABEL: Record<QuestStatus, string> = {
   idle: '대기 중',
@@ -16,6 +16,18 @@ const STATUS_LABEL: Record<QuestStatus, string> = {
 
 const FALLBACK_USER_MESSAGE = '로그인이 필요합니다.'
 const EMPTY_MESSAGE = '등록된 퀘스트가 없습니다.'
+
+const QUEST_TYPE_ORDER: QuestType[] = ['weekly', 'daily', 'monthly', 'premium', 'event']
+
+const QUEST_TYPE_LABEL: Record<QuestType, { title: string; emptyLabel: string }> = {
+  weekly: { title: '주간 퀘스트', emptyLabel: '주간 퀘스트가 없습니다.' },
+  daily: { title: '일일 퀘스트', emptyLabel: '일일 퀘스트가 없습니다.' },
+  monthly: { title: '월간 퀘스트', emptyLabel: '월간 퀘스트가 없습니다.' },
+  premium: { title: '프리미엄 퀘스트', emptyLabel: '프리미엄 퀘스트가 없습니다.' },
+  event: { title: '이벤트 퀘스트', emptyLabel: '이벤트 퀘스트가 없습니다.' },
+}
+
+const OTHER_TYPE_LABEL = { title: '기타 퀘스트', emptyLabel: '기타 퀘스트가 없습니다.' }
 
 function formatTimestamp(value: string | null): string {
   if (!value) {
@@ -105,8 +117,33 @@ export default function QuestPage() {
     }
   }, [user])
 
-  const weeklyQuests = useMemo(() => quests.filter((quest) => quest.type === 'weekly'), [quests])
-  const dailyQuests = useMemo(() => quests.filter((quest) => quest.type === 'daily'), [quests])
+  const questsByType = useMemo(() => {
+    const grouped: Record<QuestType, QuestListItem[]> = {
+      weekly: [],
+      daily: [],
+      monthly: [],
+      premium: [],
+      event: [],
+    }
+
+    const fallback: QuestListItem[] = []
+
+    for (const quest of quests) {
+      switch (quest.type) {
+        case 'weekly':
+        case 'daily':
+        case 'monthly':
+        case 'premium':
+        case 'event':
+          grouped[quest.type].push(quest)
+          break
+        default:
+          fallback.push(quest)
+      }
+    }
+
+    return { grouped, fallback }
+  }, [quests])
 
   if (!profile) {
     return (
@@ -119,7 +156,7 @@ export default function QuestPage() {
   }
 
   const renderQuestCard = (quest: QuestListItem) => {
-    const statusLabel = STATUS_LABEL[quest.progress.status]
+  const statusLabel = STATUS_LABEL[quest.progress.status] ?? '알 수 없음'
     const rewardLabel = extractRewardLabel(quest.reward)
     const isCompleted = quest.progress.status === 'completed' || quest.progress.isSuccess === true
     const attemptLabel = `남은 시도 ${quest.progress.remainingAttempts}`
@@ -155,8 +192,8 @@ export default function QuestPage() {
     )
   }
 
-  const renderSection = (title: string, items: QuestListItem[], emptyLabel: string) => (
-    <section className="mb-8 last:mb-0">
+  const renderSection = (key: string, title: string, items: QuestListItem[], emptyLabel: string) => (
+    <section key={key} className="mb-8 last:mb-0">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">{title}</h2>
         <span className="text-sm text-neutral-600">총 {items.length}개</span>
@@ -190,8 +227,16 @@ export default function QuestPage() {
         <div className="card-md-animated card-scale-in p-6 text-center text-neutral-500">{EMPTY_MESSAGE}</div>
       ) : (
         <>
-          {renderSection('주간 퀘스트', weeklyQuests, '주간 퀘스트가 없습니다.')}
-          {renderSection('일일 퀘스트', dailyQuests, '일일 퀘스트가 없습니다.')}
+          {QUEST_TYPE_ORDER.map((type) => {
+            const items = questsByType.grouped[type]
+            const { title, emptyLabel } = QUEST_TYPE_LABEL[type]
+            const shouldRender = items.length > 0 || type === 'weekly' || type === 'daily'
+
+            return shouldRender ? renderSection(type, title, items, emptyLabel) : null
+          })}
+          {questsByType.fallback.length > 0
+            ? renderSection('other', OTHER_TYPE_LABEL.title, questsByType.fallback, OTHER_TYPE_LABEL.emptyLabel)
+            : null}
         </>
       )}
     </div>

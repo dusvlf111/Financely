@@ -94,6 +94,27 @@ describe('QuestPage UI', () => {
           startsAt: '2030-01-02T00:00:00Z',
         },
       },
+      {
+        id: 'quest-monthly',
+        title: '월간 도전',
+        description: '월간 목표 달성',
+        type: 'monthly',
+        status: 'active',
+        reward: { xp: 100 },
+        options: ['A', 'B', 'C', 'D', 'E'],
+        progress: {
+          status: 'idle',
+          remainingAttempts: 2,
+          startedAt: null,
+          submittedAt: null,
+          isSuccess: null,
+        },
+        timer: {
+          limitSeconds: 120,
+          expiresAt: '2030-02-01T00:00:00Z',
+          startsAt: '2030-01-01T00:00:00Z',
+        },
+      },
     ]
 
     ;(global.fetch as jest.Mock).mockResolvedValue({
@@ -112,9 +133,11 @@ describe('QuestPage UI', () => {
 
     expect(await screen.findByText('골드 수집')).toBeInTheDocument()
     expect(screen.getByText('완료된 퀘스트')).toBeInTheDocument()
+  expect(screen.getByText('월간 도전')).toBeInTheDocument()
+  expect(screen.getByText('월간 퀘스트')).toBeInTheDocument()
     expect(screen.getByText('골드 +150')).toBeInTheDocument()
     expect(screen.getByText('골드 +50 · 경험치 +20')).toBeInTheDocument()
-    expect(screen.getAllByText(/남은 시도/)).toHaveLength(2)
+  expect(screen.getAllByText(/남은 시도/)).toHaveLength(3)
     expect(screen.getAllByText(/만료/)).not.toHaveLength(0)
     expect(screen.getByText('✓ 완료')).toBeInTheDocument()
   })
