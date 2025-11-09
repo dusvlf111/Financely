@@ -10,9 +10,9 @@ import {
 } from '../../utils'
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     questId: string
-  }
+  }>
 }
 
 export async function POST(request: Request, context: RouteContext) {
@@ -22,7 +22,7 @@ export async function POST(request: Request, context: RouteContext) {
     return unauthorizedResponse()
   }
 
-  const questId = context.params?.questId
+  const { questId } = await context.params
 
   if (!questId) {
     return invalidPayloadResponse('questId is required')

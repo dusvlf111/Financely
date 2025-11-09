@@ -71,6 +71,19 @@ export interface QuestFilters {
   type?: QuestType
 }
 
+type QuestQueryRow = QuestRecord & {
+  user_quest_id: string | null
+  quest_id: string | null
+  user_id: string | null
+  user_status: QuestStatus | null
+  started_at: Date | null
+  submitted_at: Date | null
+  time_taken_seconds: number | null
+  selected_option: number | null
+  is_success: boolean | null
+  attempts: number | null
+}
+
 function getRemainingAttempts(quest: QuestRecord, userQuest: UserQuestRecord | null): number {
   if (!userQuest) {
     return quest.attempts_allowed
@@ -79,20 +92,28 @@ function getRemainingAttempts(quest: QuestRecord, userQuest: UserQuestRecord | n
   return Math.max(quest.attempts_allowed - userQuest.attempts, 0)
 }
 
-function normalizeQuestRow(row: any): QuestListItem {
+function normalizeQuestRow(row: QuestQueryRow): QuestListItem {
   const quest: QuestRecord = row
-  const userQuest: UserQuestRecord | null = row.user_quest_id
+  const hasUserQuestRecord =
+    row.user_quest_id !== null &&
+    row.quest_id !== null &&
+    row.user_id !== null &&
+    row.user_status !== null &&
+    row.started_at !== null &&
+    row.attempts !== null
+
+  const userQuest: UserQuestRecord | null = hasUserQuestRecord
     ? {
-        id: row.user_quest_id,
-        quest_id: row.quest_id,
-        user_id: row.user_id,
-        status: row.user_status,
-        started_at: row.started_at,
+        id: row.user_quest_id!,
+        quest_id: row.quest_id!,
+        user_id: row.user_id!,
+        status: row.user_status!,
+        started_at: row.started_at!,
         submitted_at: row.submitted_at,
         time_taken_seconds: row.time_taken_seconds,
         selected_option: row.selected_option,
         is_success: row.is_success,
-        attempts: row.attempts,
+        attempts: row.attempts!,
       }
     : null
 
@@ -143,7 +164,7 @@ export async function listQuests(
 
   try {
     const conditions: string[] = []
-    const params: any[] = [userId]
+    const params: string[] = [userId]
 
     conditions.push('(q.start_at IS NULL OR q.start_at <= now())')
     conditions.push('(q.expire_at IS NULL OR q.expire_at > now())')
@@ -174,7 +195,7 @@ export async function listQuests(
       ORDER BY q.type, q.created_at DESC
     `
 
-    const { rows } = await client.query(query, params)
+    const { rows } = await client.query<QuestQueryRow>(query, params)
     return rows.map(normalizeQuestRow)
   } finally {
     client.release()
