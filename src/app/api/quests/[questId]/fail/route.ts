@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server'
-
 import { failQuest } from '@/lib/quests/service'
 import {
   getUserId,
   invalidPayloadResponse,
-  invalidQuestIdResponse,
   mapQuestServiceError,
+  readJson,
+  successResponse,
   unauthorizedResponse,
+  validateFailReason,
 } from '../../utils'
 
 interface RouteContext {
@@ -14,8 +14,6 @@ interface RouteContext {
     questId: string
   }
 }
-
-const VALID_REASONS = new Set(['timeout', 'manual'])
 
 export async function POST(request: Request, context: RouteContext) {
   const userId = getUserId(request)
@@ -27,33 +25,20 @@ export async function POST(request: Request, context: RouteContext) {
   const questId = context.params?.questId
 
   if (!questId) {
-    return invalidQuestIdResponse()
+    return invalidPayloadResponse('questId is required')
   }
 
-  let reason: 'timeout' | 'manual' = 'manual'
+  const payload = (await readJson<{ reason?: unknown }>(request)) ?? {}
 
-  try {
-    const rawBody = await request.text()
+  const validation = validateFailReason(payload.reason)
 
-    if (rawBody) {
-      const parsed = JSON.parse(rawBody) as Record<string, unknown>
-      const providedReason = parsed.reason
-
-      if (providedReason !== undefined) {
-        if (typeof providedReason !== 'string' || !VALID_REASONS.has(providedReason)) {
-          return invalidPayloadResponse()
-        }
-
-        reason = providedReason as 'timeout' | 'manual'
-      }
-    }
-  } catch {
-    return invalidPayloadResponse()
+  if ('error' in validation) {
+    return validation.error
   }
 
   try {
-    const result = await failQuest({ userId, questId, reason })
-    return NextResponse.json({ data: result }, { status: 200 })
+    const result = await failQuest({ userId, questId, reason: validation.reason })
+    return successResponse(result)
   } catch (error) {
     return mapQuestServiceError(error)
   }

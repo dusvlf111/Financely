@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server'
-
 import { submitQuest } from '@/lib/quests/service'
 import {
   getUserId,
   invalidPayloadResponse,
-  invalidQuestIdResponse,
   mapQuestServiceError,
+  readJson,
+  successResponse,
   unauthorizedResponse,
+  validateSelectedOption,
 } from '../../utils'
 
 interface RouteContext {
@@ -25,48 +25,29 @@ export async function POST(request: Request, context: RouteContext) {
   const questId = context.params?.questId
 
   if (!questId) {
-    return invalidQuestIdResponse()
+    return invalidPayloadResponse('questId is required')
   }
 
-  let payloadText: string
+  const payload = await readJson<{ selectedOption?: number }>(request)
 
-  try {
-    payloadText = await request.text()
-  } catch {
-    return invalidPayloadResponse()
+  if (!payload) {
+    return invalidPayloadResponse('selectedOption is required')
   }
 
-  if (!payloadText) {
-    return invalidPayloadResponse()
-  }
+  const validation = validateSelectedOption(payload.selectedOption)
 
-  let parsed: unknown
-
-  try {
-    parsed = JSON.parse(payloadText)
-  } catch {
-    return invalidPayloadResponse()
-  }
-
-  const selectedOption = (parsed as Record<string, unknown>).selectedOption
-
-  if (
-    typeof selectedOption !== 'number' ||
-    !Number.isInteger(selectedOption) ||
-    selectedOption < 1 ||
-    selectedOption > 5
-  ) {
-    return invalidPayloadResponse()
+  if ('error' in validation) {
+    return validation.error
   }
 
   try {
     const result = await submitQuest({
       userId,
       questId,
-      selectedOption: selectedOption as number,
+      selectedOption: validation.option,
     })
 
-    return NextResponse.json({ data: result }, { status: 200 })
+    return successResponse(result)
   } catch (error) {
     return mapQuestServiceError(error)
   }
