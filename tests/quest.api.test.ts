@@ -270,3 +270,29 @@ describe('quest API routes', () => {
     expect(record.status).toBe('failed')
   })
 })
+
+describe('quest API fallback without database', () => {
+  beforeEach(() => {
+    setPool(null)
+    delete process.env.SUPABASE_DB_URL
+    delete process.env.DATABASE_URL
+    delete process.env.POSTGRES_URL
+  })
+
+  it('returns seed quests when no database connection is configured', async () => {
+    const response = await listHandler(
+      createRequest('http://localhost/api/quests', {
+        headers: withUserHeaders(),
+      })
+    )
+
+    expect(response.status).toBe(200)
+    const body = await response.json()
+    expect(Array.isArray(body.data)).toBe(true)
+    expect(body.data.length).toBeGreaterThan(0)
+    expect(body.data[0]).toMatchObject({
+      progress: expect.any(Object),
+      timer: expect.any(Object),
+    })
+  })
+})
