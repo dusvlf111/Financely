@@ -452,6 +452,8 @@ describe('QuestPage UI', () => {
     const { container: secondContainer } = render(<QuestPage />)
 
     expect(screen.getByText('캐시된 퀘스트')).toBeInTheDocument()
+    const cachedCard = screen.getByTestId('quest-card')
+    expect(cachedCard.className).not.toContain('card-scale-in')
     expect(secondContainer.querySelector('.animate-pulse')).toBeNull()
     expect(global.fetch).toHaveBeenCalledWith('/api/quests', expect.any(Object))
   })

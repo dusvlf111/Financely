@@ -148,6 +148,7 @@ export default function QuestPage() {
   const [hasLoaded, setHasLoaded] = useState(false)
   const [hasRevealedQuests, setHasRevealedQuests] = useState(false)
   const [interactionState, setInteractionState] = useState<Record<string, QuestInteraction>>({})
+  const [shouldAnimateCards, setShouldAnimateCards] = useState(true)
   const hydratedUserIdRef = useRef<string | null>(null)
   const skipNextRevealRef = useRef(false)
 
@@ -179,6 +180,7 @@ export default function QuestPage() {
       setIsLoading(false)
       setHasLoaded(false)
       setHasRevealedQuests(false)
+      setShouldAnimateCards(true)
       hydratedUserIdRef.current = null
       return
     }
@@ -219,6 +221,9 @@ export default function QuestPage() {
         setHasLoaded(true)
         setHasRevealedQuests(true)
         skipNextRevealRef.current = true
+        setShouldAnimateCards(false)
+      } else {
+        setShouldAnimateCards(true)
       }
     }
 
@@ -559,13 +564,14 @@ export default function QuestPage() {
       ? 'opacity-100 translate-y-0'
       : 'opacity-0 translate-y-2 pointer-events-none'
     const transitionDelay = `${Math.min(index, 6) * 60}ms`
+    const animationClass = shouldAnimateCards ? 'card-md-animated card-scale-in' : 'card-md-animated'
 
     return (
       <div
         key={quest.id}
         data-testid="quest-card"
         data-revealed={hasRevealedQuests ? 'true' : 'false'}
-        className={`card-md-animated card-scale-in p-4 sm:p-5 transition-all duration-300 ease-out ${revealClass}`}
+        className={`${animationClass} p-4 sm:p-5 transition-all duration-300 ease-out ${revealClass}`}
         style={{ transitionDelay }}
       >
         <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between mb-2">
