@@ -1,59 +1,113 @@
-"use client"
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
+"use client";
+import { useGoldStore } from "@/lib/store/goldStore";
+import { supabase } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+const GUEST_PROFILE_STORAGE_KEY = "financely_guest_profile";
+const GUEST_SESSION_FLAG_KEY = "financely_guest_session";
+
+const createGuestProfile = (): Profile => ({
+  id: "guest",
+  username: "게스트",
+  full_name: "게스트",
+  avatar_url: null,
+  gold: 500,
+  energy: 5,
+  level: 1,
+  xp: 0,
+  streak: 0,
+  tutorialCompleted: false,
+});
+
+const loadGuestProfile = (): Profile | null => {
+  if (typeof window === "undefined") return null;
+  const raw = window.localStorage.getItem(GUEST_PROFILE_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as Profile;
+  } catch {
+    return null;
+  }
+};
+
+const persistGuestProfile = (profile: Profile) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    GUEST_PROFILE_STORAGE_KEY,
+    JSON.stringify(profile)
+  );
+};
+
+const markGuestSession = (isActive: boolean) => {
+  if (typeof window === "undefined") return;
+  if (isActive) {
+    window.localStorage.setItem(GUEST_SESSION_FLAG_KEY, "true");
+  } else {
+    window.localStorage.removeItem(GUEST_SESSION_FLAG_KEY);
+  }
+};
 
 export type Profile = {
-  id: string
-  username: string | null
-  full_name: string | null
-  avatar_url: string | null
-  gold: number
-  energy: number
-  level: number
-  xp: number
-  streak: number
-  tutorialCompleted?: boolean
-}
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  gold: number;
+  energy: number;
+  level: number;
+  xp: number;
+  streak: number;
+  tutorialCompleted?: boolean;
+};
 
 type AuthContextType = {
-  user: User | null
-  profile: Profile | null
-  login: (provider: string) => Promise<void>
-  logout: () => Promise<void>
-  addGold?: (amount: number) => Promise<void>
-  updateProfile?: (changes: Partial<Profile>) => Promise<void>
-  addXp?: (amount: number) => Promise<void>
-  streak: number
-  incrementStreak: () => Promise<void>
-  resetStreak: () => Promise<void>
-  trackQuestProgress?: (questType: string) => Promise<void>
-  spendGold?: (amount: number) => Promise<boolean>
-  completeTutorial?: () => Promise<void>
-}
+  user: User | null;
+  profile: Profile | null;
+  login: (provider: string) => Promise<void>;
+  logout: () => Promise<void>;
+  loginAsGuest: () => Promise<void>;
+  isGuest: boolean;
+  addGold?: (amount: number) => Promise<void>;
+  updateProfile?: (changes: Partial<Profile>) => Promise<void>;
+  addXp?: (amount: number) => Promise<void>;
+  streak: number;
+  incrementStreak: () => Promise<void>;
+  resetStreak: () => Promise<void>;
+  trackQuestProgress?: (questType: string) => Promise<void>;
+  spendGold?: (amount: number) => Promise<boolean>;
+  completeTutorial?: () => Promise<void>;
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-    }
-    getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user
-      setUser(currentUser ?? null)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = session?.user;
+      setUser(currentUser ?? null);
       if (currentUser) {
+        setIsGuest(false);
+        markGuestSession(false);
         // Fetch profile when user session changes
         supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentUser.id)
+          .from("profiles")
+          .select("*")
+          .eq("id", currentUser.id)
           .single()
           .then(({ data }) => {
             if (data) {
@@ -68,45 +122,102 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 level: data.level,
                 xp: data.xp,
                 tutorialCompleted: data.tutorial_completed,
-              }
-              setProfile(formattedProfile)
+              };
+              setProfile(formattedProfile);
             }
-          })
+          });
       } else {
-        setProfile(null)
+        const hasGuestSession =
+          typeof window !== "undefined" &&
+          window.localStorage.getItem(GUEST_SESSION_FLAG_KEY) === "true";
+        if (hasGuestSession) {
+          const storedProfile = loadGuestProfile() ?? createGuestProfile();
+          setProfile(storedProfile);
+          setIsGuest(true);
+          persistGuestProfile(storedProfile);
+        } else {
+          setProfile(null);
+        }
       }
-    })
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hasGuestSession =
+      window.localStorage.getItem(GUEST_SESSION_FLAG_KEY) === "true";
+    if (hasGuestSession) {
+      const storedProfile = loadGuestProfile() ?? createGuestProfile();
+      setProfile(storedProfile);
+      setIsGuest(true);
+      markGuestSession(true);
+      persistGuestProfile(storedProfile);
+    }
+  }, []);
 
   // Gold history is now automatically tracked by database trigger
   // No need for manual sync here
 
   async function login(provider: string) {
+    if (isGuest) {
+      markGuestSession(false);
+      setIsGuest(false);
+    }
     await supabase.auth.signInWithOAuth({
-      provider: provider as 'google' | 'kakao',
+      provider: provider as "google" | "kakao",
       options: {
         redirectTo: `${location.origin}/auth/callback`,
       },
-    })
+    });
+  }
+
+  async function loginAsGuest() {
+    if (user) {
+      await supabase.auth.signOut();
+    }
+    const guestProfile = loadGuestProfile() ?? createGuestProfile();
+    setUser(null);
+    setProfile(guestProfile);
+    setIsGuest(true);
+    markGuestSession(true);
+    persistGuestProfile(guestProfile);
   }
 
   async function logout() {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
+    if (isGuest) {
+      setIsGuest(false);
+      setProfile(null);
+      markGuestSession(false);
+      return;
+    }
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
   }
 
   async function addGold(amount: number) {
-    if (!user || !profile) return
-    const newGold = profile.gold + amount
+    if (isGuest) {
+      setProfile((prev) => {
+        if (!prev) return prev;
+        const nextGold = prev.gold + amount;
+        const next = { ...prev, gold: nextGold };
+        persistGuestProfile(next);
+        const { addGoldEntry } = useGoldStore.getState();
+        addGoldEntry(null, nextGold);
+        return next;
+      });
+      return;
+    }
+    if (!user || !profile) return;
+    const newGold = profile.gold + amount;
     const { data } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update({ gold: newGold })
-      .eq('id', user.id)
+      .eq("id", user.id)
       .select()
-      .single()
+      .single();
     if (data) {
       const formattedProfile: Profile = {
         ...data,
@@ -117,20 +228,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         xp: data.xp,
         avatar_url: data.avatar_url,
         tutorialCompleted: data.tutorial_completed,
-      }
-      setProfile(formattedProfile)
+      };
+      setProfile(formattedProfile);
+      const { addGoldEntry } = useGoldStore.getState();
+      await addGoldEntry(user.id, data.gold);
     }
   }
 
   async function spendGold(amount: number) {
-    if (!user || !profile || profile.gold < amount) return false
-    const newGold = profile.gold - amount
+    if (isGuest) {
+      if (!profile || profile.gold < amount) return false;
+      setProfile((prev) => {
+        if (!prev) return prev;
+        const nextGold = prev.gold - amount;
+        const next = { ...prev, gold: nextGold };
+        persistGuestProfile(next);
+        const { addGoldEntry } = useGoldStore.getState();
+        addGoldEntry(null, nextGold);
+        return next;
+      });
+      return true;
+    }
+    if (!user || !profile || profile.gold < amount) return false;
+    const newGold = profile.gold - amount;
     const { data } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update({ gold: newGold })
-      .eq('id', user.id)
+      .eq("id", user.id)
       .select()
-      .single()
+      .single();
     if (data) {
       const formattedProfile: Profile = {
         ...data,
@@ -141,21 +267,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         xp: data.xp,
         avatar_url: data.avatar_url,
         tutorialCompleted: data.tutorial_completed,
-      }
-      setProfile(formattedProfile)
-      return true
+      };
+      setProfile(formattedProfile);
+      const { addGoldEntry } = useGoldStore.getState();
+      await addGoldEntry(user.id, data.gold);
+      return true;
     }
-    return false
+    return false;
   }
 
   async function updateProfile(changes: Partial<Profile>) {
-    if (!user) return
+    if (isGuest) {
+      setProfile((prev) => {
+        if (!prev) return prev;
+        const next: Profile = { ...prev, ...changes };
+        persistGuestProfile(next);
+        return next;
+      });
+      return;
+    }
+    if (!user) return;
     const { data } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update(changes)
-      .eq('id', user.id)
+      .eq("id", user.id)
       .select()
-      .single()
+      .single();
     if (data) {
       const formattedProfile: Profile = {
         ...data,
@@ -166,82 +303,125 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         xp: data.xp,
         avatar_url: data.avatar_url,
         tutorialCompleted: data.tutorial_completed,
-      }
-      setProfile(formattedProfile)
+      };
+      setProfile(formattedProfile);
     }
   }
 
   async function completeTutorial() {
-    if (!user) return
-    await updateProfile({ tutorialCompleted: true })
+    if (isGuest) {
+      setProfile((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev, tutorialCompleted: true };
+        persistGuestProfile(next);
+        return next;
+      });
+      return;
+    }
+    if (!user) return;
+    await updateProfile({ tutorialCompleted: true });
   }
 
   async function trackQuestProgress(questType: string) {
-    if (!user) return
+    if (!user) return;
 
     try {
-      const { error } = await supabase.rpc('update_quest_progress', {
+      const { error } = await supabase.rpc("update_quest_progress", {
         quest_type: questType,
         user_id: user.id,
-      })
+      });
 
       if (error) {
-        throw error
+        throw error;
       }
     } catch (error) {
-      console.error('Error tracking quest progress:', error)
+      console.error("Error tracking quest progress:", error);
     }
   }
 
   const incrementStreak = async () => {
-    if (!user || !profile) return
-    const newStreak = profile.streak + 1
-    setProfile(p => (p ? { ...p, streak: newStreak } : null)) // Optimistic update
+    if (isGuest) {
+      setProfile((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev, streak: prev.streak + 1 };
+        persistGuestProfile(next);
+        return next;
+      });
+      return;
+    }
+    if (!user || !profile) return;
+    const newStreak = profile.streak + 1;
+    setProfile((p) => (p ? { ...p, streak: newStreak } : null)); // Optimistic update
     await supabase
-      .from('profiles')
+      .from("profiles")
       .update({ streak: newStreak })
-      .eq('id', user.id)
-  }
+      .eq("id", user.id);
+  };
 
   const resetStreak = async () => {
-    if (!user || !profile) return
-    setProfile(p => (p ? { ...p, streak: 0 } : null)) // Optimistic update
-    await supabase
-      .from('profiles')
-      .update({ streak: 0 })
-      .eq('id', user.id)
-  }
+    if (isGuest) {
+      setProfile((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev, streak: 0 };
+        persistGuestProfile(next);
+        return next;
+      });
+      return;
+    }
+    if (!user || !profile) return;
+    setProfile((p) => (p ? { ...p, streak: 0 } : null)); // Optimistic update
+    await supabase.from("profiles").update({ streak: 0 }).eq("id", user.id);
+  };
 
   const addXp = async (amount: number) => {
-    if (!user || !profile) return
+    if (isGuest) {
+      setProfile((prev) => {
+        if (!prev) return prev;
+        const xpForNextLevel = prev.level * 100;
+        const newXp = prev.xp + amount;
+        let newLevel = prev.level;
+        let finalXp = newXp;
+        if (newXp >= xpForNextLevel) {
+          newLevel += 1;
+          finalXp = newXp - xpForNextLevel;
+        }
+        const next = { ...prev, level: newLevel, xp: finalXp };
+        persistGuestProfile(next);
+        return next;
+      });
+      return;
+    }
+    if (!user || !profile) return;
 
-    const xpForNextLevel = profile.level * 100 // 다음 레벨업에 필요한 경험치 (예: 레벨 1 -> 100XP, 레벨 2 -> 200XP)
-    const newXp = profile.xp + amount
+    const xpForNextLevel = profile.level * 100; // 다음 레벨업에 필요한 경험치 (예: 레벨 1 -> 100XP, 레벨 2 -> 200XP)
+    const newXp = profile.xp + amount;
 
-    let newLevel = profile.level
-    let finalXp = newXp
+    let newLevel = profile.level;
+    let finalXp = newXp;
 
     if (newXp >= xpForNextLevel) {
-      newLevel += 1
-      finalXp = newXp - xpForNextLevel
+      newLevel += 1;
+      finalXp = newXp - xpForNextLevel;
       // TODO: 레벨업 축하 모달 또는 애니메이션 표시
     }
 
     // Optimistic UI update
-    setProfile(p => (p ? { ...p, level: newLevel, xp: finalXp } : null))
+    setProfile((p) => (p ? { ...p, level: newLevel, xp: finalXp } : null));
 
     // DB update
     await supabase
-      .from('profiles')
+      .from("profiles")
       .update({ level: newLevel, xp: finalXp })
-      .eq('id', user.id)
-  }
+      .eq("id", user.id);
+  };
 
   const value = {
     user,
     profile,
     login,
     logout,
+    loginAsGuest,
+    isGuest,
     addGold,
     addXp,
     updateProfile,
@@ -251,15 +431,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     streak: profile?.streak ?? 0,
     incrementStreak,
     resetStreak,
-  }
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
-  return ctx
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }
 
-export default AuthProvider
+export default AuthProvider;

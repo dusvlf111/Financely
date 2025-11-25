@@ -1,56 +1,111 @@
-import React from 'react'
-import Image from 'next/image'
-import type { Problem } from '@/lib/mock/problems'
-import { useAuth } from '@/lib/context/AuthProvider'
+import { useAuth } from "@/lib/context/AuthProvider";
+import type { Problem } from "@/lib/mock/problems";
+import Image from "next/image";
+import { useState } from "react";
 
 interface ProblemSuccessViewProps {
-  problem: Problem
-  earnedBonus: { gold: number; energy: number }
-  onNext: () => void
+  problem: Problem;
+  earnedBonus: { gold: number; energy: number };
+  onNext: () => void | Promise<void>;
 }
 
-export default function ProblemSuccessView({ problem, earnedBonus, onNext }: ProblemSuccessViewProps) {
-  const { streak } = useAuth()
+export default function ProblemSuccessView({
+  problem,
+  earnedBonus,
+  onNext,
+}: ProblemSuccessViewProps) {
+  const { streak } = useAuth();
+  const [loadingNext, setLoadingNext] = useState(false);
 
-  const baseRewardText = `기본 보상으로 ${problem.rewardGold}골드가 지급되었습니다.`
-  const streakBonusText = earnedBonus.gold > 0 ? `🔥 ${streak}연속 정답! 보너스 골드 +${earnedBonus.gold} 획득!` : null
-  const energyBonusText = earnedBonus.energy > 0 ? `⚡ 보너스 에너지 +${earnedBonus.energy}개 환급!` : null
+  const baseRewardText = `기본 보상으로 ${problem.rewardGold}골드가 지급되었습니다.`;
+  const streakBonusText =
+    earnedBonus.gold > 0
+      ? `🔥 ${streak}연속 정답! 보너스 골드 +${earnedBonus.gold} 획득!`
+      : null;
+  const energyBonusText =
+    earnedBonus.energy > 0
+      ? `⚡ 보너스 에너지 +${earnedBonus.energy}개 환급!`
+      : null;
 
   return (
     <div className="space-y-4">
-      <div id="success-card" className="p-4 bg-green-50 border-2 border-green-500 rounded-md">
+      <div
+        id="success-card"
+        className="p-4 bg-green-50 border-2 border-green-500 rounded-md"
+      >
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xl sm:text-2xl">✅</span>
-          <span className="text-base sm:text-lg font-bold text-green-700">정답입니다!</span>
+          <span className="text-base sm:text-lg font-bold text-green-700">
+            정답입니다!
+          </span>
         </div>
         <div className="text-green-700 space-y-1 text-sm sm:text-base">
-          <div className="flex items-center gap-1 flex-wrap" aria-label={baseRewardText}>
+          <div
+            className="flex items-center gap-1 flex-wrap"
+            aria-label={baseRewardText}
+          >
             <span className="sr-only">{baseRewardText}</span>
             <span className="whitespace-nowrap">기본 보상으로</span>
-            <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} />
+            <Image
+              src="/icons/gold_icon.svg"
+              alt="Gold"
+              width={16}
+              height={16}
+            />
             <strong className="whitespace-nowrap">{problem.rewardGold}</strong>
             <span className="whitespace-nowrap">골드가 지급되었습니다.</span>
           </div>
           {streakBonusText && (
-            <div className="flex items-center gap-1 flex-wrap font-bold text-sm sm:text-base" aria-label={streakBonusText}>
+            <div
+              className="flex items-center gap-1 flex-wrap font-bold text-sm sm:text-base"
+              aria-label={streakBonusText}
+            >
               <span className="sr-only">{streakBonusText}</span>
-              <span className="flex items-center gap-1 whitespace-nowrap" aria-hidden="true">
+              <span
+                className="flex items-center gap-1 whitespace-nowrap"
+                aria-hidden="true"
+              >
                 <span aria-hidden="true">🔥</span>
                 <span>{streak}연속 정답! 보너스</span>
               </span>
-              <Image src="/icons/gold_icon.svg" alt="Gold" width={16} height={16} className="flex-shrink-0" />
-              <span className="whitespace-nowrap" aria-hidden="true">골드</span>
+              <Image
+                src="/icons/gold_icon.svg"
+                alt="Gold"
+                width={16}
+                height={16}
+                className="flex-shrink-0"
+              />
+              <span className="whitespace-nowrap" aria-hidden="true">
+                골드
+              </span>
               <strong className="whitespace-nowrap">+{earnedBonus.gold}</strong>
-              <span className="whitespace-nowrap" aria-hidden="true">획득!</span>
+              <span className="whitespace-nowrap" aria-hidden="true">
+                획득!
+              </span>
             </div>
           )}
           {energyBonusText && (
-            <div className="flex items-center gap-1 flex-wrap font-bold text-sm sm:text-base" aria-label={energyBonusText}>
+            <div
+              className="flex items-center gap-1 flex-wrap font-bold text-sm sm:text-base"
+              aria-label={energyBonusText}
+            >
               <span className="sr-only">{energyBonusText}</span>
-              <Image src="/icons/energy_icon.svg" alt="Energy" width={16} height={16} className="flex-shrink-0" />
-              <span className="whitespace-nowrap" aria-hidden="true">보너스 에너지</span>
-              <strong className="whitespace-nowrap">+{earnedBonus.energy}</strong>
-              <span className="whitespace-nowrap" aria-hidden="true">개 환급!</span>
+              <Image
+                src="/icons/energy_icon.svg"
+                alt="Energy"
+                width={16}
+                height={16}
+                className="flex-shrink-0"
+              />
+              <span className="whitespace-nowrap" aria-hidden="true">
+                보너스 에너지
+              </span>
+              <strong className="whitespace-nowrap">
+                +{earnedBonus.energy}
+              </strong>
+              <span className="whitespace-nowrap" aria-hidden="true">
+                개 환급!
+              </span>
             </div>
           )}
         </div>
@@ -58,12 +113,57 @@ export default function ProblemSuccessView({ problem, earnedBonus, onNext }: Pro
 
       {problem.explanation && (
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-          <h4 className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">📚 해설</h4>
-          <p className="text-xs sm:text-sm text-blue-800">{problem.explanation}</p>
+          <h4 className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">
+            📚 해설
+          </h4>
+          <p className="text-xs sm:text-sm text-blue-800">
+            {problem.explanation}
+          </p>
         </div>
       )}
 
-      <button onClick={onNext} className="w-full btn-primary text-sm sm:text-base">다음 문제로 →</button>
+      <button
+        onClick={async () => {
+          if (loadingNext) return;
+          try {
+            setLoadingNext(true);
+            await onNext();
+          } finally {
+            // Usually navigation unmounts the component; fallback reset if it stays mounted
+            setLoadingNext(false);
+          }
+        }}
+        disabled={loadingNext}
+        className="w-full btn-primary text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        {loadingNext ? (
+          <>
+            <svg
+              className="w-4 h-4 animate-spin text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
+            </svg>
+            <span>다음 문제 로딩 중...</span>
+          </>
+        ) : (
+          <>다음 문제로 →</>
+        )}
+      </button>
     </div>
-  )
+  );
 }

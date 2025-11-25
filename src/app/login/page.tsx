@@ -1,21 +1,26 @@
-"use client"
-import React, { useEffect } from 'react'
-import Image from 'next/image'
-import SocialButton from '../../components/Auth/SocialButton'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/context/AuthProvider'
+"use client";
+import { useAuth } from "@/lib/context/AuthProvider";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import SocialButton from "../../components/Auth/SocialButton";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { login, user } = useAuth()
+  const router = useRouter();
+  const { login, loginAsGuest, user, isGuest } = useAuth();
 
   useEffect(() => {
-    if (user) router.replace('/learn')
+    if (user || isGuest) router.replace("/learn");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
+  }, [user, isGuest]);
 
   function handleSocialLogin(provider: string) {
-    login(provider as 'google' | 'kakao' | 'naver')
+    login(provider as "google" | "kakao" | "naver");
+  }
+
+  async function handleGuestLogin() {
+    await loginAsGuest();
+    router.replace("/learn");
   }
 
   return (
@@ -42,13 +47,38 @@ export default function LoginPage() {
 
           <div className="space-y-3">
             {/* SocialButton 컴포넌트가 provider에 따라 스타일을 내부적으로 처리한다고 가정합니다. */}
-            <SocialButton provider="google" onClick={() => handleSocialLogin('google')}>Google로 시작하기</SocialButton>
-            <SocialButton provider="naver" onClick={() => handleSocialLogin('naver 미구현')}>Naver로 시작하기</SocialButton>
-            <SocialButton provider="kakao" onClick={() => handleSocialLogin('kakao')}>Kakao로 시작하기</SocialButton>
+            <SocialButton
+              provider="google"
+              onClick={() => handleSocialLogin("google")}
+            >
+              Google로 시작하기
+            </SocialButton>
+            <SocialButton
+              provider="naver"
+              onClick={() => handleSocialLogin("naver 미구현")}
+            >
+              Naver로 시작하기
+            </SocialButton>
+            <SocialButton
+              provider="kakao"
+              onClick={() => handleSocialLogin("kakao")}
+            >
+              Kakao로 시작하기
+            </SocialButton>
+            <button
+              type="button"
+              className="w-full px-4 py-3 rounded-xl border border-dashed border-primary-200 text-sm font-medium text-primary-600 bg-white/80 hover:bg-primary-50 transition-colors"
+              onClick={handleGuestLogin}
+            >
+              로그인 없이 둘러보기
+            </button>
           </div>
         </div>
-        <p className="mt-6 text-xs text-neutral-500">계속 진행하면 이용 약관 및 개인정보처리방침에 동의하게 됩니다.</p>
+        <p className="mt-6 text-xs text-neutral-500">
+          회원 가입 없이도 체험이 가능하며, 게스트 데이터는 이 기기에만
+          저장됩니다.
+        </p>
       </div>
     </div>
-  )
+  );
 }

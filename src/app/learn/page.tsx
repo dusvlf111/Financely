@@ -1,32 +1,54 @@
-"use client"
-import React, { useEffect } from 'react'
-import GoldPortfolio from './components/GoldPortfolio'
-import LevelProgress from './components/LevelProgress'
-import LevelWorksheet from './components/LevelWorksheet'
-import { useAuth } from '@/lib/context/AuthProvider'
-import { useRouter } from 'next/navigation'
+"use client";
+import { useAuth } from "@/lib/context/AuthProvider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import GoldPortfolio from "./components/GoldPortfolio";
+import LevelProgress from "./components/LevelProgress";
+import LevelWorksheet from "./components/LevelWorksheet";
 
 export default function LearnPage() {
-  const { user, profile } = useAuth()
-  const router = useRouter()
+  const { user, profile, isGuest } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     // 인증 정보 로딩이 끝났는데, 유저 정보가 없으면 로그인 페이지로 이동
-    if (!user) {
-      router.push('/login')
+    if (!user && !isGuest) {
+      router.push("/login");
     }
-  }, [user, router])
+  }, [user, isGuest, router]);
 
   // 인증 정보 로딩 중이거나, 유저 정보가 아직 없다면 로딩 화면 표시
-  if (!user || !profile) {
+  if (!profile) {
     return (
-      <div className="flex justify-center items-center pt-20">
-        <p>콘텐츠를 불러오는 중입니다...</p>
+      <div className="flex flex-col justify-center items-center pt-20">
+        <svg
+          className="w-8 h-8 animate-spin text-primary-500 mb-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+        <p className="text-neutral-500 text-sm">
+          콘텐츠를 불러오는 중입니다...
+        </p>
       </div>
-    )
+    );
   }
 
-  const currentLevel = profile?.level || 0
+  const currentLevel = profile?.level || 0;
 
   return (
     <div>
@@ -57,7 +79,7 @@ export default function LearnPage() {
                 </p>
               </div>
               <button
-                onClick={() => router.push('/shop')}
+                onClick={() => router.push("/shop")}
                 className="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded hover:bg-primary-600 transition-colors whitespace-nowrap"
               >
                 상점 가기
@@ -67,5 +89,5 @@ export default function LearnPage() {
         </section>
       </main>
     </div>
-  )
+  );
 }

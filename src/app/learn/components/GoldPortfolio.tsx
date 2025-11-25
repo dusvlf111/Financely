@@ -1,54 +1,65 @@
-"use client"
-import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
-import { useAuth } from '@/lib/context/AuthProvider'
-import { useGoldStore } from '@/lib/store/goldStore'
-import GoldChart from './GoldChart'
+"use client";
+import { useAuth } from "@/lib/context/AuthProvider";
+import { useGoldStore } from "@/lib/store/goldStore";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import GoldChart from "./GoldChart";
 
-type TimeRange = 'TODAY' | '1D' | '1W' | '1M' | '1Y' | 'ALL'
+type TimeRange = "TODAY" | "1D" | "1W" | "1M" | "1Y" | "ALL";
 
 export default function GoldPortfolio() {
-  const { profile, user } = useAuth()
-  const { history: goldHistory, todayStartGold, fetchHistory, setTodayStartGold, addGoldEntry } = useGoldStore()
-  const [mounted, setMounted] = useState(false)
-  const [timeRange, setTimeRange] = useState<TimeRange>('TODAY')
+  const { profile, user, isGuest } = useAuth();
+  const {
+    history: goldHistory,
+    todayStartGold,
+    fetchHistory,
+    setTodayStartGold,
+    addGoldEntry,
+  } = useGoldStore();
+  const [mounted, setMounted] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>("TODAY");
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   // Fetch gold history from database when user is available
   useEffect(() => {
-    if (user && mounted && profile) {
-      fetchHistory(user.id).then(() => {
-        // 히스토리가 없다면 현재 골드로 초기 히스토리 생성
-        setTimeout(() => {
-          const store = useGoldStore.getState()
-          if (store.history.length === 0) {
-            console.log('Creating initial gold history entry with gold:', profile.gold)
-            addGoldEntry(user.id, profile.gold)
-          }
-        }, 500)
-      })
-    }
-  }, [user, mounted, profile, fetchHistory, addGoldEntry])
+    if (!mounted || !profile) return;
+
+    const ownerId = isGuest ? null : user?.id;
+    fetchHistory(ownerId).then(() => {
+      setTimeout(() => {
+        const store = useGoldStore.getState();
+        if (store.history.length === 0) {
+          addGoldEntry(ownerId, profile.gold);
+        }
+      }, 300);
+    });
+  }, [user, isGuest, mounted, profile, fetchHistory, addGoldEntry]);
 
   // Calculate today's start gold
   useEffect(() => {
     if (profile && goldHistory.length > 0) {
       // 오늘 자정의 타임스탬프
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const todayTimestamp = today.getTime()
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayTimestamp = today.getTime();
 
       // 오늘 첫 기록을 찾거나, 없으면 어제의 마지막 기록을 사용
-      const firstEntryToday = goldHistory.find(h => h.timestamp >= todayTimestamp)
-      const lastEntryYesterday = goldHistory.slice().reverse().find(h => h.timestamp < todayTimestamp)
+      const firstEntryToday = goldHistory.find(
+        (h) => h.timestamp >= todayTimestamp
+      );
+      const lastEntryYesterday = goldHistory
+        .slice()
+        .reverse()
+        .find((h) => h.timestamp < todayTimestamp);
 
-      const startGold = firstEntryToday?.gold ?? lastEntryYesterday?.gold ?? profile.gold
-      setTodayStartGold(startGold)
+      const startGold =
+        firstEntryToday?.gold ?? lastEntryYesterday?.gold ?? profile.gold;
+      setTodayStartGold(startGold);
     }
-  }, [profile, goldHistory, setTodayStartGold])
+  }, [profile, goldHistory, setTodayStartGold]);
 
   if (!mounted) {
     return (
@@ -57,10 +68,11 @@ export default function GoldPortfolio() {
           로딩 중...
         </div>
       </div>
-    )
+    );
   }
 
-  const goldChangeToday = profile && todayStartGold !== null ? profile.gold - todayStartGold : 0
+  const goldChangeToday =
+    profile && todayStartGold !== null ? profile.gold - todayStartGold : 0;
   // 1. 퍼센티지 숫자 계산
   const percentageChange = profile
     ? calculateGoldPercentageChange(profile.gold, todayStartGold)
@@ -69,15 +81,15 @@ export default function GoldPortfolio() {
   // 2. 퍼센티지 문자열 포맷팅 (소수점 1자리)
   const percentageString = formatPercentage(percentageChange, 1);
 
-  const timeRanges: TimeRange[] = ['TODAY', '1D', '1W', '1M', '1Y', 'ALL']
+  const timeRanges: TimeRange[] = ["TODAY", "1D", "1W", "1M", "1Y", "ALL"];
   const timeRangeLabels: Record<TimeRange, string> = {
-    'TODAY': '오늘',
-    '1D': '1D',
-    '1W': '1W',
-    '1M': '1M',
-    '1Y': '1Y',
-    'ALL': 'ALL',
-  }
+    TODAY: "오늘",
+    "1D": "1D",
+    "1W": "1W",
+    "1M": "1M",
+    "1Y": "1Y",
+    ALL: "ALL",
+  };
 
   return (
     <div className="card-md-animated animate__animated animate__fadeInUp stagger-1 p-4">
@@ -85,24 +97,33 @@ export default function GoldPortfolio() {
 
       <div className="flex items-end gap-3 mb-1">
         <div className="flex items-center gap-2">
-          <Image src="/icons/gold_icon.svg" alt="Gold" width={32} height={32} className="w-6 h-6 sm:w-8 sm:h-8" />
+          <Image
+            src="/icons/gold_icon.svg"
+            alt="Gold"
+            width={32}
+            height={32}
+            className="w-6 h-6 sm:w-8 sm:h-8"
+          />
           <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {profile ? `${profile.gold.toLocaleString()}` : '—'}
+            {profile ? `${profile.gold.toLocaleString()}` : "—"}
           </div>
         </div>
-        {goldChangeToday !== 0 && (
-          goldChangeToday > 0 ? (
+        {goldChangeToday !== 0 &&
+          (goldChangeToday > 0 ? (
             <div className="text-base text-green-600 font-semibold flex items-center gap-1">
               <span>↗</span>
-              <span>+{goldChangeToday.toLocaleString()} ({percentageString})</span>
+              <span>
+                +{goldChangeToday.toLocaleString()} ({percentageString})
+              </span>
             </div>
           ) : (
             <div className="text-base text-red-600 font-semibold flex items-center gap-1">
               <span>↘</span>
-              <span>{goldChangeToday.toLocaleString()} ({percentageString})</span>
+              <span>
+                {goldChangeToday.toLocaleString()} ({percentageString})
+              </span>
             </div>
-          )
-        )}
+          ))}
       </div>
       <div className="text-xs text-gray-500 mb-3">현재 보유</div>
 
@@ -115,8 +136,8 @@ export default function GoldPortfolio() {
               onClick={() => setTimeRange(range)}
               className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
                 timeRange === range
-                  ? 'bg-primary-500 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? "bg-primary-500 text-white"
+                  : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               {timeRangeLabels[range]}
@@ -143,18 +164,18 @@ export default function GoldPortfolio() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 function calculateGoldPercentageChange(
   currentGold: number,
-  startGold: number | null | undefined,
+  startGold: number | null | undefined
 ): number {
   // 1. 시작 골드 데이터가 없거나(null, undefined) '0'이면 0% 반환
-  if (!startGold) { 
+  if (!startGold) {
     return 0;
   }
-  
+
   // 2. 시작 골드와 현재 골드가 같다면 0% 반환
   if (currentGold === startGold) {
     return 0;
@@ -173,17 +194,17 @@ function calculateGoldPercentageChange(
 function formatPercentage(percentage: number, precision: number = 1): string {
   // 0%일 경우
   if (percentage === 0) {
-    return `0.${'0'.repeat(precision)}%`; // 예: "0.0%"
+    return `0.${"0".repeat(precision)}%`; // 예: "0.0%"
   }
-  
+
   // 소수점 자릿수 적용
   const formatted = percentage.toFixed(precision);
-  
+
   // 0보다 클 경우 '+' 부호 붙이기
   if (percentage > 0) {
     return `+${formatted}%`;
   }
-  
+
   // 0보다 작을 경우
-  return `${formatted}%`; 
+  return `${formatted}%`;
 }
