@@ -61,6 +61,19 @@ export type Profile = {
   tutorialCompleted?: boolean;
 };
 
+type DbProfileRow = {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  gold: number | null;
+  energy: number | null;
+  level: number | null;
+  xp: number | null;
+  streak: number | null;
+  tutorial_completed: boolean | null;
+};
+
 type AuthContextType = {
   user: User | null;
   profile: Profile | null;
@@ -68,6 +81,7 @@ type AuthContextType = {
   logout: () => Promise<void>;
   loginAsGuest: () => Promise<void>;
   isGuest: boolean;
+  isAuthLoading: boolean;
   addGold?: (amount: number) => Promise<void>;
   updateProfile?: (changes: Partial<Profile>) => Promise<void>;
   addXp?: (amount: number) => Promise<void>;
@@ -85,76 +99,101 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isGuest, setIsGuest] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const getSession = async () => {
+    let isMounted = true;
+
+    const formatProfile = (data: DbProfileRow): Profile => ({
+      id: data.id,
+      username: data.username,
+      full_name: data.full_name,
+      avatar_url: data.avatar_url,
+      gold: data.gold ?? 0,
+      energy: data.energy ?? 0,
+      level: data.level ?? 1,
+      xp: data.xp ?? 0,
+      streak: data.streak ?? 0,
+      tutorialCompleted: data.tutorial_completed ?? false,
+    });
+
+    const restoreGuestProfileIfAvailable = () => {
+      if (typeof window === "undefined") return null;
+      const hasGuestSession =
+        window.localStorage.getItem(GUEST_SESSION_FLAG_KEY) === "true";
+      if (!hasGuestSession) return null;
+      const storedProfile = loadGuestProfile() ?? createGuestProfile();
+      persistGuestProfile(storedProfile);
+      return storedProfile;
+    };
+
+    const fetchProfile = async (userId: string): Promise<Profile | null> => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      }
+
+      return data ? formatProfile(data as DbProfileRow) : null;
+    };
+
+    const syncSessionState = async (nextUser: User | null) => {
+      if (!isMounted) return;
+      setIsAuthLoading(true);
+
+      try {
+        setUser(nextUser);
+
+        if (nextUser) {
+          setIsGuest(false);
+          markGuestSession(false);
+          const dbProfile = await fetchProfile(nextUser.id);
+          if (!isMounted) return;
+          setProfile(dbProfile);
+        } else {
+          const guestProfile = restoreGuestProfileIfAvailable();
+          if (!isMounted) return;
+          if (guestProfile) {
+            setProfile(guestProfile);
+            setIsGuest(true);
+            markGuestSession(true);
+          } else {
+            setProfile(null);
+            setIsGuest(false);
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setIsAuthLoading(false);
+        }
+      }
+    };
+
+    const bootstrap = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      if (!isMounted) return;
+      await syncSessionState(session?.user ?? null);
     };
-    getSession();
+
+    bootstrap();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user;
-      setUser(currentUser ?? null);
-      if (currentUser) {
-        setIsGuest(false);
-        markGuestSession(false);
-        // Fetch profile when user session changes
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", currentUser.id)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              // DB (snake_case) -> JS (camelCase)
-              const formattedProfile: Profile = {
-                ...data,
-                username: data.username,
-                full_name: data.full_name,
-                avatar_url: data.avatar_url,
-                gold: data.gold,
-                energy: data.energy,
-                level: data.level,
-                xp: data.xp,
-                tutorialCompleted: data.tutorial_completed,
-              };
-              setProfile(formattedProfile);
-            }
-          });
-      } else {
-        const hasGuestSession =
-          typeof window !== "undefined" &&
-          window.localStorage.getItem(GUEST_SESSION_FLAG_KEY) === "true";
-        if (hasGuestSession) {
-          const storedProfile = loadGuestProfile() ?? createGuestProfile();
-          setProfile(storedProfile);
-          setIsGuest(true);
-          persistGuestProfile(storedProfile);
-        } else {
-          setProfile(null);
-        }
-      }
+      void syncSessionState(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const hasGuestSession =
-      window.localStorage.getItem(GUEST_SESSION_FLAG_KEY) === "true";
-    if (hasGuestSession) {
-      const storedProfile = loadGuestProfile() ?? createGuestProfile();
-      setProfile(storedProfile);
-      setIsGuest(true);
-      markGuestSession(true);
-      persistGuestProfile(storedProfile);
-    }
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Gold history is now automatically tracked by database trigger
@@ -422,6 +461,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     loginAsGuest,
     isGuest,
+    isAuthLoading,
     addGold,
     addXp,
     updateProfile,

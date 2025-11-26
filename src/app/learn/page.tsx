@@ -7,15 +7,16 @@ import LevelProgress from "./components/LevelProgress";
 import LevelWorksheet from "./components/LevelWorksheet";
 
 export default function LearnPage() {
-  const { user, profile, isGuest } = useAuth();
+  const { user, profile, isGuest, isAuthLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     // 인증 정보 로딩이 끝났는데, 유저 정보가 없으면 로그인 페이지로 이동
+    if (isAuthLoading) return;
     if (!user && !isGuest) {
       router.push("/login");
     }
-  }, [user, isGuest, router]);
+  }, [user, isGuest, router, isAuthLoading]);
 
   // 인증 정보 로딩 중이거나, 유저 정보가 아직 없다면 로딩 화면 표시
   if (!profile) {

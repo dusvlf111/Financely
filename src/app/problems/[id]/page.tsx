@@ -50,14 +50,14 @@ export default function ProblemPage() {
 
   const [problem, setProblem] = useState<Problem | null>(null);
   const [mounted, setMounted] = useState(false);
-  const { user, isGuest, profile } = useAuth();
+  const { user, isGuest, profile, isAuthLoading } = useAuth();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (mounted && !user && !isGuest) {
+    if (mounted && !isAuthLoading && !user && !isGuest) {
       router.push("/login");
     }
 
@@ -81,7 +81,7 @@ export default function ProblemPage() {
     }
 
     fetchProblem();
-  }, [mounted, user, isGuest, router, id]);
+  }, [mounted, user, isGuest, router, id, isAuthLoading]);
 
   const {
     status,
@@ -105,7 +105,9 @@ export default function ProblemPage() {
     return <LoadingState />;
   }
 
-  if (!profile) return null;
+  if (isAuthLoading || !profile) {
+    return <LoadingState message="사용자 정보를 불러오는 중입니다..." />;
+  }
 
   if (!problem) {
     return <LoadingState message="문제를 불러오는 중입니다..." />;
