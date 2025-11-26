@@ -60,7 +60,7 @@ export default function RootLayout({
             {isLayoutNeeded ? (
               <div className="max-w-[768px] mx-auto">
                 <Header />
-                <main className="px-4 pt-4 pb-28">{children}</main>
+                <main className="px-4 pt-4 pb-48">{children}</main>
                 <Navigation />
                 <AssistantWidget />
                 <FeedbackWidget />

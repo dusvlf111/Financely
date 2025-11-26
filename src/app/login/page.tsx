@@ -51,26 +51,26 @@ export default function LoginPage() {
               provider="google"
               onClick={() => handleSocialLogin("google")}
             >
-              Google로 시작하기
+              구글로 시작하기
             </SocialButton>
             <SocialButton
               provider="naver"
               onClick={() => handleSocialLogin("naver 미구현")}
             >
-              Naver로 시작하기
+              네이버로 시작하기
             </SocialButton>
             <SocialButton
               provider="kakao"
               onClick={() => handleSocialLogin("kakao")}
             >
-              Kakao로 시작하기
+              카카오로 시작하기
             </SocialButton>
             <button
               type="button"
               className="w-full px-4 py-3 rounded-xl border border-dashed border-primary-200 text-sm font-medium text-primary-600 bg-white/80 hover:bg-primary-50 transition-colors"
               onClick={handleGuestLogin}
             >
-              로그인 없이 둘러보기
+              게스트로 시작하기
             </button>
           </div>
         </div>
