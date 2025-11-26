@@ -2,6 +2,7 @@
 
 import { MAX_MESSAGE_LENGTH, useAssistantChat } from "@/hooks/useAssistantChat";
 import { useAuth } from "@/lib/context/AuthProvider";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function AssistantWidget() {
@@ -117,6 +118,16 @@ export default function AssistantWidget() {
             data-testid="assistant-messages"
             ref={chatBoxRef}
           >
+            <p className="text-center text-xs text-neutral-500">
+              AI는 부정확한 정보를 제공할 수 있으며, 종목 추천을 하지 않습니다.{" "}
+              <Link
+                href="/disclaimer"
+                className="underline"
+                onClick={() => setIsOpen(false)}
+              >
+                자세히 보기
+              </Link>
+            </p>
             {messages.map((message) => (
               <div
                 key={message.id}
