@@ -1,5 +1,6 @@
 "use client";
 import AssistantWidget from "@/components/modals/AssistantWidget";
+import FeedbackWidget from "@/components/modals/FeedbackWidget";
 import AuthProvider from "@/lib/context/AuthProvider";
 import { EnergyProvider } from "@/lib/store/energyStore";
 import { usePathname } from "next/navigation";
@@ -62,6 +63,7 @@ export default function RootLayout({
                 <main className="px-4 pt-4 pb-28">{children}</main>
                 <Navigation />
                 <AssistantWidget />
+                <FeedbackWidget />
               </div>
             ) : (
               <>{children}</>
