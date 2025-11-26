@@ -281,10 +281,52 @@
 .scroll-animate {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
 }
 
 .scroll-animate.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ========================================
+   Assistant Widget Animations
+======================================== */
+
+@keyframes widgetPopIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.94);
+  }
+  65% {
+    opacity: 1;
+    transform: translate3d(0, -4px, 0) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.widget-pop-in {
+  animation: widgetPopIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes chatBubbleAppear {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.chat-bubble-appear {
+  animation: chatBubbleAppear 0.24s ease-out both;
+  will-change: transform, opacity;
 }
