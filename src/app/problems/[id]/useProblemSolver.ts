@@ -23,7 +23,6 @@ export function useProblemSolver(problem: Problem | null) {
     addGold,
     user,
     profile,
-    trackQuestProgress,
     streak,
     incrementStreak,
     resetStreak,
@@ -142,8 +141,6 @@ export function useProblemSolver(problem: Problem | null) {
           { onConflict: "user_id,problem_id" }
         );
       }
-
-      if (user && trackQuestProgress) trackQuestProgress("solve_problem");
     } else {
       hapticError();
       setStatus("fail");
@@ -165,7 +162,6 @@ export function useProblemSolver(problem: Problem | null) {
     resetStreak,
     addGold,
     addEnergy,
-    trackQuestProgress,
     isGuest,
   ]);
 
@@ -212,7 +208,7 @@ export function useProblemSolver(problem: Problem | null) {
     } else {
       router.push("/learn");
     }
-  }, [profile, user, levelUpInfo, router]);
+  }, [profile, levelUpInfo, router]);
 
   const handleNextProblem = useCallback(async () => {
     if (!problem || !profile) {

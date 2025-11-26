@@ -88,7 +88,6 @@ type AuthContextType = {
   streak: number;
   incrementStreak: () => Promise<void>;
   resetStreak: () => Promise<void>;
-  trackQuestProgress?: (questType: string) => Promise<void>;
   spendGold?: (amount: number) => Promise<boolean>;
   completeTutorial?: () => Promise<void>;
 };
@@ -361,23 +360,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await updateProfile({ tutorialCompleted: true });
   }
 
-  async function trackQuestProgress(questType: string) {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase.rpc("update_quest_progress", {
-        quest_type: questType,
-        user_id: user.id,
-      });
-
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      console.error("Error tracking quest progress:", error);
-    }
-  }
-
   const incrementStreak = async () => {
     if (isGuest) {
       setProfile((prev) => {
@@ -467,7 +449,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateProfile,
     spendGold,
     completeTutorial,
-    trackQuestProgress,
     streak: profile?.streak ?? 0,
     incrementStreak,
     resetStreak,
