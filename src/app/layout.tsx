@@ -61,11 +61,11 @@ export default function RootLayout({
                 <Header />
                 <main className="px-4 pt-4 pb-28">{children}</main>
                 <Navigation />
+                <AssistantWidget />
               </div>
             ) : (
               <>{children}</>
             )}
-            <AssistantWidget />
           </EnergyProvider>
         </AuthProvider>
       </body>
