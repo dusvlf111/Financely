@@ -9,7 +9,7 @@ export default function SplashPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       router.replace("/learn");
-    }, 3000); // 3초 후 /learn 페이지로 이동
+    }, 1500); // 1.5초 후 /learn 페이지로 이동
 
     return () => clearTimeout(timer);
   }, [router]);
@@ -28,7 +28,7 @@ export default function SplashPage() {
       {/* 로고 컨테이너 */}
       <div className="relative text-center z-10">
         {/* 로고 배경 원 - 크게 확장 */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-white/20 rounded-full animate__animated animate__zoomIn"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-white/40 rounded-full animate__animated animate__zoomIn"></div>
 
         {/* 로고 이미지 */}
         <div className="flex justify-center mb-6 animate__animated animate__zoomIn animate__delay-1s">

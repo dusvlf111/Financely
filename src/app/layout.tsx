@@ -1,7 +1,7 @@
 import AppFrame from "@/components/layout/AppFrame";
 import AuthProvider from "@/lib/context/AuthProvider";
 import { EnergyProvider } from "@/lib/store/energyStore";
-import { usePathname } from "next/navigation";
+import type { Metadata, Viewport } from "next";
 import React from "react";
 import "./globals.css";
 import PwaInstallCapture from "./PwaInstallCapture";
@@ -29,20 +29,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isLayoutNeeded = !["/splash", "/login", "/landing"].includes(pathname);
-
   return (
     <html lang="ko">
       <body className="min-h-screen bg-neutral-100 text-neutral-800 text-base">
         <AuthProvider>
           <EnergyProvider>
             <PwaInstallCapture />
-            {isLayoutNeeded ? (
-              <AppFrame>{children}</AppFrame>
-            ) : (
-              <>{children}</>
-            )}
+            <AppFrame>{children}</AppFrame>
           </EnergyProvider>
         </AuthProvider>
       </body>

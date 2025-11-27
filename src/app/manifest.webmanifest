@@ -2,6 +2,7 @@
   "name": "Financely - 금융 학습 플랫폼",
   "short_name": "Financely",
   "description": "재미있게 배우는 금융 게임화 학습 플랫폼",
+  "start_url": "/splash",
   "shortcuts": [
     {
       "name": "학습 시작하기",
