@@ -1,0 +1,32 @@
+{
+  "name": "Financely - 금융 학습 플랫폼",
+  "short_name": "Financely",
+  "description": "재미있게 배우는 금융 게임화 학습 플랫폼",
+  "shortcuts": [
+    {
+      "name": "학습 시작하기",
+      "short_name": "학습 시작",
+      "url": "/learn"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "background_color": "#3182F6",
+  "theme_color": "#3182F6",
+  "orientation": "portrait",
+  "display": "standalone",
+  "categories": ["education", "finance"],
+  "lang": "ko-KR"
+}

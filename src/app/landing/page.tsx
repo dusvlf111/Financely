@@ -1,33 +1,33 @@
-"use client"
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import Image from 'next/image'
+"use client";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LandingPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleCTA = () => {
-    router.push('/login')
-  }
+    router.push("/login");
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('visible')
+            entry.target.classList.add("visible");
           }
-        })
+        });
       },
       { threshold: 0.1 }
-    )
+    );
 
-    document.querySelectorAll('[data-animate]').forEach((el) => {
-      observer.observe(el)
-    })
+    document.querySelectorAll("[data-animate]").forEach((el) => {
+      observer.observe(el);
+    });
 
-    return () => observer.disconnect()
-  }, [])
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -35,7 +35,10 @@ export default function LandingPage() {
       <section className="relative bg-gradient-to-br from-primary-600 via-primary-500 to-primary-400 text-white overflow-hidden">
         <div className="absolute inset-0 overflow-hidden opacity-10">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div
+            className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          ></div>
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
@@ -43,7 +46,7 @@ export default function LandingPage() {
             {/* 로고 */}
             <div className="flex justify-center mb-8 animate-fade-in-down">
               <Image
-                src="/favicon/apple-icon-180x180.png"
+                src="/icons/logo.png"
                 alt="Financely"
                 width={96}
                 height={96}
@@ -53,17 +56,25 @@ export default function LandingPage() {
 
             {/* 메인 헤드라인 - 실제 문제 반영 */}
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight animate-fade-in-up">
-              주식 시작했다가<br />
+              주식 시작했다가
+              <br />
               <span className="text-yellow-300">손해보고 포기</span>하셨나요?
             </h1>
 
             {/* 서브 헤드라인 */}
-            <p className="text-xl md:text-2xl mb-4 text-white/90 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              퀘스트 달성하면 실제 주식을 받는<br className="md:hidden" />
+            <p
+              className="text-xl md:text-2xl mb-4 text-white/90 animate-fade-in-up"
+              style={{ animationDelay: "0.2s" }}
+            >
+              퀘스트 달성하면 실제 주식을 받는
+              <br className="md:hidden" />
               게임형 금융 학습
             </p>
 
-            <p className="text-lg mb-8 text-white/80 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <p
+              className="text-lg mb-8 text-white/80 animate-fade-in-up"
+              style={{ animationDelay: "0.4s" }}
+            >
               문제 풀어 골드 모으고, 퀘스트로 자산 쌓기
             </p>
 
@@ -71,7 +82,7 @@ export default function LandingPage() {
             <button
               onClick={handleCTA}
               className="bg-yellow-400 text-primary-600 px-8 py-4 rounded-full text-lg font-bold hover:bg-yellow-300 transform hover:scale-105 transition-all shadow-2xl animate-fade-in-up"
-              style={{ animationDelay: '0.6s' }}
+              style={{ animationDelay: "0.6s" }}
             >
               무료로 시작하기
             </button>
@@ -101,9 +112,12 @@ export default function LandingPage() {
               data-animate
               className="bg-white p-6 rounded-2xl shadow-md scroll-animate"
             >
-              <h3 className="text-xl font-bold mb-3 text-neutral-800">&quot;용어가 너무 어려워&quot;</h3>
+              <h3 className="text-xl font-bold mb-3 text-neutral-800">
+                &quot;용어가 너무 어려워&quot;
+              </h3>
               <p className="text-neutral-600 text-sm mb-3">
-                복리, 인플레이션, 분산투자...<br />
+                복리, 인플레이션, 분산투자...
+                <br />
                 기본 개념도 이해 못 하고 투자 시작
               </p>
               <div className="text-xs text-neutral-500 bg-neutral-100 p-2 rounded">
@@ -115,11 +129,14 @@ export default function LandingPage() {
               id="problem-2"
               data-animate
               className="bg-white p-6 rounded-2xl shadow-md scroll-animate"
-              style={{ transitionDelay: '0.1s' }}
+              style={{ transitionDelay: "0.1s" }}
             >
-              <h3 className="text-xl font-bold mb-3 text-neutral-800">&quot;공부는 지루해&quot;</h3>
+              <h3 className="text-xl font-bold mb-3 text-neutral-800">
+                &quot;공부는 지루해&quot;
+              </h3>
               <p className="text-neutral-600 text-sm mb-3">
-                유튜브 봐도 이해 안 되고<br />
+                유튜브 봐도 이해 안 되고
+                <br />
                 학원은 비싸고 시간도 없어
               </p>
               <div className="text-xs text-neutral-500 bg-neutral-100 p-2 rounded">
@@ -131,11 +148,14 @@ export default function LandingPage() {
               id="problem-3"
               data-animate
               className="bg-white p-6 rounded-2xl shadow-md scroll-animate"
-              style={{ transitionDelay: '0.2s' }}
+              style={{ transitionDelay: "0.2s" }}
             >
-              <h3 className="text-xl font-bold mb-3 text-neutral-800">&quot;결국 손해보고 포기&quot;</h3>
+              <h3 className="text-xl font-bold mb-3 text-neutral-800">
+                &quot;결국 손해보고 포기&quot;
+              </h3>
               <p className="text-neutral-600 text-sm mb-3">
-                뉴스에 민감하게 반응해서<br />
+                뉴스에 민감하게 반응해서
+                <br />
                 손실 보고 투자 포기
               </p>
               <div className="text-xs text-neutral-500 bg-neutral-100 p-2 rounded">
@@ -146,10 +166,18 @@ export default function LandingPage() {
 
           {/* 핵심 통계 */}
           <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 p-6 rounded-lg">
-            <h4 className="font-bold text-lg mb-2 text-neutral-800">핵심 문제</h4>
+            <h4 className="font-bold text-lg mb-2 text-neutral-800">
+              핵심 문제
+            </h4>
             <p className="text-neutral-700">
-              <span className="font-bold">20대 청년들은 체계적인 금융 지식 없이 주식투자를 시작</span>하여 높은 확률로 실패하고 포기합니다.<br />
-              <span className="text-sm text-neutral-600">출처: 금융감독원 「2024 전국민 금융이해력 조사」</span>
+              <span className="font-bold">
+                20대 청년들은 체계적인 금융 지식 없이 주식투자를 시작
+              </span>
+              하여 높은 확률로 실패하고 포기합니다.
+              <br />
+              <span className="text-sm text-neutral-600">
+                출처: 금융감독원 「2024 전국민 금융이해력 조사」
+              </span>
             </p>
           </div>
         </div>
@@ -162,7 +190,9 @@ export default function LandingPage() {
             Financely가 다릅니다
           </h2>
           <p className="text-center text-neutral-600 mb-12">
-            게임처럼 재미있게 배우면서 <span className="font-bold text-primary-600">실제 주식 보상</span>까지
+            게임처럼 재미있게 배우면서{" "}
+            <span className="font-bold text-primary-600">실제 주식 보상</span>
+            까지
           </p>
 
           <div className="space-y-16">
@@ -188,8 +218,11 @@ export default function LandingPage() {
                   퀘스트 완료하면 자산이 쌓입니다
                 </h3>
                 <p className="text-lg text-neutral-700 mb-4">
-                  문제를 풀어 골드를 모으고<br />
-                  <span className="font-bold">퀘스트 달성 시 실제 주식 보상</span>
+                  문제를 풀어 골드를 모으고
+                  <br />
+                  <span className="font-bold">
+                    퀘스트 달성 시 실제 주식 보상
+                  </span>
                 </p>
                 <ul className="space-y-2 text-neutral-600">
                   <li>• 문제 풀면 학습 골드 획득</li>
@@ -222,7 +255,8 @@ export default function LandingPage() {
                   게임처럼 재미있는 학습
                 </h3>
                 <p className="text-lg text-neutral-700 mb-4">
-                  지루한 강의는 NO!<br />
+                  지루한 강의는 NO!
+                  <br />
                   레벨업하며 성장하는 재미
                 </p>
                 <ul className="space-y-2 text-neutral-600">
@@ -242,8 +276,18 @@ export default function LandingPage() {
             >
               <div className="flex-1">
                 <div className="bg-gradient-to-br from-green-500 to-teal-500 w-full h-64 rounded-2xl flex items-center justify-center text-white shadow-xl">
-                  <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  <svg
+                    className="w-24 h-24"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                    />
                   </svg>
                 </div>
               </div>
@@ -252,7 +296,8 @@ export default function LandingPage() {
                   취업에도 도움되는 학습
                 </h3>
                 <p className="text-lg text-neutral-700 mb-4">
-                  프리미엄 플랜으로<br />
+                  프리미엄 플랜으로
+                  <br />
                   금융 자격증 3종 준비 가능
                 </p>
                 <ul className="space-y-2 text-neutral-600">
@@ -272,8 +317,18 @@ export default function LandingPage() {
             >
               <div className="flex-1">
                 <div className="bg-gradient-to-br from-pink-500 to-red-500 w-full h-64 rounded-2xl flex items-center justify-center text-white shadow-xl">
-                  <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                  <svg
+                    className="w-24 h-24"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -282,7 +337,8 @@ export default function LandingPage() {
                   퀘스트 달성하면 실제 주식
                 </h3>
                 <p className="text-lg text-neutral-700 mb-4">
-                  일일/주간/월간 퀘스트를 완료하면<br />
+                  일일/주간/월간 퀘스트를 완료하면
+                  <br />
                   실제 주식 보상을 받아요
                 </p>
                 <ul className="space-y-2 text-neutral-600">
@@ -306,7 +362,8 @@ export default function LandingPage() {
             </div>
 
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              지금 가입하면<br />
+              지금 가입하면
+              <br />
               특별한 혜택을 드려요!
             </h2>
 
@@ -360,9 +417,7 @@ export default function LandingPage() {
             {/* Free Plan */}
             <div className="bg-white p-8 rounded-2xl shadow-md border-2 border-neutral-200">
               <h3 className="text-2xl font-bold mb-2 text-neutral-800">무료</h3>
-              <div className="text-4xl font-bold mb-6 text-primary-600">
-                ₩0
-              </div>
+              <div className="text-4xl font-bold mb-6 text-primary-600">₩0</div>
               <ul className="space-y-3 mb-8 text-neutral-700 text-sm">
                 <li>• 하루 5문제 (에너지 5개)</li>
                 <li>• Bronze 티어까지</li>
@@ -389,9 +444,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-2xl font-bold mb-2 text-white">베이직</h3>
               <div className="flex items-baseline gap-2 mb-6">
-                <div className="text-4xl font-bold text-white">
-                  ₩9,900
-                </div>
+                <div className="text-4xl font-bold text-white">₩9,900</div>
                 <div className="text-white/80 text-sm">/ 월</div>
               </div>
               <ul className="space-y-3 mb-8 text-white text-sm">
@@ -399,7 +452,10 @@ export default function LandingPage() {
                 <li>• 전체 티어 (Bronze ~ Master)</li>
                 <li>• 모든 카테고리</li>
                 <li>• 광고 제거</li>
-                <li>• <span className="font-bold">주식 보상 (월 최대 8,000원)</span></li>
+                <li>
+                  •{" "}
+                  <span className="font-bold">주식 보상 (월 최대 8,000원)</span>
+                </li>
                 <li>• 연속 정답 보너스 20%</li>
               </ul>
               <button
@@ -415,7 +471,9 @@ export default function LandingPage() {
 
             {/* Premium Plan */}
             <div className="bg-white p-8 rounded-2xl shadow-md border-2 border-primary-200">
-              <h3 className="text-2xl font-bold mb-2 text-neutral-800">프리미엄</h3>
+              <h3 className="text-2xl font-bold mb-2 text-neutral-800">
+                프리미엄
+              </h3>
               <div className="flex items-baseline gap-2 mb-6">
                 <div className="text-4xl font-bold text-primary-600">
                   ₩19,900
@@ -424,11 +482,23 @@ export default function LandingPage() {
               </div>
               <ul className="space-y-3 mb-8 text-neutral-700 text-sm">
                 <li>• 베이직 전체 기능</li>
-                <li>• <span className="font-bold">주식 보상 2.5배 (월 최대 25,000원)</span></li>
-                <li>• <span className="font-bold">자격증 트랙 전체 (3종)</span></li>
+                <li>
+                  •{" "}
+                  <span className="font-bold">
+                    주식 보상 2.5배 (월 최대 25,000원)
+                  </span>
+                </li>
+                <li>
+                  • <span className="font-bold">자격증 트랙 전체 (3종)</span>
+                </li>
                 <li>• AI 맞춤 학습 추천</li>
                 <li>• 1:1 멘토링 (월 1회)</li>
-                <li>• <span className="font-bold">자격증 합격 보너스 (최대 50,000원)</span></li>
+                <li>
+                  •{" "}
+                  <span className="font-bold">
+                    자격증 합격 보너스 (최대 50,000원)
+                  </span>
+                </li>
               </ul>
               <button
                 onClick={handleCTA}
@@ -444,7 +514,9 @@ export default function LandingPage() {
 
           {/* 비교 강조 */}
           <div className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-primary-500 p-6 rounded-lg">
-            <h4 className="font-bold text-lg mb-2 text-neutral-800">자격증 학원과 비교</h4>
+            <h4 className="font-bold text-lg mb-2 text-neutral-800">
+              자격증 학원과 비교
+            </h4>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-neutral-600 mb-2">일반 금융자격증 학원</p>
@@ -455,9 +527,14 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div>
-                <p className="text-primary-600 font-bold mb-2">Financely 프리미엄</p>
+                <p className="text-primary-600 font-bold mb-2">
+                  Financely 프리미엄
+                </p>
                 <ul className="space-y-1 text-neutral-700">
-                  <li>• <span className="font-bold">월 19,900원 (자격증 3종)</span></li>
+                  <li>
+                    •{" "}
+                    <span className="font-bold">월 19,900원 (자격증 3종)</span>
+                  </li>
                   <li>• 언제 어디서나</li>
                   <li>• 기초부터 체계적 학습</li>
                 </ul>
@@ -515,7 +592,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col items-center mb-8">
             <Image
-              src="/favicon/apple-icon-180x180.png"
+              src="/icons/logo.png"
               alt="Financely"
               width={48}
               height={48}
@@ -523,7 +600,8 @@ export default function LandingPage() {
             />
             <p className="font-bold text-white text-lg mb-2">Financely</p>
             <p className="text-sm text-neutral-400 text-center max-w-md">
-              게임처럼 재미있게 배우고, 실제 자산을 쌓는<br />
+              게임처럼 재미있게 배우고, 실제 자산을 쌓는
+              <br />
               20대를 위한 금융 학습 플랫폼
             </p>
           </div>
@@ -539,5 +617,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
