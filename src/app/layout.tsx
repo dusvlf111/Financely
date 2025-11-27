@@ -1,15 +1,29 @@
-"use client";
-import AssistantWidget from "@/components/modals/AssistantWidget";
-import FeedbackWidget from "@/components/modals/FeedbackWidget";
+import AppFrame from "@/components/layout/AppFrame";
 import AuthProvider from "@/lib/context/AuthProvider";
 import { EnergyProvider } from "@/lib/store/energyStore";
 import { usePathname } from "next/navigation";
 import React from "react";
-import Header from "../components/layout/Header";
-import Navigation from "../components/layout/Navigation";
 import "./globals.css";
 import PwaInstallCapture from "./PwaInstallCapture";
 
+export const viewport: Viewport = {
+  themeColor: "#3182F6",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
+export const metadata: Metadata = {
+  appleWebApp: {
+    title: "Financely",
+    statusBarStyle: "black-translucent",
+    startupImage: [
+      "/web-app-manifest-512x512.png",
+      "/web-app-manifest-192x192.png",
+    ],
+  },
+};
 export default function RootLayout({
   children,
 }: {
@@ -25,13 +39,7 @@ export default function RootLayout({
           <EnergyProvider>
             <PwaInstallCapture />
             {isLayoutNeeded ? (
-              <div className="max-w-[768px] mx-auto">
-                <Header />
-                <main className="px-4 pt-4 pb-48">{children}</main>
-                <Navigation />
-                <AssistantWidget />
-                <FeedbackWidget />
-              </div>
+              <AppFrame>{children}</AppFrame>
             ) : (
               <>{children}</>
             )}
