@@ -1,6 +1,7 @@
 "use client";
 import AssistantWidget from "@/components/modals/AssistantWidget";
 import FeedbackWidget from "@/components/modals/FeedbackWidget";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import AuthProvider from "@/lib/context/AuthProvider";
 import { EnergyProvider } from "@/lib/store/energyStore";
 import { Analytics } from "@vercel/analytics/next";
@@ -72,6 +73,7 @@ export default function RootLayout({
             )}
           </EnergyProvider>
         </AuthProvider>
+        <GoogleAnalytics />
         <Analytics />
         <SpeedInsights />
       </body>
