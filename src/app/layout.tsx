@@ -1,7 +1,10 @@
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import AppFrame from "@/components/layout/AppFrame";
 import TutorialRedirector from "@/components/layout/TutorialRedirector";
 import AuthProvider from "@/lib/context/AuthProvider";
 import { EnergyProvider } from "@/lib/store/energyStore";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import React from "react";
 import "./globals.css";
