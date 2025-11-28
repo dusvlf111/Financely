@@ -17,7 +17,7 @@ const createGuestProfile = (): Profile => ({
   level: 1,
   xp: 0,
   streak: 0,
-  tutorialCompleted: false,
+  tutorial_completed: false,
 });
 
 const loadGuestProfile = (): Profile | null => {
@@ -58,7 +58,7 @@ export type Profile = {
   level: number;
   xp: number;
   streak: number;
-  tutorialCompleted?: boolean;
+  tutorial_completed?: boolean;
 };
 
 type DbProfileRow = {
@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       level: data.level ?? 1,
       xp: data.xp ?? 0,
       streak: data.streak ?? 0,
-      tutorialCompleted: data.tutorial_completed ?? false,
+      tutorial_completed: data.tutorial_completed ?? false,
     });
 
     const restoreGuestProfileIfAvailable = () => {
@@ -265,7 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         level: data.level,
         xp: data.xp,
         avatar_url: data.avatar_url,
-        tutorialCompleted: data.tutorial_completed,
+        tutorial_completed: data.tutorial_completed,
       };
       setProfile(formattedProfile);
       const { addGoldEntry } = useGoldStore.getState();
@@ -304,7 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         level: data.level,
         xp: data.xp,
         avatar_url: data.avatar_url,
-        tutorialCompleted: data.tutorial_completed,
+        tutorial_completed: data.tutorial_completed,
       };
       setProfile(formattedProfile);
       const { addGoldEntry } = useGoldStore.getState();
@@ -340,7 +340,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         level: data.level,
         xp: data.xp,
         avatar_url: data.avatar_url,
-        tutorialCompleted: data.tutorial_completed,
+        tutorial_completed: data.tutorial_completed,
       };
       setProfile(formattedProfile);
     }
@@ -350,14 +350,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isGuest) {
       setProfile((prev) => {
         if (!prev) return prev;
-        const next = { ...prev, tutorialCompleted: true };
+        const next = { ...prev, tutorial_completed: true };
         persistGuestProfile(next);
         return next;
       });
       return;
     }
     if (!user) return;
-    await updateProfile({ tutorialCompleted: true });
+    console.log("completeTutorial called for user:", user.id);
+    await updateProfile({ tutorial_completed: true });
   }
 
   const incrementStreak = async () => {

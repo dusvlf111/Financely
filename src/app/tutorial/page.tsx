@@ -1,103 +1,97 @@
-"use client"
-import React, { useState, useEffect } from 'react'
-import tutorialSteps from '@/lib/mock/tutorial'
-import Link from 'next/link'
-import { useAuth } from '@/lib/context/AuthProvider'
+"use client";
+
+import { useAuth } from "@/lib/context/AuthProvider";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+const SLIDES = [
+  { id: 1, src: "/tutorial/1.png", alt: "튜토리얼 1단계" },
+  { id: 2, src: "/tutorial/2.png", alt: "튜토리얼 2단계" },
+  { id: 3, src: "/tutorial/3.png", alt: "튜토리얼 3단계" },
+  { id: 4, src: "/tutorial/4.png", alt: "튜토리얼 4단계" },
+];
 
 export default function TutorialPage() {
-  const [stepIndex, setStepIndex] = useState(0)
-  const [totalGold, setTotalGold] = useState(0)
-  const [choices, setChoices] = useState<Record<string, string>>({})
-  const { addGold, completeTutorial } = useAuth()
-  const [claimed, setClaimed] = useState(false)
-
-  const step = tutorialSteps[stepIndex]
-  const finished = stepIndex >= tutorialSteps.length - 1 && !!choices[step.id]
+  const router = useRouter();
+  const { profile, completeTutorial, isAuthLoading } = useAuth();
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
-    if (finished && addGold && !claimed) {
-      addGold(totalGold)
-      if (completeTutorial) {
-        completeTutorial()
-      }
-      setClaimed(true)
+    if (isAuthLoading) return;
+    if (profile?.tutorial_completed) {
+      router.replace("/learn");
     }
-  }, [addGold, claimed, completeTutorial, finished, totalGold])
+  }, [isAuthLoading, profile?.tutorial_completed, router]);
 
-  function selectChoice(choiceId: string, gold: number) {
-    setChoices(prev => ({ ...prev, [step.id]: choiceId }))
-    setTotalGold(g => g + gold)
-    if (stepIndex < tutorialSteps.length - 1) setStepIndex(stepIndex + 1)
-  }
+  const goPrev = useCallback(() => {
+    setSlideIndex((prev) => Math.max(prev - 1, 0));
+  }, []);
 
-  if (!step) return <div className="p-6">튜토리얼을 불러오는 중입니다...</div>
+  const handlePrimaryAction = useCallback(async () => {
+    if (slideIndex < SLIDES.length - 1) {
+      setSlideIndex((prev) => Math.min(prev + 1, SLIDES.length - 1));
+      return;
+    }
 
+    if (isCompleting) return;
+    setIsCompleting(true);
 
+    try {
+      if (completeTutorial) {
+        await completeTutorial();
+      }
+      router.replace("/learn");
+    } finally {
+      setIsCompleting(false);
+    }
+  }, [completeTutorial, router, slideIndex, isCompleting]);
+
+  const nextLabel = useMemo(
+    () => (slideIndex === SLIDES.length - 1 ? "시작!" : "다음"),
+    [slideIndex]
+  );
 
   return (
-    <div className="max-w-[768px] mx-auto px-4 py-6">
-      <h1 className="text-2xl font-semibold mb-4">튜토리얼</h1>
+    <div className="relative mx-auto h-screen max-w-[700px] max-h-[1000px]">
+      <div className="absolute inset-0">
+        <Image
+          key={SLIDES[slideIndex].id}
+          src={SLIDES[slideIndex].src}
+          alt={SLIDES[slideIndex].alt}
+          fill
+          priority
+          className="object-contain"
+          sizes="100vw"
+        />
+      </div>
 
-      {!finished ? (
-        <section className="bg-white border rounded-md p-6">
-          <h2 className="text-lg font-bold mb-2">{step.title}</h2>
-          <p className="text-neutral-600 mb-4">{step.content}</p>
+      <div className="pointer-events-none absolute left-0 w-full bottom-10 flex items-center justify-between px-5">
+        {slideIndex ? (
+          <button
+            type="button"
+            onClick={goPrev}
+            className="pointer-events-auto flex h-13 w-18 items-center justify-center rounded-xl bg-primary-500 text-white shadow-lg transition disabled:opacity-40 text-xl font-bold cursor-pointer"
+            aria-label="이전"
+          >
+            이전
+          </button>
+        ) : (
+          <div className="w-18" />
+        )}
 
-          <div className="space-y-2">
-            {step.choices.map(c => (
-              <button
-                key={c.id}
-                onClick={() => selectChoice(c.id, c.gold)}
-                className="w-full text-left bg-neutral-50 border rounded-md p-3"
-              >
-                <div className="flex justify-between items-center">
-                  <div>{c.label}</div>
-                  <div className="text-sm text-green-600">+{c.gold}G</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : (
-        <section className="bg-white border rounded-md p-6">
-          <h2 className="text-lg font-bold mb-2">튜토리얼 완료</h2>
-          <p className="mb-4">축하합니다! 튜토리얼을 완료하셨습니다.</p>
-          <div className="mb-3">획득한 총 골드: <strong>{totalGold}G</strong></div>
-          {addGold ? (
-            <div className="mb-4">
-              <button
-                onClick={() => {
-                  if (!claimed) {
-                    addGold(totalGold)
-                    setClaimed(true)
-                  }
-                }}
-                disabled={claimed}
-                className="btn-success disabled:opacity-50"
-              >
-                {claimed ? '수령 완료' : '골드 수령하기'}
-              </button>
-              <div className="text-sm text-neutral-500 mt-2">
-                {claimed ? '골드가 계정에 지급되었습니다.' : '완료 시 자동으로 지급됩니다.'}
-              </div>
-            </div>
-          ) : null}
-          <div className="mb-4">
-            <h3 className="font-semibold">선택 요약</h3>
-            <ul className="list-disc pl-5">
-              {tutorialSteps.map(s => (
-                <li key={s.id} className="text-sm text-neutral-700">
-                  {s.title}: {choices[s.id] ?? '선택 없음'}
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="flex-1" />
 
-          <Link href="/learn" className="inline-block btn-primary">
-            학습 시작하기
-          </Link>
-        </section>
-      )}
+        <button
+          type="button"
+          onClick={handlePrimaryAction}
+          className="pointer-events-auto flex h-13 w-18 items-center justify-center rounded-xl bg-primary-500 text-white shadow-lg transition disabled:opacity-40 text-xl font-bold cursor-pointer"
+          aria-label={nextLabel}
+        >
+          {nextLabel}
+        </button>
+      </div>
     </div>
-  )
+  );
 }

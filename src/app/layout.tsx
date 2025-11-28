@@ -1,4 +1,5 @@
 import AppFrame from "@/components/layout/AppFrame";
+import TutorialRedirector from "@/components/layout/TutorialRedirector";
 import AuthProvider from "@/lib/context/AuthProvider";
 import { EnergyProvider } from "@/lib/store/energyStore";
 import type { Metadata, Viewport } from "next";
@@ -34,8 +35,10 @@ export default function RootLayout({
       <body className="min-h-screen bg-neutral-100 text-neutral-800 text-base">
         <AuthProvider>
           <EnergyProvider>
-            <PwaInstallCapture />
-            <AppFrame>{children}</AppFrame>
+            <TutorialRedirector>
+              <PwaInstallCapture />
+              <AppFrame>{children}</AppFrame>
+            </TutorialRedirector>
           </EnergyProvider>
         </AuthProvider>
       </body>
