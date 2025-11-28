@@ -28,7 +28,12 @@ type OpenAIResponsesPayload = {
 
 function unauthorizedResponse() {
   return NextResponse.json(
-    { error: { code: "UNAUTHORIZED", message: "로그인이 필요한 기능입니다." } },
+    {
+      error: {
+        code: "UNAUTHORIZED",
+        message: "로그인이 필요한 기능입니다. 현재 게스트 로그인입니다.",
+      },
+    },
     { status: 401 }
   );
 }
