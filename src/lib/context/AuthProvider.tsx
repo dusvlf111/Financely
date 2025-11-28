@@ -78,6 +78,10 @@ type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   login: (provider: string) => Promise<void>;
+  loginWithEmail: (
+    email: string,
+    password: string
+  ) => Promise<{ success: true } | { success: false; error: string }>;
   logout: () => Promise<void>;
   loginAsGuest: () => Promise<void>;
   isGuest: boolean;
@@ -209,6 +213,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         redirectTo: `${location.origin}/auth/callback`,
       },
     });
+  }
+
+  async function loginWithEmail(email: string, password: string) {
+    setIsAuthLoading(true);
+    try {
+      markGuestSession(false);
+      if (isGuest) {
+        setIsGuest(false);
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error || !data.user) {
+        const message = error?.message ?? "로그인에 실패했습니다";
+        return { success: false as const, error: message };
+      }
+
+      setUser(data.user);
+      return { success: true as const };
+    } catch (err) {
+      console.error("Unexpected email login error", err);
+      return {
+        success: false as const,
+        error: "예상치 못한 오류가 발생했어요",
+      };
+    } finally {
+      setIsAuthLoading(false);
+    }
   }
 
   async function loginAsGuest() {
@@ -441,6 +476,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     profile,
     login,
+    loginWithEmail,
     logout,
     loginAsGuest,
     isGuest,

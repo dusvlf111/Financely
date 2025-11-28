@@ -23,6 +23,10 @@ export default function LoginPage() {
     router.replace("/learn");
   }
 
+  function handleEmailLogin() {
+    router.push("/login/email");
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-white px-4">
       <div className="w-full max-w-sm text-center">
@@ -65,6 +69,13 @@ export default function LoginPage() {
             >
               카카오로 시작하기
             </SocialButton>
+            <button
+              type="button"
+              className="w-full rounded-xl border border-primary-200 px-4 py-3 text-sm font-semibold text-primary-600 hover:bg-primary-50"
+              onClick={handleEmailLogin}
+            >
+              이메일로 로그인하기
+            </button>
             <button
               type="button"
               className="w-full px-4 py-3 rounded-xl border border-dashed border-primary-200 text-sm font-medium text-primary-600 bg-white/80 hover:bg-primary-50 transition-colors"
