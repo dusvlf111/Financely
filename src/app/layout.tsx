@@ -41,6 +41,9 @@ export default function RootLayout({
             </TutorialRedirector>
           </EnergyProvider>
         </AuthProvider>
+        <GoogleAnalytics />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
