@@ -85,7 +85,7 @@ type AuthContextType = {
   signUpWithEmail: (
     email: string,
     password: string
-  ) => Promise<{ success: false; error: string }>;
+  ) => Promise<{ success: true } | { success: false; error: string }>;
   logout: () => Promise<void>;
   loginAsGuest: () => Promise<void>;
   isGuest: boolean;
