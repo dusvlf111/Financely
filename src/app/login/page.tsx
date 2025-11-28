@@ -74,7 +74,7 @@ export default function LoginPage() {
               className="w-full rounded-xl border border-primary-200 px-4 py-3 text-sm font-semibold text-primary-600 hover:bg-primary-50"
               onClick={handleEmailLogin}
             >
-              이메일로 로그인하기
+              이메일로 시작하기
             </button>
             <button
               type="button"

@@ -5,21 +5,27 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-const emailPattern = /.+@.+\..+/;
-
 type FormState = {
   email: string;
   password: string;
 };
 
-type FormErrors = Partial<FormState>;
+type FormErrors = Partial<FormState> & { terms?: string };
 
-export default function EmailLoginPage() {
+const emailPattern = /.+@.+\..+/;
+
+export default function EmailSignupPage() {
   const router = useRouter();
-  const { loginWithEmail, isAuthLoading, user, isGuest } = useAuth();
-  const [form, setForm] = useState<FormState>({ email: "", password: "" });
+  const { signUpWithEmail, isAuthLoading, user, isGuest } = useAuth();
+
+  const [form, setForm] = useState<FormState>({
+    email: "",
+    password: "",
+  });
+  const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isProcessing = useMemo(
@@ -44,8 +50,13 @@ export default function EmailLoginPage() {
     if (!form.password) {
       nextErrors.password = "비밀번호를 입력해주세요";
     } else if (form.password.length < 6) {
-      nextErrors.password = "6자 이상 입력해주세요";
+      nextErrors.password = "6자 이상 설정해주세요";
     }
+
+    if (!agreed) {
+      nextErrors.terms = "약관에 동의해주세요";
+    }
+
     return nextErrors;
   };
 
@@ -54,25 +65,25 @@ export default function EmailLoginPage() {
     const validation = validate();
     setErrors(validation);
     setServerError(null);
+    setSuccessMessage(null);
 
     if (Object.keys(validation).length > 0) {
       return;
     }
 
     setIsSubmitting(true);
-    const result = await loginWithEmail(form.email.trim(), form.password);
+    const result = await signUpWithEmail(form.email.trim(), form.password);
+
     if (!result.success) {
       setServerError(result.error);
       setIsSubmitting(false);
       return;
     }
-
-    router.replace("/learn");
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-lg">
         <div className="mb-6">
           <Link
             href="/login"
@@ -82,13 +93,10 @@ export default function EmailLoginPage() {
           </Link>
         </div>
 
-        <div className="rounded-2xl bg-white/80 p-8 shadow-lg backdrop-blur">
+        <div className="rounded-2xl bg-white/85 p-8 shadow-xl backdrop-blur-sm">
           <h1 className="mb-2 text-3xl font-bold text-primary-600">
-            이메일로 로그인
+            이메일로 회원가입
           </h1>
-          <p className="mb-6 text-sm text-neutral-500">
-            가입 시 사용한 이메일과 비밀번호를 입력해주세요.
-          </p>
 
           <form className="space-y-5" onSubmit={handleSubmit} noValidate>
             <div>
@@ -102,13 +110,15 @@ export default function EmailLoginPage() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
                 value={form.email}
+                placeholder="you@example.com"
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, email: event.target.value }))
                 }
                 aria-invalid={Boolean(errors.email)}
-                aria-describedby={errors.email ? "email-error" : undefined}
+                aria-describedby={
+                  errors.email ? "signup-email-error" : undefined
+                }
                 className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 ${
                   errors.email
                     ? "border-red-400 focus:ring-red-400"
@@ -116,7 +126,10 @@ export default function EmailLoginPage() {
                 }`}
               />
               {errors.email ? (
-                <p id="email-error" className="mt-1 text-xs text-red-500">
+                <p
+                  id="signup-email-error"
+                  className="mt-1 text-xs text-red-500"
+                >
                   {errors.email}
                 </p>
               ) : null}
@@ -132,15 +145,18 @@ export default function EmailLoginPage() {
               <input
                 id="password"
                 type="password"
-                autoComplete="current-password"
-                placeholder="비밀번호"
+                autoComplete="new-password"
+                placeholder="최소 6자"
                 value={form.password}
                 onChange={(event) =>
-                  setForm((prev) => ({ ...prev, password: event.target.value }))
+                  setForm((prev) => ({
+                    ...prev,
+                    password: event.target.value,
+                  }))
                 }
                 aria-invalid={Boolean(errors.password)}
                 aria-describedby={
-                  errors.password ? "password-error" : undefined
+                  errors.password ? "signup-password-error" : undefined
                 }
                 className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 ${
                   errors.password
@@ -149,15 +165,40 @@ export default function EmailLoginPage() {
                 }`}
               />
               {errors.password ? (
-                <p id="password-error" className="mt-1 text-xs text-red-500">
+                <p
+                  id="signup-password-error"
+                  className="mt-1 text-xs text-red-500"
+                >
                   {errors.password}
                 </p>
               ) : null}
             </div>
 
+            <label className="flex items-start gap-2 text-sm text-neutral-600">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-400"
+                checked={agreed}
+                onChange={(event) => setAgreed(event.target.checked)}
+              />
+              <span>
+                <strong>이용약관</strong>과 <strong>개인정보 처리방침</strong>에
+                동의합니다.
+              </span>
+            </label>
+            {errors.terms ? (
+              <p className="-mt-3 text-xs text-red-500">{errors.terms}</p>
+            ) : null}
+
             {serverError ? (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                 {serverError}
+              </div>
+            ) : null}
+
+            {successMessage ? (
+              <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                {successMessage}
               </div>
             ) : null}
 
@@ -166,15 +207,15 @@ export default function EmailLoginPage() {
               disabled={isProcessing}
               className="w-full rounded-xl bg-primary-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-primary-200"
             >
-              {isProcessing ? "로그인 중..." : "로그인"}
+              {isProcessing ? "가입 진행 중..." : "회원가입"}
             </button>
           </form>
         </div>
 
         <p className="mt-6 text-center text-xs text-neutral-500">
-          아직 계정이 없으신가요?{" "}
-          <Link href="/signup/email" className="font-semibold text-primary-600">
-            회원가입하기
+          이미 계정이 있으신가요?{" "}
+          <Link href="/login/email" className="font-semibold text-primary-600">
+            로그인하기
           </Link>
         </p>
       </div>

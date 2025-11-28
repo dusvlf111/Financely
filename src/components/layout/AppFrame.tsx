@@ -16,6 +16,8 @@ export default function AppFrame({ children }: AppFrameProps) {
   const excludedRoutes = new Set([
     "/splash",
     "/login",
+    "/login/email",
+    "/signup/email",
     "/landing",
     "/tutorial",
   ]);
