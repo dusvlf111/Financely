@@ -1,38 +1,39 @@
 /* Pretendard 폰트 import */
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
- 
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 /* Animate.css import */
-@import 'animate.css';
- 
+@import "animate.css";
+
 /* 커스텀 애니메이션 설정 */
-@import './animations.css';
- 
+@import "./animations.css";
+
 @import "tailwindcss";
 
 @theme {
-  --font-sans: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-sans:
+    Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
-  --color-primary-50: #E8F3FF;
-  --color-primary-100: #D1E7FF;
-  --color-primary-200: #A3CFFF;
-  --color-primary-300: #74B7FF;
-  --color-primary-400: #469FFF;
-  --color-primary-500: #3182F6;
-  --color-primary-600: #2768C4;
-  --color-primary-700: #1D4E93;
+  --color-primary-50: #e8f3ff;
+  --color-primary-100: #d1e7ff;
+  --color-primary-200: #a3cfff;
+  --color-primary-300: #74b7ff;
+  --color-primary-400: #469fff;
+  --color-primary-500: #3182f6;
+  --color-primary-600: #2768c4;
+  --color-primary-700: #1d4e93;
   --color-primary-800: #143462;
-  --color-primary-900: #0A1A31;
+  --color-primary-900: #0a1a31;
 
-  --color-neutral-50: #F0F0F0;
-  --color-neutral-100: #E6E6E6;
-  --color-neutral-200: #CCCCCC;
-  --color-neutral-300: #B3B3B3;
+  --color-neutral-50: #f0f0f0;
+  --color-neutral-100: #e6e6e6;
+  --color-neutral-200: #cccccc;
+  --color-neutral-300: #b3b3b3;
   --color-neutral-400: #999999;
   --color-neutral-500: #808080;
   --color-neutral-600: #666666;
-  --color-neutral-700: #4E4E4E;
+  --color-neutral-700: #4e4e4e;
   --color-neutral-800: #333333;
-  --color-neutral-900: #1A1A1A;
+  --color-neutral-900: #1a1a1a;
 }
 
 @layer components {
@@ -67,7 +68,7 @@
 
   /* === 소셜 로그인 버튼 === */
   .btn-social {
-    @apply w-full flex items-center justify-center gap-2 py-3 px-5 rounded-lg font-semibold transition-colors;
+    @apply w-full flex items-center justify-center gap-2 h-13 px-5 rounded-lg font-semibold transition-colors;
     @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
   .btn-kakao {
@@ -130,7 +131,7 @@
   }
 
   .bottom-nav-container {
-    @apply max-w-[768px] mx-auto px-4 ;
+    @apply max-w-[768px] mx-auto px-4;
   }
 
   .bottom-nav-bar {
@@ -164,16 +165,22 @@
   .nav-label {
     @apply text-xs font-medium;
   }
-  
 }
 
 /* 기본 글로벌 스타일 */
-html, body, #__next {
+html,
+body,
+#__next {
   height: 100%;
 }
 
 body {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family:
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
   color: #000000;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }

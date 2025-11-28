@@ -109,7 +109,7 @@ describe("AuthProvider loading state", () => {
       level: 1,
       xp: 0,
       streak: 0,
-      tutorialCompleted: false,
+      tutorial_completed: false,
     };
 
     window.localStorage.setItem("financely_guest_session", "true");

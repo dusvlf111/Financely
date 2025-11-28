@@ -30,7 +30,7 @@ export default function LoginPage() {
           {/* 로고 */}
           <div className="flex justify-center mb-6">
             <Image
-              src="/favicon/apple-icon-180x180.png"
+              src="/icons/logo.png"
               alt="Financely"
               width={112}
               height={112}
