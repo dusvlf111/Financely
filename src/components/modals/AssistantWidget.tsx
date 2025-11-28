@@ -2,6 +2,7 @@
 
 import { MAX_MESSAGE_LENGTH, useAssistantChat } from "@/hooks/useAssistantChat";
 import { useAuth } from "@/lib/context/AuthProvider";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -101,7 +102,7 @@ export default function AssistantWidget() {
         >
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="text-sm font-semibold text-neutral-900">
-              AI 금융 어시스턴트
+              AI 금융 튜터
             </p>
             <button
               type="button"
@@ -196,15 +197,18 @@ export default function AssistantWidget() {
 
       <button
         type="button"
-        className="flex items-center gap-2 rounded-full bg-primary-800 px-4 py-2 text-sm font-semibold text-white shadow-xl hover:bg-primary-700 duration-300 cursor-pointer"
+        className="flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-xl hover:bg-primary-700 duration-300 cursor-pointer"
         onClick={handleToggle}
         aria-expanded={isOpen}
         aria-controls="assistant-widget"
       >
-        <span role="img" aria-hidden="true">
-          💬
-        </span>
-        AI 질문하기
+        <Image
+          src="/icons/bot-message-square.svg"
+          alt="Assistant"
+          width={20}
+          height={20}
+        />
+        AI 튜터
       </button>
     </div>
   );

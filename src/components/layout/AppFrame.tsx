@@ -16,6 +16,8 @@ export default function AppFrame({ children }: AppFrameProps) {
   const excludedRoutes = new Set([
     "/splash",
     "/login",
+    "/login/email",
+    "/signup/email",
     "/landing",
     "/tutorial",
   ]);
@@ -26,7 +28,7 @@ export default function AppFrame({ children }: AppFrameProps) {
         <Header />
         <main className="px-4 pt-4 pb-48">{children}</main>
         <Navigation />
-        <AssistantWidget />
+        {!pathname.startsWith("/problems") && <AssistantWidget />}
         <FeedbackWidget />
       </div>
     );

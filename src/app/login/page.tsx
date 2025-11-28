@@ -23,6 +23,10 @@ export default function LoginPage() {
     router.replace("/learn");
   }
 
+  function handleEmailLogin() {
+    router.push("/login/email");
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-white px-4">
       <div className="w-full max-w-sm text-center">
@@ -54,12 +58,6 @@ export default function LoginPage() {
               구글로 시작하기
             </SocialButton>
             <SocialButton
-              provider="naver"
-              onClick={() => handleSocialLogin("naver 미구현")}
-            >
-              네이버로 시작하기
-            </SocialButton>
-            <SocialButton
               provider="kakao"
               onClick={() => handleSocialLogin("kakao")}
             >
@@ -67,7 +65,14 @@ export default function LoginPage() {
             </SocialButton>
             <button
               type="button"
-              className="w-full px-4 py-3 rounded-xl border border-dashed border-primary-200 text-sm font-medium text-primary-600 bg-white/80 hover:bg-primary-50 transition-colors"
+              className="w-full rounded-xl bg-primary-400 border border-primary-200 h-13 px-4 font-semibold text-white hover:bg-primary-600"
+              onClick={handleEmailLogin}
+            >
+              이메일로 시작하기
+            </button>
+            <button
+              type="button"
+              className="w-full px-3 rounded-xl border border-dashed h-13 border-primary-200 font-medium text-primary-600 bg-white/80 hover:bg-primary-50 transition-colors"
               onClick={handleGuestLogin}
             >
               게스트로 시작하기
