@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/context/AuthProvider";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -404,15 +405,18 @@ export default function FeedbackWidget() {
 
       <button
         type="button"
-        className="flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-xl hover:bg-amber-500 duration-300 cursor-pointer"
+        className="flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-xl hover:bg-amber-500 duration-300 cursor-pointer"
         onClick={toggleOpen}
         aria-expanded={isOpen}
         aria-controls="feedback-widget"
       >
-        <span role="img" aria-hidden="true">
-          📝
-        </span>
-        피드백 보내기
+        <Image
+          src="/icons/message-circle-warning.svg"
+          alt="Feedback"
+          width={20}
+          height={20}
+        />
+        피드백
       </button>
     </div>
   );
