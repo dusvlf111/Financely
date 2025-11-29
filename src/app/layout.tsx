@@ -19,6 +19,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  title: "Financely - 금융 학습 플랫폼",
+  description: "재미있게 배우는 금융 게임화 학습 플랫폼",
   appleWebApp: {
     title: "Financely",
     statusBarStyle: "black-translucent",
